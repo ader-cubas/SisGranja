@@ -1,4 +1,4 @@
-# SisGranja v2.5
+# SisGranja v2.6
 
 Aplicación de gestión para galpón cuyícola. El SPA está contenido en `index.html`; los registros se guardan en el `localStorage` del navegador.
 

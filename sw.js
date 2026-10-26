@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisgranja-v2.5.4-pages';
+const CACHE_NAME = 'sisgranja-v2.6.0-pages';
 const OFFLINE_URL = './index.html';
 
 self.addEventListener('install', event => {
