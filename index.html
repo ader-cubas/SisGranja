@@ -2252,6 +2252,27 @@
             document.getElementById('photo-display').removeAttribute('src');
         }
 
+        function guardarTemperatura(event) {
+            event.preventDefault();
+            const campo = document.getElementById('temperatura-actual');
+            const valor = campo.valueAsNumber;
+            if (!Number.isFinite(valor) || valor < -10 || valor > 60) {
+                campo.reportValidity();
+                mostrarToast('Ingresa una temperatura válida entre -10 y 60 °C', 'error');
+                return;
+            }
+
+            db.temperatura = { valor, fecha: new Date().toISOString() };
+            actualizarTemperatura();
+            try {
+                guardarBD('Lectura de temperatura guardada correctamente');
+            } catch (error) {
+                console.error('No se pudo persistir la temperatura:', error);
+                actualizarTemperatura();
+                mostrarToast('Temperatura actualizada en pantalla, pero no se pudo guardar en el navegador', 'error');
+            }
+        }
+
         function actualizarTemperatura() {
             const alerta = document.getElementById('temperatura-alerta');
             const panel = document.getElementById('temperature-panel');
