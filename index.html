@@ -520,7 +520,7 @@
                         </div>
                         <div id="temperatura-valor" class="temperature-alert rounded-xl border px-5 py-3 text-3xl font-extrabold tabular-nums" aria-live="polite">--.- °C</div>
                     </div>
-                    <form onsubmit="guardarTemperatura(event)" class="flex flex-wrap items-end gap-3 mt-4">
+                    <form id="temperatura-form" class="flex flex-wrap items-end gap-3 mt-4">
                         <label class="flex-1 min-w-36 text-xs font-bold text-stone-600">Temperatura actual (°C)
                             <input type="number" id="temperatura-actual" step="0.1" min="-10" max="60" required class="mt-1 w-full px-3 py-2 border rounded-xl text-base" placeholder="Ej. 21.5">
                         </label>
@@ -2777,6 +2777,7 @@
         }
 
         // Inicialización
+        document.getElementById('temperatura-form').addEventListener('submit', guardarTemperatura);
         cargarDatos();
         registrarControlesCampo();
         renderizarTodo();
