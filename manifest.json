@@ -1,9 +1,0 @@
-{
-  "name": "SisGranja v2.6 - Control Cuyícola",
-  "short_name": "SisGranja",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#064e3b",
-  "theme_color": "#064e3b"
-}

@@ -10,4 +10,4 @@ Abre `index.html` en un navegador moderno. Los datos permanecen en ese navegador
 
 Publica la rama `main` y configura **Settings > Pages > Deploy from a branch > main > /(root)**. La URL tendrá el formato `https://<usuario>.github.io/SisGranja-NuevaGranja/`.
 
-El HTML carga Tailwind, iconos, Chart.js y QR desde CDN. La persistencia es local, pero la apariencia y algunas funciones requieren conexión si esos recursos no están en caché. El service worker conserva la página de entrada para navegación offline.
+El HTML no solicita recursos externos ni usa `fetch`, service workers o un servidor de aplicación. Los datos se guardan solo en el navegador actual; descarga backups para transferirlos. Los gráficos usan canvas local. Las etiquetas imprimibles muestran el identificador textual de la poza, no un QR escaneable.
