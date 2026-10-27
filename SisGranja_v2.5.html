@@ -969,6 +969,15 @@
                                     <input type="number" id="baja-cantidad" required min="1" value="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
                                 </label>
                             </div>
+                            <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p class="text-sm font-bold text-amber-900">Sin conexión: el análisis fotográfico requiere internet. Respaldo por zona afectada:</p>
+                                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                    <button type="button" onclick="mostrarZonaDrCuy('higado')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hígado</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('intestino')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Intestino</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('piel')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Piel</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('pulmon')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Pulmón</button>
+                                </div>
+                            </div>
                             <div id="baja-results" class="hidden space-y-1 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-stone-900" aria-live="polite">
                                 <div id="baja-result-lineas" class="space-y-1"></div>
                             </div>
@@ -2118,9 +2127,10 @@
         function mostrarDiagnosticoDrCuy(resultado) {
             const filas = [
                 ['Enfermedad detectada', resultado.enfermedad],
-                ['Fármaco principal', resultado.farmaco],
-                ['Dosis y días', resultado.dosis],
-                ['Acción en poza', resultado.accion]
+                ['Fármaco y dosis', resultado.farmaco_dosis],
+                ['Días de duración', resultado.dias],
+                ['Acción inmediata en poza', resultado.accion],
+                ['Prevención clave', resultado.prevencion]
             ];
             document.getElementById('baja-result-lineas').replaceChildren(...filas.map(([titulo, valor]) => {
                 const linea = document.createElement('p');
@@ -2131,6 +2141,37 @@
             }));
             document.getElementById('baja-results').classList.remove('hidden');
         }
+
+        // Guía local de respaldo; dosis de referencia que debe validar un veterinario.
+        const ZONAS_DR_CUY = {
+            higado: { enfermedad: 'Salmonelosis (puntos blancos en hígado)', farmaco_dosis: 'Enrofloxacina 5%, 0.1 ml/kg SC', dias: '5 días, 1 vez al día', accion: 'Aislar el lote, retirar cama y desinfectar la poza', prevencion: 'Agua y forraje limpios, cama seca, cuarentena de animales nuevos' },
+            intestino: { enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5%, 0.04 ml/kg vía oral', dias: '2 días, repetir a los 7 días', accion: 'Aislar afectados, retirar heces y desinfectar comederos', prevencion: 'Cama seca, baja densidad, limpieza diaria de bebederos' },
+            piel: { enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1%, 0.2 ml/kg SC', dias: '1 dosis, repetir a los 14 días', accion: 'Aislar afectados, cambiar cama y desinfectar jaulas', prevencion: 'Revisar piel de los contactos, cama limpia, evitar mezclar lotes' },
+            pulmon: { enfermedad: 'Neumonía / infección respiratoria', farmaco_dosis: 'Enrofloxacina 5%, 0.1 ml/kg SC', dias: '5 días, 1 vez al día', accion: 'Aislar al enfermo, ventilar sin corrientes y desinfectar', prevencion: 'Evitar humedad, polvo y cambios bruscos de temperatura' }
+        };
+
+        function mostrarZonaDrCuy(zona) {
+            const guia = ZONAS_DR_CUY[zona];
+            if (!guia) return;
+            bajaAnalisisActual = {
+                categoria_clinica: `Respaldo offline: ${zona}`,
+                diagnostico_situacion: guia.enfermedad,
+                causa_principal: guia.enfermedad,
+                accion_inmediata: guia.accion,
+                prevencion_diaria: guia.prevencion,
+                tratamiento_manejo: `${guia.farmaco_dosis}. ${guia.dias}`
+            };
+            mostrarDiagnosticoDrCuy(guia);
+        }
+
+        function actualizarRedDrCuy() {
+            const sinRed = !navigator.onLine;
+            document.getElementById('baja-offline-zonas').classList.toggle('hidden', !sinRed);
+            if (sinRed) estadoDrCuy('Sin conexión: se requiere internet para el análisis fotográfico.');
+        }
+        window.addEventListener('online', actualizarRedDrCuy);
+        window.addEventListener('offline', actualizarRedDrCuy);
+        document.addEventListener('DOMContentLoaded', actualizarRedDrCuy);
 
         async function previsualizarFotoBaja(event) {
             const archivo = event.target.files[0];
@@ -2162,9 +2203,11 @@
             previewCard.classList.remove('hidden');
 
             if (!navigator.onLine) {
-                estadoDrCuy('Sin conexión: se requiere internet para el análisis fotográfico.');
+                actualizarRedDrCuy();
+                previewCard.classList.remove('hidden');
                 return;
             }
+            document.getElementById('baja-offline-zonas').classList.add('hidden');
             estadoDrCuy('Analizando…', true);
             try {
                 const foto = await comprimirFotoClinica(archivo);
@@ -2173,7 +2216,8 @@
                 await analizarFotoBaja(foto, versionCaptura);
             } catch (error) {
                 if (versionCaptura !== bajaFotoVersion) return;
-                estadoDrCuy(navigator.onLine ? 'No se pudo analizar la foto. Intenta de nuevo.' : 'Sin conexión: se requiere internet para el análisis fotográfico.');
+                estadoDrCuy('No se pudo analizar la foto. Intenta de nuevo o usa el respaldo por zona.');
+                document.getElementById('baja-offline-zonas').classList.remove('hidden');
             }
         }
 
@@ -2185,13 +2229,14 @@
             const respuesta = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', apikey: publicKey },
-                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido' })
+                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido' }),
+                signal: AbortSignal.timeout(45000)
             });
             const payload = await respuesta.json().catch(() => ({}));
             if (!respuesta.ok) throw new Error(payload.error || 'Servicio no disponible');
             if (versionCaptura !== bajaFotoVersion) return;
             const r = payload.result || payload;
-            if (['enfermedad', 'farmaco', 'dosis', 'accion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
+            if (['enfermedad', 'farmaco_dosis', 'dias', 'accion', 'prevencion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
                 throw new Error('Respuesta incompleta');
             }
             bajaAnalisisActual = {
@@ -2199,8 +2244,8 @@
                 diagnostico_situacion: r.enfermedad,
                 causa_principal: r.enfermedad,
                 accion_inmediata: r.accion,
-                prevencion_diaria: r.accion,
-                tratamiento_manejo: `${r.farmaco}. ${r.dosis}`
+                prevencion_diaria: r.prevencion,
+                tratamiento_manejo: `${r.farmaco_dosis}. ${r.dias}`
             };
             mostrarDiagnosticoDrCuy(r);
             estadoDrCuy('Diagnóstico listo');

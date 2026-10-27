@@ -23,7 +23,7 @@ const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/
 
 const requestCounts = new Map<string, { count: number; startedAt: number }>();
 
-const SUMMARY_FIELDS = ['enfermedad', 'farmaco', 'dosis', 'accion'] as const;
+const SUMMARY_FIELDS = ['enfermedad', 'farmaco_dosis', 'dias', 'accion', 'prevencion'] as const;
 
 const schemaFor = (fields: readonly string[]) => ({
   type: 'OBJECT',
@@ -31,7 +31,7 @@ const schemaFor = (fields: readonly string[]) => ({
   required: [...fields],
 });
 
-const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 4 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"nombre de la enfermedad más probable","farmaco":"1 o 2 medicamentos exactos y efectivos, ej. Enrofloxacina 5% o Toltrazuril 2.5%","dosis":"dosis exacta (ml/kg o mg/kg, vía) y días de duración","accion":"aislamiento o desinfección de la poza"}. Sin explicaciones, sin Markdown. Español.`;
+const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 5 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"enfermedad más probable","farmaco_dosis":"fármaco principal exacto y su dosis (mg/kg o ml/kg y vía), ej. Enrofloxacina 5% 0.1 ml/kg SC","dias":"días de duración del tratamiento","accion":"acción inmediata en la poza (aislamiento o desinfección)","prevencion":"prevención clave"}. Sin explicaciones, sin Markdown. Español.`;
 
 const systemPrompt = `Actúa como un asistente veterinario experto en sanidad, manejo y bioseguridad de cuyes (Cavia porcellus) en granjas de crianza; no afirmes ser el veterinario tratante. Analiza la imagen (animal vivo, cadáver o necropsia) y responde exclusivamente con JSON válido, sin Markdown, con exactamente estos seis campos de texto: {"enfermedad_probable":"...","diagnostico_situacion":"...","causa_principal":"...","accion_inmediata":"...","tratamiento_manejo":"...","prevencion_diaria":"..."}.
 - enfermedad_probable: indica una enfermedad solo si la imagen aporta evidencia suficiente y expresa el nivel de certeza. Si no permite identificarla, describe el hallazgo y la incertidumbre, por ejemplo: "Lesiones hepáticas multifocales, causa indeterminada". No inventes un diagnóstico para completar el campo.
