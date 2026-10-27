@@ -1664,6 +1664,9 @@
                 db.pozas = db.cuyes;
                 escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
             }
+            // Una fila por poza: la tabla y el contador del dashboard usan la misma lista.
+            db.cuyes = obtenerPozasUnicas();
+            db.pozas = db.cuyes;
             db.cuyes.forEach(poza => {
                 if (poza.stockInicial === undefined) poza.stockInicial = 0;
             });
@@ -1751,13 +1754,12 @@
                 poza: document.getElementById('cuy-poza').value
             };
             const stockTexto = document.getElementById('cuy-stock').value.trim();
-            const existente = db.cuyes.find(item => claveUnicaPoza(item.codigo || item.id) === claveUnicaPoza(codigo));
-            if (existente) {
-                Object.assign(existente, datos);
-                if (stockTexto !== '') existente.stockInicial = Math.max(0, parseInt(stockTexto, 10) || 0);
-            } else {
-                db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0) });
+            if (db.cuyes.some(item => claveUnicaPoza(item.codigo || item.id) === codigo)) {
+                mostrarToast(`La poza ${codigo} ya está registrada. Usa un código nuevo.`, 'error');
+                return;
             }
+            db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0) });
+            db.pozas = db.cuyes;
             document.getElementById('cuy-codigo').value = '';
             document.getElementById('cuy-stock').value = '';
             guardarBD();
@@ -2962,7 +2964,7 @@
             const ingresos = calcularTotalVentas();
             const gastos = db.gastos.reduce((total, gasto) => total + Number(gasto.monto || 0), 0);
             const bajas = db.bajas.reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
-            const poblacion = Math.max(0, db.cuyes.length * 7 + db.partos.reduce((total, parto) => total + Number(parto.vivas || 0), 0) - bajas);
+            const poblacion = db.cuyes.reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
             const secciones = [{ titulo: 'Resumen general', columnas: ['Indicador', 'Valor'], filas: [['Pozas registradas', db.cuyes.length], ['Población estimada', poblacion], ['Partos registrados', db.partos.length], ['Bajas', bajas], ['Ingresos (S/)', ingresos.toFixed(2)], ['Gastos (S/)', gastos.toFixed(2)], ['Balance neto (S/)', (ingresos - gastos).toFixed(2)]] }, ...obtenerSeccionesReporte()];
             const tablas = secciones.map(seccion => {
                 const encabezados = seccion.columnas.map(columna => `<th>${escaparHTML(columna)}</th>`).join('');
