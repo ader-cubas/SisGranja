@@ -23,11 +23,15 @@ const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/
 
 const requestCounts = new Map<string, { count: number; startedAt: number }>();
 
-const responseSchema = {
+const SUMMARY_FIELDS = ['enfermedad', 'farmaco', 'dosis', 'accion'] as const;
+
+const schemaFor = (fields: readonly string[]) => ({
   type: 'OBJECT',
-  properties: Object.fromEntries(RESULT_FIELDS.map(field => [field, { type: 'STRING' }])),
-  required: [...RESULT_FIELDS],
-};
+  properties: Object.fromEntries(fields.map(field => [field, { type: 'STRING' }])),
+  required: [...fields],
+});
+
+const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 4 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"nombre de la enfermedad más probable","farmaco":"1 o 2 medicamentos exactos y efectivos, ej. Enrofloxacina 5% o Toltrazuril 2.5%","dosis":"dosis exacta (ml/kg o mg/kg, vía) y días de duración","accion":"aislamiento o desinfección de la poza"}. Sin explicaciones, sin Markdown. Español.`;
 
 const systemPrompt = `Actúa como un asistente veterinario experto en sanidad, manejo y bioseguridad de cuyes (Cavia porcellus) en granjas de crianza; no afirmes ser el veterinario tratante. Analiza la imagen (animal vivo, cadáver o necropsia) y responde exclusivamente con JSON válido, sin Markdown, con exactamente estos seis campos de texto: {"enfermedad_probable":"...","diagnostico_situacion":"...","causa_principal":"...","accion_inmediata":"...","tratamiento_manejo":"...","prevencion_diaria":"..."}.
 - enfermedad_probable: indica una enfermedad solo si la imagen aporta evidencia suficiente y expresa el nivel de certeza. Si no permite identificarla, describe el hallazgo y la incertidumbre, por ejemplo: "Lesiones hepáticas multifocales, causa indeterminada". No inventes un diagnóstico para completar el campo.
@@ -108,7 +112,7 @@ function cleanImageInput(body: Record<string, unknown>): { mimeType: ImageMimeTy
   return { mimeType, base64 };
 }
 
-function parseGeminiResult(text: string): Record<string, string> | null {
+function parseGeminiResult(text: string, fields: readonly string[] = RESULT_FIELDS): Record<string, string> | null {
   const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
   let parsed: unknown;
   try {
@@ -118,11 +122,11 @@ function parseGeminiResult(text: string): Record<string, string> | null {
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
   const record = parsed as Record<string, unknown>;
-  if (RESULT_FIELDS.some(field => typeof record[field] !== 'string' || !(record[field] as string).trim())) return null;
-  return Object.fromEntries(RESULT_FIELDS.map(field => [field, (record[field] as string).trim().slice(0, 1600)]));
+  if (fields.some(field => typeof record[field] !== 'string' || !(record[field] as string).trim())) return null;
+  return Object.fromEntries(fields.map(field => [field, (record[field] as string).trim().slice(0, 1600)]));
 }
 
-async function callGemini(apiKey: string, parts: GeminiPart[]): Promise<Response> {
+async function callGemini(apiKey: string, parts: GeminiPart[], schema: unknown): Promise<Response> {
   let response!: Response;
   for (let attempt = 0; attempt < GEMINI_MODELS.length; attempt++) {
     const model = GEMINI_MODELS[attempt];
@@ -136,7 +140,7 @@ async function callGemini(apiKey: string, parts: GeminiPart[]): Promise<Response
             contents: [{ role: 'user', parts }],
             generationConfig: {
               responseMimeType: 'application/json',
-              responseSchema,
+              responseSchema: schema,
               temperature: 0.3,
               maxOutputTokens: 1400,
             },
@@ -191,12 +195,13 @@ runtime.serve(async (request: Request) => {
     const image = cleanImageInput(body as Record<string, unknown>);
     if (!image) return jsonResponse({ error: 'Envía una imagen JPEG, PNG o WebP válida en Base64.' }, 400, origin);
 
+    const summary = (body as Record<string, unknown>).formato === 'resumido';
     const parts: GeminiPart[] = [
-      { text: systemPrompt },
+      { text: summary ? summaryPrompt : systemPrompt },
       { inline_data: { mime_type: image.mimeType, data: image.base64 } },
     ];
 
-    const geminiResponse = await callGemini(apiKey, parts);
+    const geminiResponse = await callGemini(apiKey, parts, schemaFor(summary ? SUMMARY_FIELDS : RESULT_FIELDS));
     if (!geminiResponse.ok) {
       const upstream = await geminiResponse.clone().json().catch(() => ({})) as { error?: { message?: string } };
       const detail = String(upstream.error?.message || '').slice(0, 160);
@@ -214,7 +219,7 @@ runtime.serve(async (request: Request) => {
     const resultText = geminiData.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || '';
     if (!resultText) return jsonResponse({ error: 'Gemini no devolvió una respuesta JSON legible.' }, 502, origin);
 
-    const result = parseGeminiResult(resultText);
+    const result = parseGeminiResult(resultText, summary ? SUMMARY_FIELDS : RESULT_FIELDS);
     if (!result) return jsonResponse({ error: 'Gemini devolvió un JSON incompleto o inválido.' }, 502, origin);
     return jsonResponse({ result }, 200, origin);
   } catch (error: unknown) {

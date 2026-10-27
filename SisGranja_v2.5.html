@@ -936,19 +936,9 @@
                         <header>
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
-                            <p class="mt-2 text-sm text-stone-600">Selecciona la categoría clínica para ver una guía local. La fotografía no se envía ni se interpreta automáticamente.</p>
+                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y el Dr. Cuy IA entrega el diagnóstico. Requiere internet.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
-                            <label class="block text-sm font-bold text-stone-700">Categoría clínica orientativa
-                                <select id="baja-categoria" required onchange="actualizarGuiaBaja()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
-                                    <option value="general" selected>Sin clasificar / diagnóstico pendiente</option>
-                                    <option value="sarna">Piel / sospecha de sarna</option>
-                                    <option value="coccidiosis">Digestiva o hepática / sospecha de coccidiosis</option>
-                                    <option value="salmonelosis">Digestiva / sospecha de salmonelosis</option>
-                                    <option value="diarrea">Diarrea parasitaria o bacteriana</option>
-                                    <option value="respiratoria">Respiratoria</option>
-                                </select>
-                            </label>
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <label class="flex min-h-20 cursor-pointer items-center justify-center gap-3 rounded-xl bg-emerald-700 px-4 py-4 text-center text-lg font-extrabold text-white shadow transition hover:bg-emerald-800">
                                     <i class="ph ph-camera text-3xl" aria-hidden="true"></i><span>Tomar Foto con Cámara</span>
@@ -965,7 +955,7 @@
                                     <div class="min-w-0 flex-1">
                                         <p id="baja-analysis-status" class="flex items-center gap-2 text-sm font-bold text-emerald-900" role="status" aria-live="polite">
                                             <span id="baja-analysis-spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-emerald-700 border-t-transparent" aria-hidden="true"></span>
-                                            <span id="baja-analysis-message">Preparando foto...</span>
+                                            <span id="baja-analysis-message">Analizando…</span>
                                         </p>
                                         <p id="baja-analysis-detail" class="mt-2 text-sm text-stone-600"></p>
                                     </div>
@@ -976,35 +966,11 @@
                                     <select id="baja-identificador" data-poza-activa="true" required class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base"><option value="">Selecciona una poza</option></select>
                                 </label>
                                 <label class="text-sm font-bold text-stone-700">Cantidad de animales
-                                    <input type="number" id="baja-cantidad" required min="1" value="1" inputmode="numeric" oninput="calcularDosisBaja()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
-                                </label>
-                                <label class="text-sm font-bold text-stone-700">Peso promedio (g), para calcular referencia
-                                    <input type="number" id="baja-peso-promedio" min="1" max="5000" step="1" inputmode="numeric" oninput="calcularDosisBaja()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base" placeholder="Ej. 800">
+                                    <input type="number" id="baja-cantidad" required min="1" value="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
                                 </label>
                             </div>
-                            <div id="baja-results" class="hidden space-y-4" aria-live="polite">
-                                <h4 class="text-lg font-extrabold text-stone-900">Guía clínica orientativa</h4>
-                                <div class="space-y-3">
-                                    <article class="rounded-xl border border-rose-200 bg-rose-50 p-4"><span class="inline-flex rounded-full bg-rose-700 px-3 py-1 text-sm font-bold text-white">1. Diagnóstico probable</span><p id="baja-result-diagnostico" class="mt-2 text-lg font-extrabold text-stone-900"></p></article>
-                                    <article class="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><span class="inline-flex rounded-full bg-emerald-700 px-3 py-1 text-sm font-bold text-white">2. Acciones de bioseguridad</span><ol id="baja-result-accion" class="mt-2 list-decimal space-y-1 pl-5 text-base text-stone-900"></ol></article>
-                                    <article class="rounded-xl border border-sky-200 bg-sky-50 p-4"><span class="inline-flex rounded-full bg-sky-700 px-3 py-1 text-sm font-bold text-white">3. Tratamiento farmacológico / manejo</span><p id="baja-result-tratamiento" class="mt-2 whitespace-pre-wrap break-words text-base text-stone-900"></p></article>
-                                </div>
-                                <div class="grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4 sm:grid-cols-2">
-                                    <label class="text-sm font-bold text-stone-700 sm:col-span-2">Calculadora de volumen de referencia
-                                        <select id="baja-farmaco" onchange="calcularDosisBaja()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2">
-                                            <option value="">Selecciona producto de referencia</option>
-                                            <option value="Ivermectina 1%" data-dosis="0.2" data-unidad="kg">Ivermectina 1% · 0.2 ml/kg</option>
-                                            <option value="Enrofloxacina 5%" data-dosis="0.1" data-unidad="kg">Enrofloxacina 5% · 0.1 ml/kg</option>
-                                            <option value="Toltrazuril 2.5%" data-dosis="0.04" data-unidad="kg">Toltrazuril 2.5% · 0.04 ml/kg</option>
-                                            <option value="Vitamina AD3E / C" data-dosis="0.2" data-unidad="animal">Vitamina AD3E / C · 0.2-0.5 ml/animal</option>
-                                        </select>
-                                    </label>
-                                    <label id="baja-vitamina-wrap" class="hidden text-sm font-bold text-stone-700 sm:col-span-2">Dosis vitamínica de referencia (ml/animal)
-                                        <input id="baja-dosis-vitamina" type="number" min="0.2" max="0.5" step="0.1" value="0.2" oninput="calcularDosisBaja()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2">
-                                    </label>
-                                    <p id="baja-dosis-calculada" class="text-sm font-semibold text-stone-700 sm:col-span-2" aria-live="polite">Elige un producto e ingresa el peso para obtener el volumen individual y del grupo.</p>
-                                </div>
-                                <p class="text-xs font-medium text-amber-900">Dosis de referencia, no prescripción. Confirma diagnóstico, concentración, vía, pauta y retiro con un veterinario antes de administrar.</p>
+                            <div id="baja-results" class="hidden space-y-1 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-stone-900" aria-live="polite">
+                                <div id="baja-result-lineas" class="space-y-1"></div>
                             </div>
                             <button type="submit" id="baja-save-button" class="action-giant action-baja"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR REGISTRO DE BAJA</span></button>
                         </form>
@@ -1796,8 +1762,7 @@
             e.preventDefault();
             const formulario = e.currentTarget;
             if (formulario.dataset.saving === 'true') return;
-            if (!bajaAnalisisActual) actualizarGuiaBaja();
-            if (!bajaAnalisisActual || !document.getElementById('baja-identificador').value) {
+            if (!document.getElementById('baja-identificador').value) {
                 mostrarToast('Selecciona una poza para registrar la baja', 'error');
                 return;
             }
@@ -1805,11 +1770,16 @@
             const boton = e.submitter || formulario.querySelector('[type="submit"]');
             if (boton) boton.disabled = true;
             try {
-                const resultado = bajaAnalisisActual;
+                const resultado = bajaAnalisisActual || {
+                    categoria_clinica: 'Sin análisis',
+                    diagnostico_situacion: 'Baja registrada sin diagnóstico por foto.',
+                    causa_principal: 'No determinada',
+                    accion_inmediata: 'Retirar el cadáver con guantes, aislar y desinfectar la poza.',
+                    prevencion_diaria: 'Limpieza diaria y cama seca.',
+                    tratamiento_manejo: ''
+                };
                 const foto = fotoClinicaAnalizadaBase64 || '';
-                const dosisReferencia = document.getElementById('baja-farmaco').value && Number(document.getElementById('baja-peso-promedio').value) > 0
-                    ? document.getElementById('baja-dosis-calculada').textContent
-                    : '';
+                const dosisReferencia = '';
                 const baja = {
                     fecha: fechaHoy(),
                     identificador: document.getElementById('baja-identificador').value,
@@ -1817,7 +1787,7 @@
                     motivo: resultado.diagnostico_situacion,
                     categoriaClinica: resultado.categoria_clinica,
                     tratamiento: resultado.tratamiento_manejo,
-                    pesoPromedio: Number(document.getElementById('baja-peso-promedio').value) || null,
+                    pesoPromedio: null,
                     dosisReferencia
                 };
                 const datosTratamiento = extraerDatosTratamiento(`${resultado.accion_inmediata} ${resultado.tratamiento_manejo || ''}`);
@@ -1850,10 +1820,9 @@
                 formulario.reset();
                 document.getElementById('baja-cantidad').value = '1';
                 document.getElementById('baja-identificador').value = obtenerPozaActiva();
-                document.getElementById('baja-peso-promedio').value = '';
                 fotoClinicaAnalizadaBase64 = '';
                 bajaAnalisisActual = null;
-                actualizarGuiaBaja();
+                document.getElementById('baja-results').classList.add('hidden');
                 document.getElementById('baja-preview-card').classList.add('hidden');
                 document.getElementById('baja-preview').removeAttribute('src');
                 document.getElementById('baja-preview').classList.add('hidden');
@@ -2141,30 +2110,47 @@
             guardarBD();
         }
 
-        function previsualizarFotoBaja(event) {
+        function estadoDrCuy(mensaje, cargando = false) {
+            document.getElementById('baja-analysis-message').textContent = mensaje;
+            document.getElementById('baja-analysis-spinner').classList.toggle('hidden', !cargando);
+        }
+
+        function mostrarDiagnosticoDrCuy(resultado) {
+            const filas = [
+                ['Enfermedad detectada', resultado.enfermedad],
+                ['Fármaco principal', resultado.farmaco],
+                ['Dosis y días', resultado.dosis],
+                ['Acción en poza', resultado.accion]
+            ];
+            document.getElementById('baja-result-lineas').replaceChildren(...filas.map(([titulo, valor]) => {
+                const linea = document.createElement('p');
+                const etiqueta = document.createElement('strong');
+                etiqueta.textContent = `${titulo}: `;
+                linea.append(etiqueta, String(valor || '—').slice(0, 160));
+                return linea;
+            }));
+            document.getElementById('baja-results').classList.remove('hidden');
+        }
+
+        async function previsualizarFotoBaja(event) {
             const archivo = event.target.files[0];
             const versionCaptura = ++bajaFotoVersion;
             const preview = document.getElementById('baja-preview');
             const previewCard = document.getElementById('baja-preview-card');
             fotoClinicaAnalizadaBase64 = '';
-            document.getElementById('baja-save-button').disabled = false;
+            bajaAnalisisActual = null;
+            document.getElementById('baja-results').classList.add('hidden');
             if (!archivo) {
                 previewCard.classList.add('hidden');
                 preview.classList.add('hidden');
                 preview.removeAttribute('src');
-                actualizarGuiaBaja();
                 return;
             }
             if (!archivo.type.startsWith('image/') || archivo.size > 12 * 1024 * 1024) {
                 event.target.value = '';
                 previewCard.classList.add('hidden');
                 mostrarToast('Selecciona una imagen válida de hasta 12 MB', 'error');
-                document.getElementById('baja-save-button').disabled = false;
                 return;
-            }
-            if (preview.dataset.previewUrl) {
-                URL.revokeObjectURL(preview.dataset.previewUrl);
-                delete preview.dataset.previewUrl;
             }
             const lectorVista = new FileReader();
             lectorVista.onload = () => {
@@ -2174,175 +2160,50 @@
             };
             lectorVista.readAsDataURL(archivo);
             previewCard.classList.remove('hidden');
-            document.getElementById('baja-analysis-spinner').classList.add('hidden');
-            actualizarGuiaBaja();
 
-            // La guía y el guardado no esperan la compresión de la imagen.
-            comprimirFotoClinica(archivo)
-                .catch(() => new Promise((resolve, reject) => {
-                    const lector = new FileReader();
-                    lector.onload = () => resolve(lector.result);
-                    lector.onerror = reject;
-                    lector.readAsDataURL(archivo);
-                }))
-                .then(foto => {
-                    if (versionCaptura !== bajaFotoVersion) return;
-                    fotoClinicaAnalizadaBase64 = foto;
-                })
-                .catch(() => {
-                    document.getElementById('baja-analysis-detail').textContent = 'La imagen se previsualiza, pero no pudo guardarse. El registro de baja sigue disponible sin foto.';
-                    mostrarToast('La baja se puede guardar sin foto', 'error');
-                });
-        }
-
-        function actualizarGuiaBaja() {
-            const categorias = {
-                general: {
-                    nombre: 'Sin clasificar / diagnóstico pendiente',
-                    diagnostico: 'Baja registrada con etiología pendiente de determinar; la fotografía no confirma un diagnóstico.',
-                    causa: 'No determinada; requiere evaluación clínica.',
-                    bioseguridad: 'Retira el cadáver con guantes, aísla animales con signos y limpia/desinfecta la poza y los utensilios.',
-                    prevencion: 'Registra signos, fecha y poza. Solicita evaluación veterinaria si hay más casos o signos graves.',
-                    tratamiento: 'No se recomienda fármaco sin diagnóstico. Usa la calculadora solo como referencia verificada por un veterinario.'
-                },
-                sarna: {
-                    nombre: 'Piel / sospecha de sarna',
-                    diagnostico: 'Sospecha de infestación por ácaros (sarna); el prurito y las lesiones requieren examen veterinario para confirmación.',
-                    causa: 'Ectoparásitos, incluida sarna por ácaros; considerar otras causas dermatológicas.',
-                    bioseguridad: 'Aísla a los animales afectados. Usa guantes y utensilios exclusivos. Cambia cama y limpia/desinfecta jaulas y equipos; revisa a los animales en contacto.',
-                    prevencion: 'Mantén cama limpia y seca, reduce el contacto entre grupos y vigila prurito o lesiones en los contactos.',
-                    tratamiento: 'Referencia de volumen del calculador: ivermectina 1% a 0.2 ml/kg (2 mg/kg si contiene 10 mg/ml); repetir a los 14 días solo si lo prescribe el veterinario. Confirma producto, peso, vía y pauta antes de administrar.'
-                },
-                coccidiosis: {
-                    nombre: 'Digestiva/hepática / sospecha de coccidiosis',
-                    diagnostico: 'Sospecha de coccidiosis; en cuyes puede ser intestinal (Eimeria caviae). Los signos no confirman especie ni compromiso hepático: solicita examen de heces y valoración veterinaria.',
-                    causa: 'Coccidios como diagnóstico diferencial de diarrea, pérdida de peso o decaimiento.',
-                    bioseguridad: 'Separa la poza afectada. Retira heces y cama húmeda a diario. Limpia comederos y bebederos y evita trasladar utensilios entre grupos.',
-                    prevencion: 'Mantén cama seca, controla densidad y limpia comederos/bebederos; confirma el agente con examen de heces.',
-                    tratamiento: 'Referencia de volumen del calculador: toltrazuril 2.5% a 0.04 ml/kg (1 mg/kg si contiene 25 mg/ml). La duración depende de la indicación veterinaria; confirma concentración y pauta antes de administrar. No combines anticoccidiales.'
-                },
-                salmonelosis: {
-                    nombre: 'Digestiva / sospecha de salmonelosis',
-                    diagnostico: 'Salmonelosis es una posibilidad, no confirmable por foto ni por signos digestivos solos. Requiere evaluación veterinaria y pruebas; puede transmitirse a personas.',
-                    causa: 'Enteritis infecciosa; Salmonella debe confirmarse mediante pruebas diagnósticas.',
-                    bioseguridad: 'Aísla el grupo. Usa guantes, lavado de manos y utensilios exclusivos. Evita que niños o personas vulnerables manipulen animales/heces; consulta pronto al veterinario.',
-                    prevencion: 'Refuerza higiene de agua, alimento y superficies. Maneja heces como material potencialmente infeccioso y limpia/desinfecta el área.',
-                    tratamiento: 'El veterinario debe confirmar el agente y elegir enrofloxacina o sulfacloximazina solo si están indicadas, con concentración y pauta prescritas. La calculadora solo estima volumen desde el producto seleccionado; no determina una dosis terapéutica.'
-                },
-                diarrea: {
-                    nombre: 'Diarrea parasitaria o bacteriana',
-                    diagnostico: 'Diarrea de causa no confirmada; parasitosis, coccidiosis y enteritis bacteriana son diagnósticos diferenciales. Solicita examen de heces y valoración clínica.',
-                    causa: 'Parásitos, coccidios, bacterias, dieta o agua contaminada; los signos no distinguen la causa por sí solos.',
-                    bioseguridad: 'Separa afectados, usa guantes y utensilios exclusivos, retira cama/heces húmedas y verifica agua y alimento. Lávate las manos tras manipular animales o heces.',
-                    prevencion: 'Mantén agua limpia, cama seca y limpieza diaria; evita cambios bruscos de dieta y confirma el agente con pruebas.',
-                    tratamiento: 'No inicies toltrazuril, sulfas ni antibióticos sin diagnóstico y prescripción. La selección depende de la causa, el peso, la concentración del producto y la valoración veterinaria.'
-                },
-                respiratoria: {
-                    nombre: 'Respiratoria',
-                    diagnostico: 'Posible enfermedad respiratoria; secreción nasal, estornudos o dificultad para respirar necesitan examen veterinario y no se identifican con fiabilidad por fotografía.',
-                    causa: 'Infección respiratoria u otra causa ambiental; requiere valoración clínica.',
-                    bioseguridad: 'Separa al animal enfermo, mejora ventilación sin corrientes frías y evita compartir bebederos. Busca atención urgente ante respiración dificultosa o decaimiento marcado.',
-                    prevencion: 'Mantén cama seca, buena ventilación y baja exposición a polvo, amoníaco y cambios bruscos de temperatura.',
-                    tratamiento: 'El veterinario debe seleccionar fármaco, dosis y duración según examen y peso. La referencia del calculador para enrofloxacina 5% es 0.1 ml/kg (5 mg/kg si contiene 50 mg/ml); no iniciar por cuenta propia.'
-                }
-            };
-            const categoria = document.getElementById('baja-categoria').value;
-            const protocolo = categorias[categoria];
-            const productoPorCategoria = { sarna: 'Ivermectina 1%', coccidiosis: 'Toltrazuril 2.5%', salmonelosis: 'Enrofloxacina 5%', respiratoria: 'Enrofloxacina 5%' };
-            const selectorFarmaco = document.getElementById('baja-farmaco');
-            if (selectorFarmaco.dataset.categoria !== categoria) {
-                selectorFarmaco.value = productoPorCategoria[categoria] || '';
-                selectorFarmaco.dataset.categoria = categoria;
-            }
-            const resultados = document.getElementById('baja-results');
-            if (!protocolo) {
-                bajaAnalisisActual = null;
-                resultados.classList.add('hidden');
-                document.getElementById('baja-analysis-message').textContent = 'Selecciona una categoría clínica';
-                document.getElementById('baja-analysis-detail').textContent = 'La foto no se interpreta automáticamente; la guía se basa en la categoría seleccionada.';
-                calcularDosisBaja();
+            if (!navigator.onLine) {
+                estadoDrCuy('Sin conexión: se requiere internet para el análisis fotográfico.');
                 return;
             }
-
-            const resultado = {
-                categoria_clinica: protocolo.nombre,
-                diagnostico_situacion: protocolo.diagnostico,
-                causa_principal: protocolo.causa,
-                accion_inmediata: protocolo.bioseguridad,
-                prevencion_diaria: protocolo.prevencion,
-                tratamiento: protocolo.tratamiento,
-                tratamiento_manejo: protocolo.tratamiento
-            };
-            bajaAnalisisActual = resultado;
-            const guia = sintetizarDiagnosticoBaja(resultado);
-            document.getElementById('baja-analysis-message').textContent = 'Guía local por categoría (sin conexión)';
-            document.getElementById('baja-analysis-detail').textContent = 'Orientación inicial; no es diagnóstico automático por imagen.';
-            document.getElementById('baja-result-diagnostico').textContent = guia.diagnostico;
-            document.getElementById('baja-result-accion').replaceChildren(...guia.pasos.map(paso => {
-                const item = document.createElement('li');
-                item.textContent = paso;
-                return item;
-            }));
-            document.getElementById('baja-result-tratamiento').textContent = guia.tratamiento;
-            resultados.classList.remove('hidden');
-            calcularDosisBaja();
+            estadoDrCuy('Analizando…', true);
+            try {
+                const foto = await comprimirFotoClinica(archivo);
+                if (versionCaptura !== bajaFotoVersion) return;
+                fotoClinicaAnalizadaBase64 = foto;
+                await analizarFotoBaja(foto, versionCaptura);
+            } catch (error) {
+                if (versionCaptura !== bajaFotoVersion) return;
+                estadoDrCuy(navigator.onLine ? 'No se pudo analizar la foto. Intenta de nuevo.' : 'Sin conexión: se requiere internet para el análisis fotográfico.');
+            }
         }
 
-        function calcularDosisBaja() {
-            const selector = document.getElementById('baja-farmaco');
-            const opcion = selector.options[selector.selectedIndex];
-            const salida = document.getElementById('baja-dosis-calculada');
-            const vitamina = opcion?.dataset.unidad === 'animal';
-            document.getElementById('baja-vitamina-wrap').classList.toggle('hidden', !vitamina);
-            if (!selector.value) {
-                salida.textContent = 'Elige un producto e ingresa el peso para obtener el volumen individual y del grupo.';
-                return;
+        async function analizarFotoBaja(imagenBase64, versionCaptura) {
+            const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
+            const publicKey = window.SISGRANJA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
+            const coincidencia = String(imagenBase64).match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+            if (!coincidencia) throw new Error('Imagen no válida');
+            const respuesta = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', apikey: publicKey },
+                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido' })
+            });
+            const payload = await respuesta.json().catch(() => ({}));
+            if (!respuesta.ok) throw new Error(payload.error || 'Servicio no disponible');
+            if (versionCaptura !== bajaFotoVersion) return;
+            const r = payload.result || payload;
+            if (['enfermedad', 'farmaco', 'dosis', 'accion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
+                throw new Error('Respuesta incompleta');
             }
-            const gramos = Number(document.getElementById('baja-peso-promedio').value);
-            const animales = Number(document.getElementById('baja-cantidad').value);
-            const dosisReferencia = vitamina
-                ? Number(document.getElementById('baja-dosis-vitamina').value)
-                : Number(opcion.dataset.dosis);
-            if (!Number.isFinite(gramos) || gramos <= 0 || !Number.isInteger(animales) || animales <= 0 || !Number.isFinite(dosisReferencia) || dosisReferencia <= 0) {
-                salida.textContent = 'Ingresa un peso promedio válido para calcular el volumen individual y el total de la poza.';
-                return;
-            }
-            const pesoKg = gramos / 1000;
-            const volumenIndividual = vitamina ? dosisReferencia : dosisReferencia * pesoKg;
-            const volumenGrupo = volumenIndividual * animales;
-            const formato = valor => String(Number(valor.toFixed(3)));
-            salida.textContent = `${opcion.value}: ${formato(volumenIndividual)} ml/animal × ${animales} = ${formato(volumenGrupo)} ml para el grupo (${formato(pesoKg)} kg promedio; referencia ${formato(dosisReferencia)} ${vitamina ? 'ml/animal' : 'ml/kg'}). Validar con veterinario antes de administrar.`;
-            if (opcion.value === 'Enrofloxacina 5%') salida.textContent += ' Conversión nominal: 0.1 ml/kg a 50 mg/ml equivale a 5 mg/kg; validar producto y pauta.';
-        }
-
-        // Reduce la respuesta de la IA a diagnóstico de una línea, pasos cortos y tratamiento.
-        function sintetizarDiagnosticoBaja(resultado) {
-            const frases = texto => String(texto || '')
-                .replace(/\s+(?=\d+[.)]\s)/g, '\n')
-                .replace(/\*\*/g, '')
-                .replace(/^\s*(?:\d+[.)]|[-•*])\s*/gm, '')
-                .split(/\n+|[.;]\s+/)
-                .map(frase => frase.trim().replace(/[.;]$/, ''))
-                .filter(Boolean);
-            const acortar = (texto, max) => texto.length > max ? `${texto.slice(0, max - 1).trimEnd()}…` : texto;
-            const patronTratamiento = /dosis|\bmg\b|\bml\b|administr|antibi|vitamina|ivermectina|enrofloxacina|\bv[ií]a\b|tratamiento|medic/i;
-            let pasos = frases(resultado.accion_inmediata);
-            let tratamiento = [resultado.tratamiento, resultado.tratamiento_manejo, resultado.prevencion_diaria]
-                .map(valor => typeof valor === 'string' ? valor.trim() : '')
-                .find(valor => valor && !/^sin tratamiento(?: específico)? indicado\b/i.test(valor)) || '';
-            if (!tratamiento) {
-                const tratamientoEnPasos = pasos.filter(paso => patronTratamiento.test(paso));
-                const sinTratamiento = pasos.filter(paso => !patronTratamiento.test(paso));
-                if (tratamientoEnPasos.length) tratamiento = tratamientoEnPasos.join('\n');
-                if (sinTratamiento.length) pasos = sinTratamiento;
-            }
-            const enfermedad = String(resultado.enfermedad_probable || '').trim();
-            const hallazgo = frases(resultado.diagnostico_situacion)[0] || '';
-            return {
-                diagnostico: acortar(enfermedad ? (hallazgo ? `${enfermedad}. ${hallazgo}` : enfermedad) : (hallazgo || 'Sin diagnóstico claro'), 200),
-                pasos: pasos.slice(0, 5).map(paso => acortar(paso, 140)),
-                tratamiento: tratamiento || 'El servidor no incluyó información de tratamiento en esta respuesta.'
+            bajaAnalisisActual = {
+                categoria_clinica: 'Dr. Cuy IA',
+                diagnostico_situacion: r.enfermedad,
+                causa_principal: r.enfermedad,
+                accion_inmediata: r.accion,
+                prevencion_diaria: r.accion,
+                tratamiento_manejo: `${r.farmaco}. ${r.dosis}`
             };
+            mostrarDiagnosticoDrCuy(r);
+            estadoDrCuy('Diagnóstico listo');
         }
 
         async function comprimirFotoClinica(archivo) {
@@ -2962,7 +2823,6 @@
         cargarDatos();
         registrarControlesCampo();
         renderizarTodo();
-        actualizarGuiaBaja();
         window.addEventListener('resize', () => requestAnimationFrame(actualizarGraficos));
     </script>
 </body>

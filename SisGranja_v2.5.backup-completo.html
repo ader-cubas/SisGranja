@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SisGranja - Unidad Pecuaria Cuyícola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <style>
+        :root {
+      color-scheme: light;
+      --farm-green: #0f766e; /* Verde bosque corporativo */
+      --farm-ink: #1e293b;   /* Texto pizarra oscuro */
+      --farm-canvas: #f8fafc; /* Fondo gris claro minimalista */
+      --farm-card: #ffffff;  /* Tarjetas blancas puras */
+      --farm-border: #e2e8f0; /* Bordes sutiles */
+      --farm-line: #e0e5eb;
+      --farm-shadow: 0 10px 28px rgb(31 41 55 / 5%), 0 2px 6px rgb(31 41 55 / 3%);
+    }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--farm-canvas); color: var(--farm-ink); }
+        button, input, select { font: inherit; }
+        button, input, select, label[for] { -webkit-tap-highlight-color: transparent; }
+        button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #8bc7a9; outline-offset: 2px; }
+        input:not([type="checkbox"]), select, textarea { min-height: 56px; border-color: var(--farm-line); border-radius: 10px; background-color: #fff; color: var(--farm-ink); font-size: 1rem; transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
+        input:not([type="checkbox"]):focus, select:focus, textarea:focus { border-color: #4d9b75; box-shadow: 0 0 0 4px rgb(23 107 75 / 11%); outline: none; }
+        input::placeholder, textarea::placeholder { color: #8a9690; }
+        button { min-height: 48px; border-radius: 10px; font-weight: 700; transition: filter 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+        button:hover:not(:disabled) { filter: brightness(.97); }
+        button:active:not(:disabled) { transform: translateY(1px); }
+        button:disabled { cursor: not-allowed; }
+        .app-sidebar { background: #252f39; border-color: #35414b; color: #e2e8ee; }
+        .app-sidebar > div:first-child > div:first-child { border-color: #35414b; }
+        .app-sidebar .border-emerald-900, .app-sidebar .border-emerald-900\/50 { border-color: #35414b; }
+        .app-sidebar .text-emerald-400 { color: #a8cbb9; }
+        .app-sidebar [id^="badge-"] { background: #35414b; color: #e2e8ee; }
+        .app-sidebar nav button { min-height: 48px; border-radius: 9px; }
+        .app-sidebar nav button:hover { background-color: #303b46; }
+        .app-sidebar nav button.bg-emerald-900 { background-color: #394651; color: #fff; box-shadow: inset 3px 0 #7eb698; }
+        .app-topbar { background: rgb(255 255 255 / 97%); border-color: var(--farm-line); box-shadow: 0 2px 10px rgb(31 41 55 / 3%); backdrop-filter: blur(12px); }
+        .app-topbar button, .app-topbar label { min-height: 40px; border-radius: 8px; }
+        .app-main { min-width: 0; background: var(--farm-canvas); }
+        .app-content { background: var(--farm-canvas); }
+        .view-section { padding-bottom: 8px; }
+        .surface, .bg-white.rounded-2xl { border: 1px solid var(--farm-line) !important; border-radius: 14px !important; background-color: #fff; box-shadow: var(--farm-shadow) !important; }
+        .view-section > .bg-white:has(> form), .view-section > section:has(> form), #view-dashboard section:has(form) { padding: 28px !important; }
+        .view-section > .bg-white:has(> form) > h3, .view-section > section:has(> form) > h3 { margin-bottom: 22px; }
+        .view-section form { row-gap: 20px; column-gap: 20px; }
+        .view-section form label { color: #40544a; font-size: .9rem; font-weight: 700; line-height: 1.45; }
+        .view-section form input:not([type="checkbox"]), .view-section form select, .view-section form textarea { width: 100%; margin-top: 7px; padding: 12px 14px; }
+        .view-section form > button[type="submit"], .view-section form > div > button[type="submit"] { min-height: 56px; padding: 12px 22px; font-size: .95rem; }
+        .view-section form > button.action-giant { min-height: 76px; }
+        #view-salud form > div:last-child { grid-column: 1 / -1; }
+        #view-bajas > section { padding: 32px !important; }
+        #view-bajas #baja-form { gap: 22px; }
+        #view-bajas #baja-form label { font-size: .95rem; }
+        #view-bajas #baja-form label.bg-emerald-700, #view-bajas #baja-form label.bg-slate-700 { color: #fff; }
+        .action-giant { display: flex; min-height: 76px; width: 100%; align-items: center; justify-content: center; gap: 12px; border-radius: 11px; padding: 16px 20px; color: #fff; font-size: 1.05rem; font-weight: 800; text-align: center; box-shadow: 0 5px 12px rgb(24 53 43 / 14%); transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease; }
+        .action-giant:hover { filter: brightness(.96); box-shadow: 0 8px 18px rgb(24 53 43 / 18%); }
+        .action-giant:active { transform: translateY(1px); }
+        .action-giant:disabled { filter: grayscale(.65); }
+        .action-giant i { font-size: 2rem; flex: none; }
+        .action-parto { background: #176b4b; }
+        .action-destete { background: #a34d16; }
+        .action-venta { background: #176b9b; }
+        .action-baja { background: #a33b32; }
+        .toast-confirmation { width: min(100%, 520px); min-height: 72px; border-radius: 12px; padding: 18px 20px; color: #fff; font-size: 1.05rem; font-weight: 800; box-shadow: 0 12px 32px rgb(24 53 43 / 24%); }
+        .toast-confirmation i { font-size: 1.8rem; flex: none; }
+        .toast-success { background: #176b4b; }
+        .toast-error { background: #a33b32; }
+        .temperature-ok { background: #e0f3e7; color: #176b4b; border-color: #b8dfc5; }
+        .temperature-alert { background: #fff0d6; color: #92530c; border-color: #f1d5a4; }
+        .temperature-danger { background: #fce2df; color: #9e433c; border-color: #f2cbc6; }
+        .temperature-cold { background: #dceefa; color: #22628c; border-color: #bfdff2; }
+        table { color: #374151; }
+        thead { background-color: #f5f7f9 !important; color: #596579 !important; }
+        thead th { font-weight: 800; letter-spacing: .04em; }
+        tbody tr { border-color: #e9edf1 !important; }
+        tbody tr:hover { background-color: #f8fafb !important; }
+        input[type="checkbox"] { accent-color: var(--farm-green); }
+        @media print {
+            body { display: block !important; height: auto !important; overflow: visible !important; background: #fff !important; }
+            .app-sidebar, .app-topbar, .no-print, #toast-container { display: none !important; }
+            .app-main, .app-content { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+            .view-section { display: block !important; break-after: page; }
+            .view-section.hidden { display: none !important; }
+            button { display: none !important; }
+            .bg-white, .surface { box-shadow: none !important; }
+        }
+        @media (min-width: 768px) {
+            .app-sidebar { position: sticky; top: 0; width: 260px; min-width: 260px; height: 100vh; }
+            .app-content { padding: 30px !important; }
+        }
+        @media (max-width: 767px) {
+            body { height: 100dvh; min-height: 100dvh; overflow: hidden; }
+            .app-sidebar { flex: none; }
+            .app-sidebar > div:first-child > div:first-child { padding: 12px 16px; }
+            .app-sidebar > div:first-child > div:first-child > div:first-child { padding: 8px; font-size: 18px; }
+            .app-sidebar nav { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px 12px; scrollbar-width: thin; }
+            .app-sidebar nav button { width: auto; min-width: max-content; min-height: 48px; padding: 0 14px; }
+            .app-sidebar nav button span.ml-auto { margin-left: 4px; }
+            .app-sidebar > div:last-child { display: none; }
+            .app-main { height: calc(100dvh - 132px); min-height: 0; }
+            .app-topbar { min-height: 60px; height: auto; padding: 8px 14px; gap: 8px; }
+            .app-topbar > div:last-child { flex-wrap: nowrap; overflow-x: auto; max-width: 58%; }
+            .app-topbar > div:last-child > span { display: none; }
+            .app-content { padding: 16px !important; }
+            .surface, .bg-white.rounded-2xl { border-radius: 12px !important; }
+            .view-section > .bg-white:has(> form), .view-section > section:has(> form), #view-dashboard section:has(form), #view-bajas > section { padding: 20px !important; }
+            .view-section form { row-gap: 17px; column-gap: 14px; }
+            .view-section form input:not([type="checkbox"]), .view-section form select, .view-section form textarea { min-height: 62px; font-size: 16px; }
+            button { min-height: 54px; }
+            .app-topbar button, .app-topbar label { min-height: 40px; }
+            .action-giant { min-height: 76px; font-size: 1rem; }
+            #toast-container { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; align-items: center; }
+            #toast-container > div { width: 100%; }
+            .view-section .overflow-x-auto { border: 1px solid #e6ece8; border-radius: 10px; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar w-full md:w-64 bg-emerald-950 text-stone-300 flex flex-col justify-between border-r border-emerald-900 shrink-0">
+        <div>
+            <div class="p-6 flex items-center space-x-3 border-b border-emerald-900/50">
+                <div class="bg-emerald-600 p-2 rounded-xl text-white font-bold text-xl">🐹</div>
+                <div>
+                    <h1 class="font-bold text-lg text-white tracking-wide">SisGranja</h1>
+                    <p class="text-xs text-emerald-400">Control Cuyícola v2.5</p>
+                </div>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition bg-emerald-900 text-white shadow-sm">
+                    <i class="ph ph-squares-four text-lg"></i><span>Dashboard General</span>
+                </button>
+                <button onclick="switchView('cuyes')" id="nav-cuyes" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-paw-print text-lg"></i><span>Gestión de Pozas</span>
+                    <span id="badge-pozas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('partos')" id="nav-partos" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-baby text-lg"></i><span>Registro de Partos</span>
+                    <span id="badge-partos" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('destetados')" id="nav-destetados" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-users-three text-lg"></i><span>Destetados</span>
+                    <span id="badge-destetados" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('bajas')" id="nav-bajas" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-shield-warning text-lg"></i><span>Mortalidad y Bajas</span>
+                    <span id="badge-bajas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('ventas')" id="nav-ventas" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-shopping-cart text-lg"></i><span>Ventas e Ingresos</span>
+                    <span id="badge-ventas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('gastos')" id="nav-gastos" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-receipt text-lg"></i><span>Gastos Operativos</span>
+                    <span id="badge-gastos" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('salud')" id="nav-salud" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-first-aid-kit text-lg"></i><span>Kardex Sanitario</span>
+                    <span id="badge-salud" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-emerald-900/50 text-xs text-stone-400">
+            <p>Estado: <span class="text-emerald-400 font-semibold">Local Activo</span></p>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="app-main flex-1 flex flex-col h-screen overflow-hidden">
+        <!-- TOPBAR -->
+        <header class="app-topbar bg-white border-b border-stone-200 h-16 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center space-x-3">
+                <i class="ph ph-paw-print text-2xl text-emerald-600"></i>
+                <h2 id="view-title" class="font-bold text-stone-800 text-lg">Unidad Pecuaria Cuyícola</h2>
+            </div>
+            <div class="flex items-center space-x-3 flex-wrap">
+                <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200 hidden sm:flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Ratio Estándar: 1 Macho / 6 Hembras
+                </span>
+                <button onclick="window.print()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                    <i class="ph ph-printer text-stone-600 text-base"></i> Imprimir
+                </button>
+                <button onclick="imprimirReporte()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+                    <i class="ph ph-file-text text-base"></i> Reporte
+                </button>
+                <button onclick="imprimirTodosLosQR()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+                    <i class="ph ph-qr-code text-base"></i> Generar / Imprimir QR
+                </button>
+                <button onclick="exportarExcel()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                    <i class="ph ph-file-xls text-emerald-600 text-base"></i> Excel / CSV
+                </button>
+                <button onclick="exportarBackup()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                    <i class="ph ph-download-simple text-blue-600 text-base"></i> Backup
+                </button>
+                <label class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition cursor-pointer">
+                    <i class="ph ph-upload-simple text-amber-600 text-base"></i> Restaurar
+                    <input type="file" id="file-restore" onchange="restaurarBackup(event)" class="hidden" accept=".json">
+                </label>
+            </div>
+        </header>
+
+        <!-- CONTENT VIEWS WRAPPER -->
+        <div class="app-content flex-1 overflow-y-auto p-8" id="main-content-container">
+
+            <!-- 1. DASHBOARD -->
+            <div id="view-dashboard" class="space-y-6 view-section">
+                <!-- Tarjetas KPI -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="surface bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Pozas Activas</p>
+                        <h3 id="kpi-pozas" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
+                        <p id="kpi-pozas-sub" class="text-xs text-stone-500 mt-1">Galpón A, Galpón B</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Población Total</p>
+                        <h3 id="kpi-poblacion" class="text-3xl font-extrabold text-emerald-700 mt-1">0</h3>
+                        <p id="kpi-poblacion-sub" class="text-xs text-stone-500 mt-1">0 hembr., 0 mach., 0 crías</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Cuyes Destetados</p>
+                        <h3 id="kpi-destetados" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
+                        <p id="kpi-destetados-sub" class="text-xs text-stone-500 mt-1">0 hembras, 0 machos</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Ventas / Ingresos</p>
+                        <h3 id="kpi-ingresos" class="text-3xl font-extrabold text-blue-700 mt-1">S/ 0.00</h3>
+                        <p id="kpi-ventas-sub" class="text-xs text-stone-500 mt-1">0 cuyes comercializados</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Gastos Operativos</p>
+                        <h3 id="kpi-gastos" class="text-3xl font-extrabold text-rose-600 mt-1">S/ 0.00</h3>
+                        <p id="kpi-gastos-sub" class="text-xs text-stone-500 mt-1">0 registros de egresos</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Mortalidad / Bajas</p>
+                        <h3 id="kpi-bajas" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                        <p id="kpi-bajas-sub" class="text-xs text-stone-500 mt-1">Tasa: 0.0%</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Cantidad Vendida</p>
+                        <h3 id="kpi-engorde" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                        <p id="kpi-engorde-sub" class="text-xs text-stone-500 mt-1">Vendidos: Comercial 0 · Gazapos 0 · Reproductores 0 · Abono 0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Utilidad Neta</p>
+                        <h3 id="kpi-utilidad" class="text-3xl font-extrabold text-emerald-600 mt-1">S/ 0.00</h3>
+                        <p id="kpi-utilidad-sub" class="text-xs text-stone-500 mt-1">Superávit / Ganancia neta acumulada</p>
+                    </div>
+                </div>
+
+                <section id="temperature-panel" class="surface bg-white p-5 sm:p-6 border border-stone-200" aria-labelledby="temperature-title">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 id="temperature-title" class="text-lg font-bold text-stone-800">Control de temperatura del galpón</h3>
+                            <p class="text-sm text-stone-500 mt-1">Confort ideal: 15 a 22 °C</p>
+                        </div>
+                        <div id="temperatura-valor" class="temperature-alert rounded-xl border px-5 py-3 text-3xl font-extrabold tabular-nums" aria-live="polite">--.- °C</div>
+                    </div>
+                    <form onsubmit="guardarTemperatura(event)" class="flex flex-wrap items-end gap-3 mt-4">
+                        <label class="flex-1 min-w-36 text-xs font-bold text-stone-600">Temperatura actual (°C)
+                            <input type="number" id="temperatura-actual" step="0.1" min="-10" max="60" required class="mt-1 w-full px-3 py-2 border rounded-xl text-base" placeholder="Ej. 21.5">
+                        </label>
+                        <button type="submit" class="bg-emerald-700 text-white font-bold px-5 rounded-xl">Guardar Temperatura</button>
+                    </form>
+                    <p id="temperatura-alerta" class="mt-4 rounded-xl border px-4 py-3 text-sm font-semibold" role="status" aria-live="polite">Registra una lectura para ver el estado y la recomendación técnica.</p>
+                </section>
+
+                <!-- Acciones Rápidas -->
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-800">Control Operativo y Accesos Rápidos</h3>
+                        <p class="text-stone-600 text-sm">Control de empadre (1M:6H), nacimientos, destetes separados por sexo, mortalidad sanitaria y balance económico.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 shrink-0">
+                        <button onclick="sembrarDatosIniciales()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
+                            <i class="ph ph-lightning text-base"></i> Simular 100 Pozas (6H / 1M)
+                        </button>
+                    </div>
+                </div>
+
+                <section class="surface bg-white p-5 sm:p-6 border border-stone-200" aria-label="Proyecciones">
+                    <div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-stone-800">Proyecciones y avisos</h3>
+                                <p class="text-sm text-stone-500 mt-1">Parto estimado a 68 días; destete a 21 días y venta a 90 días del nacimiento.</p>
+                            </div>
+                            <i class="ph ph-calendar-check text-2xl text-emerald-700"></i>
+                        </div>
+                        <form onsubmit="registrarEmpadre(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                            <label class="text-xs font-bold text-stone-600">Poza
+                                <select id="empadre-poza" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm"><option value="">Selecciona una poza</option></select>
+                            </label>
+                            <label class="text-xs font-bold text-stone-600">Fecha de empadre
+                                <input type="date" id="empadre-fecha" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
+                            </label>
+                            <button type="submit" class="self-end bg-emerald-700 text-white font-bold px-4 rounded-xl">Registrar empadre</button>
+                        </form>
+                        <div id="proyecciones-lista" class="mt-4 space-y-2" aria-live="polite"></div>
+                    </div>
+                </section>
+
+                <!-- Gráficos Interactivos -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-stone-800 text-base">Distribución Poblacional por Etapas</h4>
+                            <i class="ph ph-chart-pie text-emerald-600 text-xl"></i>
+                        </div>
+                        <div class="h-64 flex items-center justify-center relative">
+                            <canvas id="chartPoblacion"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-stone-800 text-base">Balance Económico (Soles)</h4>
+                            <i class="ph ph-chart-bar text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="h-64 flex items-center justify-center relative">
+                            <canvas id="chartFinanzas"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-stone-800 text-base">Tasa de mortalidad (%)</h4>
+                            <i class="ph ph-heartbeat text-rose-600 text-xl"></i>
+                        </div>
+                        <div class="h-64 flex items-center justify-center relative">
+                            <canvas id="chartMortalidad"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tablas de Actividad Reciente -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                        <h4 class="font-bold text-stone-800 text-base mb-4">Últimos Partos Registrados</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">Fecha</th>
+                                        <th class="p-3">Poza</th>
+                                        <th class="p-3">Crías Vivas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-tabla-partos">
+                                    <tr><td colspan="3" class="p-4 text-center text-stone-400">No hay partos registrados.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                        <h4 class="font-bold text-stone-800 text-base mb-4">Últimos Destetes Registrados</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">Fecha</th>
+                                        <th class="p-3">Poza Origen</th>
+                                        <th class="p-3">Machos / Hembras</th>
+                                        <th class="p-3">Pozas Destino</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-tabla-destetados">
+                                    <tr><td colspan="4" class="p-4 text-center text-stone-400">No hay destetes registrados.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-xs no-print" aria-labelledby="quick-actions-title">
+                    <h3 id="quick-actions-title" class="text-base font-bold text-stone-800 mb-3">Acceso rápido por poza</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_repeat(5,auto)] gap-2 items-end">
+                        <label class="text-xs font-bold text-stone-600">Poza
+                            <select id="quick-poza" data-poza-activa="true" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm"><option value="">Selecciona una poza</option></select>
+                        </label>
+                        <button type="button" onclick="abrirRegistroRapido('partos')" class="rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white">Parto</button>
+                        <button type="button" onclick="abrirRegistroRapido('destetados')" class="rounded-xl bg-sky-700 px-4 text-sm font-bold text-white">Destete</button>
+                        <button type="button" onclick="abrirRegistroRapido('bajas')" class="rounded-xl bg-rose-700 px-4 text-sm font-bold text-white">Baja</button>
+                        <button type="button" onclick="abrirRegistroRapido('salud')" class="rounded-xl bg-amber-700 px-4 text-sm font-bold text-white">Sanidad</button>
+                        <button type="button" onclick="mostrarCodigoQR(document.getElementById('quick-poza').value)" class="rounded-xl border border-stone-300 px-4 text-sm font-bold text-stone-800">QR</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 2. GESTIÓN DE POZAS Y ETAPAS -->
+            <div id="view-cuyes" class="space-y-6 view-section hidden">
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                        <h3 class="text-lg font-bold text-stone-800">Registrar Nuevo Animal / Poza</h3>
+                        <button type="button" onclick="generar100PozasAutomaticas()" class="bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm hover:bg-emerald-800 transition shadow-sm">
+                            ⚡ Generar 100 Pozas Automáticas
+                        </button>
+                    </div>
+                    <form onsubmit="guardarCuy(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Código / Poza</label>
+                            <select id="cuy-codigo" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="">Selecciona una poza</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Etapa Zootécnica</label>
+                            <select id="cuy-etapa" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="Reproductor">Reproductor (1M:6H)</option>
+                                <option value="Recría">Recría</option>
+                                <option value="Engorde">Engorde (Para Venta)</option>
+                                <option value="Cría">Cría Lactante</option>
+                                <option value="Cuarentena">Cuarentena Sanitaria</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Género Principal</label>
+                            <select id="cuy-genero" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="Hembra">Hembra</option>
+                                <option value="Macho">Macho</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Galpón / Ubicación</label>
+                            <input type="text" id="cuy-poza" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Galpón A">
+                        </div>
+                        <div class="sm:col-span-4 flex justify-end">
+                            <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Inventario Activo</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
+                            <input type="text" id="search-cuyes" onkeyup="filtrarTabla('cuyes')" placeholder="Buscar en pozas..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Código</th>
+                                    <th class="p-4">Etapa</th>
+                                    <th class="p-4">Género</th>
+                                    <th class="p-4">Galpón / Ubicación</th>
+                                    <th class="p-4">Stock Actual</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-cuyes"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. REGISTRO DE PARTOS -->
+            <div id="view-partos" class="space-y-6 view-section hidden">
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Registrar Nuevo Parto en Poza</h3>
+                    <form onsubmit="guardarParto(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Poza / Madre</label>
+                            <select id="parto-poza" data-poza-activa="true" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="">Selecciona una poza</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Crías Vivas</label>
+                            <input type="number" id="parto-vivas" required min="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600" placeholder="Ej. 4">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Crías Muertas (Natos)</label>
+                            <input type="number" id="parto-muertas" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                        </div>
+                        <button type="submit" class="action-giant action-parto sm:col-span-4"><i class="ph ph-baby" aria-hidden="true"></i><span>REGISTRAR PARTO</span></button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Historial de Partos</h4>
+                        <input type="text" id="search-partos" onkeyup="filtrarTabla('partos')" placeholder="Buscar parto..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Poza / Madre</th>
+                                    <th class="p-4">Vivas</th>
+                                    <th class="p-4">Muertas</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-partos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. DESTETADOS (Separados por sexo) -->
+            <div id="view-destetados" class="space-y-6 view-section hidden">
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Registrar Destete por Sexo</h3>
+                    <form onsubmit="guardarDestete(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Poza Origen</label>
+                            <select id="destete-poza" data-poza-activa="true" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="">Selecciona una poza</option>
+                            </select>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Machos</label>
+                                <input type="number" id="destete-machos" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Poza Destino Machos</label>
+                                <select id="destete-poza-machos" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                    <option value="">Selecciona una poza</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Hembras</label>
+                                <input type="number" id="destete-hembras" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Poza Destino Hembras</label>
+                                <select id="destete-poza-hembras" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                    <option value="">Selecciona una poza</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="action-giant action-destete md:col-span-4"><i class="ph ph-users-three" aria-hidden="true"></i><span>GUARDAR DESTETE</span></button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Historial de Destetes</h4>
+                        <input type="text" id="search-destetados" onkeyup="filtrarTabla('destetados')" placeholder="Buscar destete..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Poza Origen</th>
+                                    <th class="p-4">Machos Destetados</th>
+                                    <th class="p-4">Hembras Destetadas</th>
+                                    <th class="p-4">Destino Machos</th>
+                                    <th class="p-4">Destino Hembras</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-destetados"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. MORTALIDAD Y BAJAS -->
+            <div id="view-bajas" class="space-y-6 view-section hidden">
+                <section class="surface border border-stone-200 bg-white p-5 sm:p-7">
+                    <div class="mx-auto max-w-3xl space-y-6">
+                        <header>
+                            <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
+                            <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
+                            <p class="mt-2 text-sm text-stone-600">Fotografía la lesión para recibir una orientación inicial. La imagen se enviará al servicio veterinario configurado.</p>
+                        </header>
+                        <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <label class="flex min-h-20 cursor-pointer items-center justify-center gap-3 rounded-xl bg-emerald-700 px-4 py-4 text-center text-lg font-extrabold text-white shadow transition hover:bg-emerald-800">
+                                    <i class="ph ph-camera text-3xl" aria-hidden="true"></i><span>Tomar Foto con Cámara</span>
+                                    <input type="file" id="baja-foto-camara" accept="image/*" capture="environment" onchange="previsualizarFotoBaja(event)" class="hidden">
+                                </label>
+                                <label class="flex min-h-20 cursor-pointer items-center justify-center gap-3 rounded-xl bg-slate-700 px-4 py-4 text-center text-lg font-extrabold text-white shadow transition hover:bg-slate-800">
+                                    <i class="ph ph-image text-3xl" aria-hidden="true"></i><span>Elegir de Galería</span>
+                                    <input type="file" id="baja-foto-galeria" accept="image/*" onchange="previsualizarFotoBaja(event)" class="hidden">
+                                </label>
+                            </div>
+                            <div id="baja-preview-card" class="hidden rounded-xl border border-stone-200 bg-stone-50 p-4">
+                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                    <img id="baja-preview" class="hidden h-32 w-full rounded-lg border border-stone-200 bg-white object-contain sm:w-40" alt="Vista previa de la lesión">
+                                    <div class="min-w-0 flex-1">
+                                        <p id="baja-analysis-status" class="flex items-center gap-2 text-sm font-bold text-emerald-900" role="status" aria-live="polite">
+                                            <span id="baja-analysis-spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-emerald-700 border-t-transparent" aria-hidden="true"></span>
+                                            <span id="baja-analysis-message">Preparando foto...</span>
+                                        </p>
+                                        <p id="baja-analysis-detail" class="mt-2 text-sm text-stone-600"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <label class="text-sm font-bold text-stone-700">Poza o identificador
+                                    <select id="baja-identificador" data-poza-activa="true" required class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base"><option value="">Selecciona una poza</option></select>
+                                </label>
+                                <label class="text-sm font-bold text-stone-700">Cantidad de animales
+                                    <input type="number" id="baja-cantidad" required min="1" value="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
+                                </label>
+                            </div>
+                            <div id="baja-results" class="hidden space-y-4" aria-live="polite">
+                                <h4 class="text-lg font-extrabold text-stone-900">Guía rápida de campo</h4>
+                                <div class="space-y-3">
+                                    <article class="rounded-xl border border-rose-200 bg-rose-50 p-4"><span class="inline-flex rounded-full bg-rose-700 px-3 py-1 text-sm font-bold text-white">🟥 Diagnóstico principal</span><p id="baja-result-diagnostico" class="mt-2 text-lg font-extrabold text-stone-900"></p></article>
+                                    <article class="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><span class="inline-flex rounded-full bg-emerald-700 px-3 py-1 text-sm font-bold text-white">🟩 Acción inmediata</span><ol id="baja-result-accion" class="mt-2 list-decimal space-y-1 pl-5 text-base text-stone-900"></ol></article>
+                                    <article class="rounded-xl border border-sky-200 bg-sky-50 p-4"><span class="inline-flex rounded-full bg-sky-700 px-3 py-1 text-sm font-bold text-white">🟦 Tratamiento / manejo</span><p id="baja-result-tratamiento" class="mt-2 whitespace-pre-wrap break-words text-base text-stone-900"></p></article>
+                                </div>
+                                <p class="text-xs font-medium text-amber-900">Orientación por foto: confirma fármaco, dosis y vía con un veterinario.</p>
+                            </div>
+                            <button type="submit" id="baja-save-button" disabled class="action-giant action-baja disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR REGISTRO DE BAJA</span></button>
+                        </form>
+                    </div>
+                </section>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Historial de Mortalidad</h4>
+                        <input type="text" id="search-bajas" onkeyup="filtrarTabla('bajas')" placeholder="Buscar baja..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Identificador</th>
+                                    <th class="p-4">Cantidad</th>
+                                    <th class="p-4">Motivo</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-bajas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. VENTAS E INGRESOS (Con Selector de Tipo / Categoría) -->
+            <div id="view-ventas" class="space-y-6 view-section hidden">
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Registrar Venta de Cuyes / Ingresos</h3>
+                    <form onsubmit="guardarVenta(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Tipo / Categoría de Venta</label>
+                            <select id="venta-categoria" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600 font-medium bg-stone-50">
+                                <option value="Cuy Comercial / Engorde">Cuy Comercial / Engorde</option>
+                                <option value="Gazapos (Crías)">Gazapos (Crías)</option>
+                                <option value="Reproductor / Descarte">Reproductor / Descarte</option>
+                                <option value="Subproductos / Abono (Guano)">Subproductos / Abono (Guano)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad Vendida</label>
+                            <input type="number" id="venta-cantidad" required min="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600" placeholder="Ej. 20">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Precio por unidad (S/)</label>
+                            <input type="number" step="0.01" id="venta-monto" required min="0" inputmode="decimal" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600" placeholder="Ej. 30.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cliente / Destino (opcional)</label>
+                            <input type="text" id="venta-cliente" list="venta-clientes-lista" autocomplete="organization" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600" placeholder="Elegir o escribir cliente">
+                            <datalist id="venta-clientes-lista"></datalist>
+                        </div>
+                        <button type="submit" class="action-giant action-venta sm:col-span-5"><i class="ph ph-currency-circle-dollar" aria-hidden="true"></i><span>REGISTRAR VENTA</span></button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Historial de Ventas e Ingresos</h4>
+                        <input type="text" id="search-ventas" onkeyup="filtrarTabla('ventas')" placeholder="Buscar venta..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Tipo / Categoría</th>
+                                    <th class="p-4">Cantidad</th>
+                                    <th class="p-4">Total Venta (S/)</th>
+                                    <th class="p-4">Cliente / Destino</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-ventas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. GASTOS OPERATIVOS -->
+            <div id="view-gastos" class="space-y-6 view-section hidden">
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Registrar Gasto Operativo / Egreso</h3>
+                    <form onsubmit="guardarGasto(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Fecha del gasto</label>
+                            <input type="date" id="gasto-fecha" required class="w-full px-3 py-2 border rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Concepto</label>
+                            <input type="text" id="gasto-concepto" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Compra de alfalfa / Balanceado">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Monto (S/)</label>
+                            <input type="number" step="0.01" id="gasto-monto" required min="0" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 150.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Categoría</label>
+                            <select id="gasto-categoria" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
+                                <option value="Alimentación">Alimentación</option>
+                                <option value="Forraje">Forraje</option>
+                                <option value="Medicinas">Medicinas</option>
+                                <option value="Sanidad / Medicamentos">Sanidad / Medicamentos</option>
+                                <option value="Mantenimiento de Pozas">Mantenimiento de Pozas</option>
+                                <option value="Otros Egresos">Otros Egresos</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-stone-700 text-white font-semibold py-2 px-4 rounded-xl text-sm hover:bg-stone-800 transition shadow-xs">Registrar Egreso</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-stone-800 text-base">Historial de Gastos Operativos</h4>
+                        <input type="text" id="search-gastos" onkeyup="filtrarTabla('gastos')" placeholder="Buscar gasto..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Concepto</th>
+                                    <th class="p-4">Categoría</th>
+                                    <th class="p-4">Ubicación</th>
+                                    <th class="p-4">Monto (S/)</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-gastos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-salud" class="space-y-6 view-section hidden">
+                <section class="surface bg-white p-5 sm:p-6 border border-stone-200">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Kardex sanitario y de insumos</h3>
+                    <form onsubmit="guardarTratamiento(event)" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <label class="text-xs font-bold text-stone-600">Aplicación
+                            <input type="date" id="salud-fecha" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Destino
+                            <select id="salud-destino" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm"><option value="">Selecciona galpón o poza</option></select>
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Medicamento / producto
+                            <select id="salud-producto" required onchange="calcularDosisPoza()" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
+                                <option value="">Selecciona producto</option>
+                                <option value="Ivermectina 1%" data-dosis="0.2" data-unidad="kg">Ivermectina 1% · 0.2 ml/kg</option>
+                                <option value="Enrofloxacina 5%" data-dosis="0.1" data-unidad="kg">Enrofloxacina 5% · 0.1 ml/kg</option>
+                                <option value="Toltrazuril 2.5%" data-dosis="0.04" data-unidad="kg">Toltrazuril 2.5% · 0.04 ml/kg</option>
+                                <option value="Vitamina AD3E / C" data-dosis="0.2" data-unidad="animal">Vitamina AD3E / C · 0.2 ml/animal</option>
+                                <option value="Otro indicado por veterinario">Otro indicado por veterinario</option>
+                            </select>
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Peso promedio del cuy (gramos)
+                            <input type="number" id="salud-peso" min="1" max="5000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 850">
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Cantidad de cuyes en la poza
+                            <input type="number" id="salud-animales" min="1" max="1000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 6">
+                        </label>
+                        <label id="salud-producto-manual-wrap" class="hidden text-xs font-bold text-stone-600">Producto prescrito
+                            <input type="text" id="salud-producto-manual" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Nombre indicado por el veterinario">
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Dosis / cantidad
+                            <input type="text" id="salud-cantidad" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Calculada o indicada por el veterinario">
+                        </label>
+                        <label class="text-xs font-bold text-stone-600">Responsable / nota
+                            <input type="text" id="salud-nota" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Opcional">
+                        </label>
+                        <p id="salud-calculo" class="sm:col-span-2 xl:col-span-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" aria-live="polite">Selecciona un producto e ingresa el peso y la cantidad para calcular.</p>
+                        <p class="sm:col-span-2 xl:col-span-4 text-xs text-amber-800">Dosis de referencia solicitadas; confirma etiqueta, vía, contraindicaciones y pauta con un veterinario antes de administrar.</p>
+                        <div class="sm:col-span-2 xl:col-span-5 flex justify-end">
+                            <button type="submit" class="bg-emerald-700 text-white font-bold px-6 rounded-xl">Guardar aplicación</button>
+                        </div>
+                    </form>
+                </section>
+                <section class="surface bg-white p-5 sm:p-6 border border-stone-200 space-y-4">
+                    <h4 class="font-bold text-stone-800">Historial de tratamientos e insumos</h4>
+                    <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-stone-50 text-stone-500 uppercase text-xs"><tr><th class="p-4">Fecha</th><th class="p-4">Destino</th><th class="p-4">Diagnóstico</th><th class="p-4">Síntomas</th><th class="p-4">Lesiones</th><th class="p-4">Producto / manejo</th><th class="p-4">Dosis / seguimiento</th><th class="p-4">Días</th><th class="p-4">Vía</th><th class="p-4">Foto</th><th class="p-4">Nota</th><th class="p-4">Acción</th></tr></thead><tbody id="tabla-salud"></tbody></table></div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL / TOAST DE NOTIFICACIÓN -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="qr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="qr-titulo">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <h2 id="qr-titulo" class="text-xl font-extrabold text-stone-900">Ficha de poza</h2>
+            <p id="qr-codigo" class="mt-1 font-semibold text-emerald-800"></p>
+            <p id="qr-detalle" class="mt-1 text-sm text-stone-500"></p>
+            <canvas id="qr-canvas" class="mx-auto my-5"></canvas>
+            <div class="flex gap-3"><button onclick="imprimirCodigoQR()" class="flex-1 rounded-xl bg-emerald-700 px-4 text-white font-bold"><i class="ph ph-printer mr-1"></i>Imprimir QR</button><button onclick="cerrarCodigoQR()" class="rounded-xl border border-stone-300 px-4 font-bold">Cerrar</button></div>
+        </div>
+    </div>
+    <div id="photo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/80 p-4" role="dialog" aria-modal="true" aria-label="Foto del registro sanitario" onclick="cerrarFotoKardex()">
+        <img id="photo-display" class="max-h-[90vh] max-w-full rounded-xl bg-white object-contain" alt="Foto del registro sanitario">
+    </div>
+
+    <!-- SCRIPT DE GESTIÓN Y GRÁFICOS -->
+    <script>
+        let db = {
+            cuyes: [],
+            pozas: [],
+            partos: [],
+            destetados: [],
+            bajas: [],
+            ventas: [],
+            gastos: [],
+            gestaciones: [],
+            tratamientos: [],
+            temperatura: null
+        };
+
+        let chartPoblacionInstance = null;
+        let chartFinanzasInstance = null;
+        let chartMortalidadInstance = null;
+        let codigoQRActual = '';
+        let fotoClinicaAnalizadaBase64 = '';
+        let bajaAnalisisActual = null;
+        let bajaFotoVersion = 0;
+
+        function fechaHoy() {
+            const hoy = new Date();
+            return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        }
+
+        function sumarDias(fecha, dias) {
+            const resultado = new Date(`${fecha}T00:00:00`);
+            resultado.setDate(resultado.getDate() + dias);
+            return `${resultado.getFullYear()}-${String(resultado.getMonth() + 1).padStart(2, '0')}-${String(resultado.getDate()).padStart(2, '0')}`;
+        }
+
+        function diasHasta(fecha) {
+            const hoy = new Date(`${fechaHoy()}T00:00:00`);
+            const objetivo = new Date(`${fecha}T00:00:00`);
+            return Math.round((objetivo - hoy) / 86400000);
+        }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter]);
+        }
+
+        function obtenerCodigosPozas() {
+            const codigos = Array.from({ length: 100 }, (_, index) => 'PZ-' + String(index + 1).padStart(3, '0'));
+            const codigosBase = new Set(codigos);
+            const codigosAdicionales = db.cuyes
+                .map(poza => String(poza.codigo || poza.id || '').trim())
+                .filter(codigo => codigo && !/^(?:PZ[-\s]?|POZA\s*)0*(?:[1-9]|[1-9]\d|100)$/i.test(codigo))
+                .filter(codigo => !codigosBase.has(codigo))
+                .sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+            return [...codigos, ...new Set(codigosAdicionales)];
+        }
+
+        function obtenerPozaActiva() {
+            try {
+                return localStorage.getItem('sisgranja_poza_activa') || '';
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function cambiarPozaActiva(codigo) {
+            if (!codigo) return;
+            try {
+                localStorage.setItem('sisgranja_poza_activa', codigo);
+            } catch (error) {
+                console.warn('No se pudo recordar la poza activa en este dispositivo.');
+            }
+            document.querySelectorAll('[data-poza-activa="true"]').forEach(selector => {
+                if ([...selector.options].some(opcion => opcion.value === codigo)) selector.value = codigo;
+            });
+        }
+
+        function registrarControlesCampo() {
+            document.querySelectorAll('[data-poza-activa="true"]').forEach(selector => {
+                selector.addEventListener('change', () => cambiarPozaActiva(selector.value));
+            });
+        }
+
+        function actualizarSelectoresPozas() {
+            const codigos = obtenerCodigosPozas();
+            const pozaActiva = obtenerPozaActiva();
+            document.querySelectorAll('#cuy-codigo, #parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #quick-poza, #necro-poza').forEach(selector => {
+                const valorActual = selector.value;
+                const textoInicial = 'Selecciona una poza';
+                const opciones = [new Option(textoInicial, ''), ...codigos.map(codigo => new Option(codigo, codigo))];
+                selector.replaceChildren(...opciones);
+                if (codigos.includes(valorActual)) selector.value = valorActual;
+                else if (selector.dataset.pozaActiva === 'true' && codigos.includes(pozaActiva)) selector.value = pozaActiva;
+            });
+
+            const ubicaciones = [...new Set(db.cuyes.map(poza => String(poza.poza || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+            const opcionesUbicacion = [new Option('General', 'General'), ...ubicaciones.map(ubicacion => new Option(ubicacion, ubicacion)), ...codigos.map(codigo => new Option(codigo, codigo))];
+            ['salud-destino'].forEach(id => {
+                const selector = document.getElementById(id);
+                const valorActual = selector.value;
+                selector.replaceChildren(...(id === 'salud-destino' ? [new Option('Selecciona galpón o poza', ''), ...opcionesUbicacion] : opcionesUbicacion));
+                if ([...selector.options].some(opcion => opcion.value === valorActual)) selector.value = valorActual;
+            });
+        }
+
+        function obtenerStockActualPoza(poza) {
+            const codigo = String(poza.codigo || poza.id || '').trim().toUpperCase();
+            const etapa = String(poza.etapa || '').toLowerCase();
+            const stockInicial = poza.stockInicial !== undefined
+                ? Number(poza.stockInicial) || 0
+                : (etapa.includes('reproductor') ? 7 : 0);
+            const coincidePoza = valor => String(valor || '').trim().toUpperCase() === codigo;
+            const nacimientos = db.partos
+                .filter(parto => coincidePoza(parto.poza))
+                .reduce((total, parto) => total + Number(parto.vivas || 0), 0);
+            const destetadosOrigen = db.destetados
+                .filter(destete => coincidePoza(destete.poza))
+                .reduce((total, destete) => {
+                    if (destete.machos !== undefined || destete.hembras !== undefined) {
+                        return total + Number(destete.machos || 0) + Number(destete.hembras || 0);
+                    }
+                    const sexo = String(destete.sexo || '').toLowerCase();
+                    return total + (sexo.includes('macho') || sexo.includes('hembra') || sexo === 'm' || sexo === 'h' ? Number(destete.cantidad || 0) : 0);
+                }, 0);
+            const destetadosDestino = db.destetados.reduce((total, destete) => {
+                const machos = coincidePoza(destete.pozaMachosDestino) ? Number(destete.machos || 0) : 0;
+                const hembras = coincidePoza(destete.pozaHembrasDestino) ? Number(destete.hembras || 0) : 0;
+                return total + machos + hembras;
+            }, 0);
+            const bajas = db.bajas
+                .filter(baja => coincidePoza(baja.identificador))
+                .reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
+
+            return stockInicial + nacimientos - destetadosOrigen + destetadosDestino - bajas;
+        }
+
+        function actualizarSugerenciasClientes() {
+            const lista = document.getElementById('venta-clientes-lista');
+            if (!lista) return;
+            const clientes = [...new Set(db.ventas.map(venta => String(venta.cliente || '').trim()).filter(Boolean))].slice(0, 8);
+            lista.replaceChildren(...clientes.map(cliente => new Option(cliente, cliente)));
+        }
+
+        function calcularTotalVentas() {
+            return db.ventas.reduce((total, v) => total + Number(v.monto) * Number(v.cantidad || 0), 0);
+        }
+
+        function abrirRegistroRapido(vista) {
+            const codigo = document.getElementById('quick-poza').value;
+            if (!codigo) {
+                mostrarToast('Selecciona una poza de la lista', 'error');
+                return;
+            }
+            const selectores = { partos: 'parto-poza', destetados: 'destete-poza', bajas: 'baja-identificador' };
+            if (selectores[vista]) document.getElementById(selectores[vista]).value = codigo;
+            if (vista === 'salud') document.getElementById('salud-destino').value = codigo;
+            switchView(vista);
+            const formulario = document.querySelector(`#view-${vista} form`);
+            if (formulario) formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function mostrarCodigoQR(codigo) {
+            if (!codigo) {
+                mostrarToast('Selecciona una poza para generar su QR', 'error');
+                return;
+            }
+            if (typeof QRCode === 'undefined') {
+                mostrarToast('No se pudo cargar el generador QR. Verifica la conexión e inténtalo de nuevo.', 'error');
+                return;
+            }
+            codigoQRActual = String(codigo);
+            document.getElementById('qr-codigo').textContent = codigoQRActual;
+            const ficha = db.cuyes.find(poza => String(poza.codigo || poza.id || '').toUpperCase() === codigoQRActual.toUpperCase());
+            document.getElementById('qr-detalle').textContent = ficha ? `${ficha.etapa || 'Sin etapa'} · ${ficha.poza || 'Ubicación sin registrar'}` : 'Poza disponible para identificación manual';
+            QRCode.toCanvas(document.getElementById('qr-canvas'), `SISGRANJA|${codigoQRActual}`, { width: 240, margin: 2, errorCorrectionLevel: 'H' }, error => {
+                if (error) {
+                    console.error('Error al generar QR:', error);
+                    mostrarToast('No se pudo generar el código QR', 'error');
+                    return;
+                }
+                const modal = document.getElementById('qr-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        }
+
+        function cerrarCodigoQR() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function imprimirCodigoQR() {
+            const ventana = window.open('', '_blank', 'width=480,height=560');
+            if (!ventana) {
+                mostrarToast('Permite las ventanas emergentes para imprimir el QR', 'error');
+                return;
+            }
+            const imagen = document.getElementById('qr-canvas').toDataURL('image/png');
+            const detalle = document.getElementById('qr-detalle').textContent;
+            ventana.document.write(`<!doctype html><html lang="es"><meta charset="utf-8"><title>Ficha ${escaparHTML(codigoQRActual)}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:32px;color:#18352b}img{width:260px;height:260px}.codigo{font-size:28px;font-weight:700;margin:12px}</style><h1>SisGranja</h1><p class="codigo">${escaparHTML(codigoQRActual)}</p><p>${escaparHTML(detalle)}</p><img src="${imagen}" alt="Código QR de ${escaparHTML(codigoQRActual)}"></html>`);
+            ventana.document.close();
+            setTimeout(() => ventana.print(), 250);
+        }
+
+        async function imprimirTodosLosQR() {
+            if (typeof QRCode === 'undefined') {
+                mostrarToast('No se pudo cargar el generador QR. Verifica la conexión e inténtalo de nuevo.', 'error');
+                return;
+            }
+            const ventana = window.open('', '_blank');
+            if (!ventana) {
+                mostrarToast('Permite las ventanas emergentes para imprimir los QR', 'error');
+                return;
+            }
+            ventana.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><title>Etiquetas QR SisGranja</title><p style="font:16px Arial;padding:24px">Preparando 100 etiquetas QR...</p></html>');
+            const pozas = Array.from({ length: 100 }, (_, indice) => {
+                const codigo = `PZ-${String(indice + 1).padStart(3, '0')}`;
+                const registro = db.cuyes.find(poza => String(poza.codigo || poza.id || '').toUpperCase() === codigo);
+                return { codigo, etapa: registro?.etapa || 'Sin asignar', ubicacion: registro?.poza || 'Ubicación sin registrar' };
+            });
+            try {
+                const etiquetas = await Promise.all(pozas.map(async poza => {
+                    const imagen = await QRCode.toDataURL(`SISGRANJA|${poza.codigo}`, { width: 160, margin: 1, errorCorrectionLevel: 'H' });
+                    return `<article><img src="${imagen}" alt="QR ${poza.codigo}"><strong>${poza.codigo}</strong><span>${escaparHTML(poza.ubicacion)}</span><small>${escaparHTML(poza.etapa)}</small></article>`;
+                }));
+                ventana.document.open();
+                ventana.document.write(`<!doctype html><html lang="es"><meta charset="utf-8"><title>Etiquetas QR SisGranja</title><style>*{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#18352b;margin:10mm}.labels{display:grid;grid-template-columns:repeat(4,1fr);gap:5mm}article{border:1px solid #bccdc0;border-radius:6px;padding:4mm;text-align:center;display:flex;flex-direction:column;align-items:center;break-inside:avoid}img{width:32mm;height:32mm}strong{font-size:14px;margin:2mm 0}span,small{max-width:100%;overflow-wrap:anywhere}@page{size:A4;margin:10mm}</style><h1>SisGranja · Etiquetas QR</h1><main class="labels">${etiquetas.join('')}</main></html>`);
+                ventana.document.close();
+                ventana.onload = () => ventana.print();
+            } catch (error) {
+                ventana.close();
+                console.error('Error al generar etiquetas QR:', error);
+                mostrarToast('No se pudieron preparar todas las etiquetas QR', 'error');
+            }
+        }
+
+        function cargarDatos() {
+            const saved = localStorage.getItem('sisgranja_cuy_db');
+            if (saved) {
+                try {
+                    db = JSON.parse(saved);
+                } catch (e) {
+                    console.error("Error al cargar localStorage:", e);
+                }
+            }
+            if (!Array.isArray(db.cuyes)) db.cuyes = [];
+            if (!Array.isArray(db.partos)) db.partos = [];
+            if (!Array.isArray(db.destetados)) db.destetados = [];
+            if (!Array.isArray(db.bajas)) db.bajas = [];
+            if (!Array.isArray(db.ventas)) db.ventas = [];
+            if (!Array.isArray(db.gastos)) db.gastos = [];
+            if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
+            if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
+            if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
+
+        }
+
+        function guardarBD(mensaje = "Datos guardados correctamente", tipo = 'success') {
+            if (!db || typeof db !== 'object' || Array.isArray(db)) db = {};
+            ['cuyes', 'partos', 'destetados', 'bajas', 'ventas', 'gastos', 'gestaciones', 'tratamientos'].forEach(clave => {
+                if (!Array.isArray(db[clave])) db[clave] = [];
+            });
+            if (db.cuyes && !db.pozas) db.pozas = db.cuyes;
+            if (db.pozas && !db.cuyes) db.cuyes = db.pozas;
+
+            db.ventas = Array.isArray(db.ventas) ? db.ventas.map(v => ({
+                ...v,
+                cantidad: Number(v.cantidad || 0),
+                monto: Number(parseFloat(v.monto || 0).toFixed(2)),
+                cliente: String(v.cliente || '').trim()
+            })) : [];
+
+            localStorage.setItem('sisgranja_cuy_db', JSON.stringify(db));
+            renderizarTodo();
+            if (mensaje) mostrarToast(mensaje, tipo);
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const esExito = tipo === 'success';
+            toast.className = `toast-confirmation pointer-events-auto transition transform translate-y-2 opacity-0 flex items-center gap-4 ${esExito ? 'toast-success' : 'toast-error'}`;
+            toast.setAttribute('role', esExito ? 'status' : 'alert');
+            const icono = document.createElement('i');
+            icono.className = `ph ${esExito ? 'ph-check-circle' : 'ph-warning-circle'}`;
+            icono.setAttribute('aria-hidden', 'true');
+            const texto = document.createElement('span');
+            texto.textContent = mensaje;
+            toast.replaceChildren(icono, texto);
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4500);
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.classList.remove('bg-emerald-900', 'text-white', 'shadow-sm');
+                btn.classList.add('hover:bg-emerald-900/60', 'text-stone-300');
+            });
+            const activeBtn = document.getElementById('nav-' + viewName);
+            if (activeBtn) {
+                activeBtn.classList.remove('hover:bg-emerald-900/60', 'text-stone-300');
+                activeBtn.classList.add('bg-emerald-900', 'text-white', 'shadow-sm');
+            }
+
+            const titles = {
+                dashboard: 'Unidad Pecuaria Cuyícola - Dashboard General',
+                cuyes: 'Gestión de Pozas y Etapas Zootécnicas',
+                partos: 'Registro de Partos en Granja',
+                destetados: 'Control de Destetados (Separados por Sexo)',
+                bajas: 'Mortalidad y Bajas Sanitarias',
+                ventas: 'Ventas de Cuyes e Ingresos',
+                gastos: 'Gastos Operativos',
+                salud: 'Kardex Sanitario y de Insumos'
+            };
+            document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
+            
+            if (viewName === 'dashboard') {
+                setTimeout(actualizarGraficos, 50);
+            }
+        }
+
+        function sembrarDatosIniciales() {
+            if (db.cuyes.length > 0 && !confirm("¿Desea recargar la simulación estándar de 100 pozas? Se sobrescribirán los datos actuales.")) return;
+            db.cuyes = [];
+            for (let i = 1; i <= 100; i++) {
+                db.cuyes.push({
+                    codigo: 'PZ-' + String(i).padStart(3, '0'),
+                    etapa: 'Reproductor',
+                    genero: i % 2 === 0 ? 'Hembra' : 'Macho',
+                    poza: i <= 50 ? 'Galpón A' : 'Galpón B'
+                });
+            }
+            db.pozas = db.cuyes;
+            db.partos = [];
+            db.destetados = [];
+            db.bajas = [];
+            db.ventas = [];
+            db.gastos = [];
+            db.gestaciones = [];
+            db.tratamientos = [];
+            guardarBD();
+            mostrarToast("100 pozas reproductoras cargadas: 700 cuyes, sin destetados ni cuyes para venta.");
+        }
+
+        function generar100PozasAutomaticas() {
+            const numerosExistentes = new Set(db.cuyes.map(poza => {
+                const codigo = String(poza.codigo || poza.id || '').trim().toUpperCase();
+                const coincidencia = codigo.match(/^(?:PZ[-\s]?|POZA\s*)0*(\d+)$/);
+                return coincidencia ? Number(coincidencia[1]) : null;
+            }).filter(Number.isInteger));
+            const nuevasPozas = [];
+
+            for (let numero = 1; numero <= 100; numero++) {
+                if (numerosExistentes.has(numero)) continue;
+
+                nuevasPozas.push({
+                    codigo: 'PZ-' + String(numero).padStart(3, '0'),
+                    etapa: 'Reproductor',
+                    genero: 'Hembra',
+                    poza: numero <= 50 ? 'Galpón A' : 'Galpón B'
+                });
+            }
+
+            if (nuevasPozas.length === 0) {
+                mostrarToast('Las 100 pozas ya están registradas.');
+                return;
+            }
+
+            db.cuyes.push(...nuevasPozas);
+            db.pozas = db.cuyes;
+            guardarBD(`${nuevasPozas.length} pozas reproductoras agregadas al inventario.`);
+        }
+
+        // Formularios
+        function guardarCuy(e) {
+            e.preventDefault();
+            db.cuyes.push({
+                codigo: document.getElementById('cuy-codigo').value,
+                etapa: document.getElementById('cuy-etapa').value,
+                genero: document.getElementById('cuy-genero').value,
+                poza: document.getElementById('cuy-poza').value
+            });
+            document.getElementById('cuy-codigo').value = '';
+            guardarBD();
+        }
+
+        function guardarParto(e) {
+            e.preventDefault();
+            const poza = document.getElementById('parto-poza').value;
+            const fecha = fechaHoy();
+            db.partos.unshift({
+                fecha,
+                poza,
+                vivas: parseInt(document.getElementById('parto-vivas').value),
+                muertas: parseInt(document.getElementById('parto-muertas').value)
+            });
+            const gestacion = db.gestaciones.find(item => item.poza === poza && !item.fechaParto);
+            if (gestacion) gestacion.fechaParto = fecha;
+            document.getElementById('parto-poza').value = '';
+            document.getElementById('parto-vivas').value = '';
+            document.getElementById('parto-muertas').value = '0';
+            guardarBD('Parto registrado correctamente');
+        }
+
+        function guardarDestete(e) {
+            e.preventDefault();
+            const poza = document.getElementById('destete-poza').value;
+            const machos = Number.parseInt(document.getElementById('destete-machos').value, 10) || 0;
+            const hembras = Number.parseInt(document.getElementById('destete-hembras').value, 10) || 0;
+            const pozaMachosDestino = document.getElementById('destete-poza-machos').value;
+            const pozaHembrasDestino = document.getElementById('destete-poza-hembras').value;
+            const totalDestetados = machos + hembras;
+            const codigoPoza = valor => String(valor || '').trim().toUpperCase();
+
+            if (machos < 0 || hembras < 0) {
+                mostrarToast('Las cantidades del destete no pueden ser negativas.', 'error');
+                return;
+            }
+
+            const asegurarPozaInventario = (codigo, genero) => {
+                if (!codigo) return;
+                if (db.cuyes.some(item => codigoPoza(item.codigo || item.id) === codigoPoza(codigo))) return;
+                db.cuyes.push({ codigo, etapa: 'Recría', genero, poza: 'Sin asignar', stockInicial: 0 });
+            };
+            if (totalDestetados > 0) {
+                asegurarPozaInventario(poza, 'Sin especificar');
+                if (machos > 0) asegurarPozaInventario(pozaMachosDestino, 'Macho');
+                if (hembras > 0) asegurarPozaInventario(pozaHembrasDestino, 'Hembra');
+            }
+            const fecha = fechaHoy();
+            db.destetados.unshift({
+                fecha,
+                poza,
+                machos,
+                hembras,
+                pozaMachosDestino,
+                pozaHembrasDestino
+            });
+            const gestacion = db.gestaciones.find(item => item.poza === poza && item.fechaParto && !item.fechaDestete);
+            if (gestacion) gestacion.fechaDestete = fecha;
+            document.getElementById('destete-poza').value = '';
+            document.getElementById('destete-machos').value = '0';
+            document.getElementById('destete-hembras').value = '0';
+            guardarBD('Destete registrado correctamente');
+        }
+
+        function guardarRegistroKardex(registro, mensaje) {
+            if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
+            if (!registro.kardexId) registro.kardexId = `kardex-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            if (db.tratamientos.some(item => item.kardexId === registro.kardexId)) return;
+            db.tratamientos.unshift(registro);
+            try {
+                guardarBD(mensaje);
+            } catch (error) {
+                const indice = db.tratamientos.indexOf(registro);
+                if (indice !== -1) db.tratamientos.splice(indice, 1);
+                throw error;
+            }
+        }
+
+        function extraerDatosTratamiento(accionInmediata) {
+            const texto = String(accionInmediata || '').toLowerCase();
+            const duracionExplicita = texto.match(/(?:durante|por|por un periodo de|por un período de|por aproximadamente|por al menos|por hasta)\s+(\d+(?:\s*(?:-|a)\s*\d+)?)\s*d[ií]as?\b/i);
+            const duracion = duracionExplicita || texto.match(/\b(\d+(?:\s*(?:-|a)\s*\d+)?)\s*d[ií]as?\b/i);
+            const vias = [
+                ['agua de bebida', /\bagua\s+de\s+bebida\b/],
+                ['intramuscular', /\bintramuscular\b/],
+                ['subcutánea', /\bsubcut[aá]nea\b/],
+                ['intraperitoneal', /\bintraperitoneal\b/],
+                ['intranasal', /\bintranasal\b/],
+                ['tópica', /\bt[oó]pica\b/],
+                ['ocular', /\bocular\b/],
+                ['ótica', /\b[oó]tica\b/],
+                ['oral', /\boral\b/]
+            ];
+            const via = vias.find(([, patron]) => patron.test(texto));
+
+            return {
+                diasProtocolo: duracion ? `${duracion[1].replace(/\s+/g, '')} días` : 'No consignado',
+                via: via ? via[0] : 'No consignada'
+            };
+        }
+
+        async function guardarBaja(e) {
+            e.preventDefault();
+            const formulario = e.currentTarget;
+            if (formulario.dataset.saving === 'true') return;
+            if (!bajaAnalisisActual || !fotoClinicaAnalizadaBase64) {
+                mostrarToast('Toma una foto y espera el análisis antes de guardar', 'error');
+                return;
+            }
+            formulario.dataset.saving = 'true';
+            const boton = e.submitter || formulario.querySelector('[type="submit"]');
+            if (boton) boton.disabled = true;
+            try {
+                const resultado = bajaAnalisisActual;
+                const foto = fotoClinicaAnalizadaBase64;
+                const baja = {
+                    fecha: fechaHoy(),
+                    identificador: document.getElementById('baja-identificador').value,
+                    cantidad: parseInt(document.getElementById('baja-cantidad').value, 10),
+                    motivo: resultado.diagnostico_situacion
+                };
+                const datosTratamiento = extraerDatosTratamiento(`${resultado.accion_inmediata} ${resultado.tratamiento_manejo || ''}`);
+                const registro = {
+                    fecha: baja.fecha,
+                    destino: baja.identificador,
+                    diagnostico: resultado.diagnostico_situacion,
+                    sintomas: resultado.causa_principal,
+                    lesiones: resultado.diagnostico_situacion,
+                    producto: resultado.accion_inmediata,
+                    cantidad: `Bajas: ${baja.cantidad}; prevención diaria: ${resultado.prevencion_diaria}`,
+                    diasProtocolo: datosTratamiento.diasProtocolo,
+                    via: datosTratamiento.via,
+                    foto,
+                    nota: `Causa principal: ${resultado.causa_principal}. Prevención diaria: ${resultado.prevencion_diaria}`
+                };
+                db.bajas.unshift(baja);
+                try {
+                    try {
+                        guardarRegistroKardex(registro, 'Baja y registro añadido al Kardex Sanitario');
+                    } catch (error) {
+                        if (!foto || !esLimiteAlmacenamiento(error)) throw error;
+                        registro.foto = '';
+                        guardarRegistroKardex(registro, 'Baja guardada; foto omitida por límite de almacenamiento');
+                    }
+                } catch (error) {
+                    db.bajas.shift();
+                    throw error;
+                }
+                formulario.reset();
+                document.getElementById('baja-cantidad').value = '1';
+                document.getElementById('baja-identificador').value = obtenerPozaActiva();
+                fotoClinicaAnalizadaBase64 = '';
+                bajaAnalisisActual = null;
+                document.getElementById('baja-preview-card').classList.add('hidden');
+                document.getElementById('baja-preview').removeAttribute('src');
+                document.getElementById('baja-preview').classList.add('hidden');
+                document.getElementById('baja-results').classList.add('hidden');
+                document.getElementById('baja-save-button').disabled = true;
+            } catch (error) {
+                console.error('Error al registrar la baja en el Kardex:', error);
+                mostrarToast(error.message || 'No se pudo guardar la baja en el Kardex', 'error');
+            } finally {
+                formulario.dataset.saving = 'false';
+                if (boton) boton.disabled = !bajaAnalisisActual || !fotoClinicaAnalizadaBase64;
+            }
+        }
+
+        function guardarVenta(e) {
+            e.preventDefault();
+
+            const categoria = document.getElementById('venta-categoria').value;
+            const cantidad = Number.parseInt(document.getElementById('venta-cantidad').value, 10) || 0;
+            const montoInput = document.getElementById('venta-monto').value;
+            const monto = Number(montoInput);
+            const cliente = document.getElementById('venta-cliente').value.trim();
+
+            if (!Number.isFinite(monto) || monto <= 0) {
+                mostrarToast('Ingresa un precio unitario válido para la venta', 'error');
+                return;
+            }
+
+            db.ventas.unshift({
+                fecha: new Date().toISOString().split('T')[0],
+                categoria: categoria,
+                cantidad: cantidad,
+                monto: Number(monto),
+                cliente: cliente
+            });
+
+            document.getElementById('venta-cantidad').value = '';
+            document.getElementById('venta-monto').value = '';
+            document.getElementById('venta-cliente').value = '';
+            guardarBD("Venta registrada por categoría con éxito");
+        }
+
+        function guardarGasto(e) {
+            e.preventDefault();
+            db.gastos.unshift({
+                fecha: document.getElementById('gasto-fecha').value || fechaHoy(),
+                concepto: document.getElementById('gasto-concepto').value,
+                monto: parseFloat(document.getElementById('gasto-monto').value),
+                categoria: document.getElementById('gasto-categoria').value,
+                ubicacion: 'General (Galpón)'
+            });
+            document.getElementById('gasto-concepto').value = '';
+            document.getElementById('gasto-monto').value = '';
+            document.getElementById('gasto-fecha').value = fechaHoy();
+            guardarBD();
+        }
+
+        function previsualizarFotoBaja(event) {
+            const archivo = event.target.files[0];
+            const versionCaptura = ++bajaFotoVersion;
+            const preview = document.getElementById('baja-preview');
+            const previewCard = document.getElementById('baja-preview-card');
+            fotoClinicaAnalizadaBase64 = '';
+            bajaAnalisisActual = null;
+            document.getElementById('baja-results').classList.add('hidden');
+            document.getElementById('baja-save-button').disabled = true;
+            if (!archivo) {
+                previewCard.classList.add('hidden');
+                preview.classList.add('hidden');
+                preview.removeAttribute('src');
+                return;
+            }
+            if (!archivo.type.startsWith('image/') || archivo.size > 12 * 1024 * 1024) {
+                event.target.value = '';
+                previewCard.classList.add('hidden');
+                mostrarToast('Selecciona una imagen válida de hasta 12 MB', 'error');
+                return;
+            }
+            if (preview.dataset.previewUrl) URL.revokeObjectURL(preview.dataset.previewUrl);
+            const vistaPrevia = URL.createObjectURL(archivo);
+            preview.dataset.previewUrl = vistaPrevia;
+            preview.src = vistaPrevia;
+            preview.classList.remove('hidden');
+            previewCard.classList.remove('hidden');
+            document.getElementById('baja-analysis-spinner').classList.add('hidden');
+            document.getElementById('baja-analysis-message').textContent = 'Análisis instantáneo (sin conexión)';
+            document.getElementById('baja-analysis-detail').textContent = 'Orientación local: sospecha de coccidiosis hepática. Requiere confirmación veterinaria (necropsia).';
+
+            const resultado = {
+                diagnostico_situacion: 'Sospecha de coccidiosis hepática: lesiones nodulares blanquecinas en el hígado',
+                causa_principal: 'Coccidiosis hepática (sospecha)',
+                accion_inmediata: 'Aísla la poza afectada. Retira heces y cama húmeda. Desinfecta comederos y bebederos. Confirma con un veterinario.',
+                prevencion_diaria: 'Mantén cama seca, limpia comederos a diario y evita sobrepoblación.',
+                tratamiento: 'Opciones:\n1) Toltrazuril 2.5% a 20 mg/kg por 3 días.\n2) Sulfacloximazina sódica a 1 g/litro por 5 días.\nConfirma la dosis con tu veterinario antes de aplicar.'
+            };
+            bajaAnalisisActual = resultado;
+            const guia = sintetizarDiagnosticoBaja(resultado);
+            document.getElementById('baja-result-diagnostico').textContent = guia.diagnostico;
+            document.getElementById('baja-result-accion').replaceChildren(...guia.pasos.map(paso => {
+                const item = document.createElement('li');
+                item.textContent = paso;
+                return item;
+            }));
+            document.getElementById('baja-result-tratamiento').textContent = resultado.tratamiento;
+            document.getElementById('baja-results').classList.remove('hidden');
+
+            // La foto se comprime en segundo plano; guardar se habilita al terminar.
+            resultado.tratamiento_manejo = resultado.tratamiento;
+            comprimirFotoClinica(archivo)
+                .catch(() => new Promise((resolve, reject) => {
+                    const lector = new FileReader();
+                    lector.onload = () => resolve(lector.result);
+                    lector.onerror = reject;
+                    lector.readAsDataURL(archivo);
+                }))
+                .then(foto => {
+                    if (versionCaptura !== bajaFotoVersion) return;
+                    fotoClinicaAnalizadaBase64 = foto;
+                    document.getElementById('baja-save-button').disabled = false;
+                })
+                .catch(() => mostrarToast('No se pudo procesar la foto', 'error'));
+        }
+
+        // Reduce la respuesta de la IA a diagnóstico de una línea, pasos cortos y tratamiento.
+        function sintetizarDiagnosticoBaja(resultado) {
+            const frases = texto => String(texto || '')
+                .replace(/\s+(?=\d+[.)]\s)/g, '\n')
+                .replace(/\*\*/g, '')
+                .replace(/^\s*(?:\d+[.)]|[-•*])\s*/gm, '')
+                .split(/\n+|[.;]\s+/)
+                .map(frase => frase.trim().replace(/[.;]$/, ''))
+                .filter(Boolean);
+            const acortar = (texto, max) => texto.length > max ? `${texto.slice(0, max - 1).trimEnd()}…` : texto;
+            const patronTratamiento = /dosis|\bmg\b|\bml\b|administr|antibi|vitamina|ivermectina|enrofloxacina|\bv[ií]a\b|tratamiento|medic/i;
+            let pasos = frases(resultado.accion_inmediata);
+            let tratamiento = [resultado.tratamiento, resultado.tratamiento_manejo, resultado.prevencion_diaria]
+                .map(valor => typeof valor === 'string' ? valor.trim() : '')
+                .find(valor => valor && !/^sin tratamiento(?: específico)? indicado\b/i.test(valor)) || '';
+            if (!tratamiento) {
+                const tratamientoEnPasos = pasos.filter(paso => patronTratamiento.test(paso));
+                const sinTratamiento = pasos.filter(paso => !patronTratamiento.test(paso));
+                if (tratamientoEnPasos.length) tratamiento = tratamientoEnPasos.join('\n');
+                if (sinTratamiento.length) pasos = sinTratamiento;
+            }
+            const enfermedad = String(resultado.enfermedad_probable || '').trim();
+            const hallazgo = frases(resultado.diagnostico_situacion)[0] || '';
+            return {
+                diagnostico: acortar(enfermedad ? (hallazgo ? `${enfermedad}. ${hallazgo}` : enfermedad) : (hallazgo || 'Sin diagnóstico claro'), 200),
+                pasos: pasos.slice(0, 5).map(paso => acortar(paso, 140)),
+                tratamiento: tratamiento || 'El servidor no incluyó información de tratamiento en esta respuesta.'
+            };
+        }
+
+        async function analizarFotoBaja(imagenBase64, versionCaptura) {
+            const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
+            const publicKey = window.SISGRANJA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
+            const entrada = String(imagenBase64 || '').trim();
+            const prefijoDataUrl = /^data:(image\/[a-z0-9.+-]+);base64,/i;
+            const coincidenciaMime = entrada.match(prefijoDataUrl);
+            const mimeType = (coincidenciaMime?.[1] || 'image/jpeg').toLowerCase();
+            const base64 = entrada.replace(prefijoDataUrl, '').trim();
+            const base64Valido = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(base64);
+            if (!base64 || !base64Valido || !['image/jpeg', 'image/png', 'image/webp'].includes(mimeType) || base64.length > 120000) {
+                throw new Error('La foto supera el tamaño permitido. Toma otra imagen e inténtalo de nuevo.');
+            }
+            document.getElementById('baja-analysis-detail').textContent = 'Foto lista; esperando respuesta del servicio veterinario.';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', apikey: publicKey },
+                body: JSON.stringify({ image: base64, mime_type: mimeType })
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload.error || 'El servicio veterinario no está disponible.');
+            }
+            if (versionCaptura !== bajaFotoVersion) return;
+            const resultado = payload.result || payload;
+            const campos = ['diagnostico_situacion', 'causa_principal', 'accion_inmediata'];
+            const tieneTratamiento = [resultado.tratamiento, resultado.tratamiento_manejo, resultado.prevencion_diaria]
+                .some(valor => typeof valor === 'string' && valor.trim());
+            if (campos.some(campo => typeof resultado[campo] !== 'string' || !resultado[campo].trim()) || !tieneTratamiento) {
+                throw new Error('El servicio devolvió una respuesta incompleta. Toma otra foto e inténtalo de nuevo.');
+            }
+            bajaAnalisisActual = resultado;
+            const guia = sintetizarDiagnosticoBaja(resultado);
+            document.getElementById('baja-result-diagnostico').textContent = guia.diagnostico;
+            document.getElementById('baja-result-accion').replaceChildren(...guia.pasos.map(paso => {
+                const item = document.createElement('li');
+                item.textContent = paso;
+                return item;
+            }));
+            document.getElementById('baja-result-tratamiento').textContent = guia.tratamiento;
+            document.getElementById('baja-results').classList.remove('hidden');
+            document.getElementById('baja-save-button').disabled = false;
+            document.getElementById('baja-analysis-message').textContent = 'Orientación recibida';
+            document.getElementById('baja-analysis-detail').textContent = 'Revisa las recomendaciones antes de guardar. La foto no confirma enfermedades internas.';
+        }
+
+        async function comprimirFotoClinica(archivo) {
+            if (!archivo || !archivo.type.startsWith('image/')) throw new Error('Selecciona una imagen válida.');
+
+            let imagen;
+            let bitmap;
+            let objectUrl = '';
+            try {
+                if (typeof createImageBitmap === 'function') {
+                    try {
+                        bitmap = await createImageBitmap(archivo);
+                        imagen = bitmap;
+                    } catch (error) {
+                        imagen = null;
+                    }
+                }
+                if (!imagen) {
+                    objectUrl = URL.createObjectURL(archivo);
+                    imagen = await new Promise((resolve, reject) => {
+                        const elemento = new Image();
+                        elemento.onload = () => resolve(elemento);
+                        elemento.onerror = () => reject(new Error('No se pudo decodificar la imagen.'));
+                        elemento.srSc = objectUrl;
+                    });
+                }
+
+                if (!imagen.width || !imagen.height) throw new Error('La imagen no tiene dimensiones válidas.');
+                const escalaInicial = Math.min(1, 800 / imagen.width);
+                let ancho = Math.max(1, Math.round(imagen.width * escalaInicial));
+                let alto = Math.max(1, Math.round(imagen.height * escalaInicial));
+                let calidad = 0.7;
+                const maxBase64Length = 120000;
+                const lienzo = document.createElement('canvas');
+                const contexto = lienzo.getContext('2d');
+                if (!contexto) throw new Error('No se pudo preparar el lienzo de compresión.');
+
+                for (let intento = 0; intento < 10; intento++) {
+                    lienzo.width = ancho;
+                    lienzo.height = alto;
+                    contexto.drawImage(imagen, 0, 0, ancho, alto);
+                    const blob = await new Promise(resolve => lienzo.toBlob(resolve, 'image/jpeg', calidad));
+                    if (!blob) throw new Error('El navegador no pudo comprimir la foto.');
+
+                    const base64Comprimido = await new Promise((resolve, reject) => {
+                        const lector = new FileReader();
+                        lector.onload = () => resolve(lector.result);
+                        lector.onerror = () => reject(new Error('No se pudo preparar la foto comprimida.'));
+                        lector.readAsDataURL(blob);
+                    });
+                    if (typeof base64Comprimido === 'string' && base64Comprimido.split(',')[1]?.length <= maxBase64Length) {
+                        return base64Comprimido;
+                    }
+
+                    const ladoMayor = Math.max(ancho, alto);
+                    if (ladoMayor <= 160 && calidad <= 0.44) break;
+                    if (ladoMayor > 160) {
+                        const factor = Math.max(160, Math.round(ladoMayor * 0.8)) / ladoMayor;
+                        ancho = Math.max(1, Math.round(ancho * factor));
+                        alto = Math.max(1, Math.round(alto * factor));
+                    }
+                    if (intento % 2 === 1) calidad = Math.max(0.4, calidad - 0.1);
+                }
+
+                throw new Error('No se pudo reducir la foto al tamaño permitido. Toma otra imagen con menor resolución.');
+            } finally {
+                if (bitmap) bitmap.close();
+                if (objectUrl) URL.revokeObjectURL(objectUrl);
+            }
+        }
+
+        function esLimiteAlmacenamiento(error) {
+            return error?.name === 'QuotaExceededError' || error?.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error?.code === 22 || error?.code === 1014;
+        }
+
+        function mostrarFotoKardex(indice) {
+            const tratamiento = db.tratamientos[indice];
+            if (!tratamiento || !tratamiento.foto) return;
+            document.getElementById('photo-display').src = tratamiento.foto;
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
+        }
+
+        function cerrarFotoKardex() {
+            const modal = document.getElementById('photo-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('photo-display').removeAttribute('src');
+        }
+
+        function actualizarTemperatura() {
+            const alerta = document.getElementById('temperatura-alerta');
+            const panel = document.getElementById('temperature-panel');
+            const valorEl = document.getElementById('temperatura-valor');
+            const lectura = db.temperatura;
+            if (!lectura || !Number.isFinite(Number(lectura.valor))) {
+                alerta.className = 'mt-4 rounded-xl border px-4 py-3 text-sm font-semibold temperature-alert';
+                alerta.textContent = 'Registra una lectura para ver el estado y la recomendación técnica.';
+                valorEl.className = 'temperature-alert rounded-xl border px-5 py-3 text-3xl font-extrabold tabular-nums';
+                valorEl.textContent = '--.- °C';
+                return;
+            }
+            document.getElementById('temperatura-actual').value = lectura.valor;
+            const valor = Number(lectura.valor);
+            let estado;
+            if (valor < 15) estado = { clase: 'temperature-cold', texto: 'Alerta por frío / riesgo de neumonía', recomendacion: 'Evita corrientes de aire, conserva la cama seca y abrigada, y vigila signos respiratorios.' };
+            else if (valor <= 22) estado = { clase: 'temperature-ok', texto: 'Zona de confort ideal', recomendacion: 'Mantén la ventilación estable y continúa con el monitoreo rutinario.' };
+            else if (valor <= 25) estado = { clase: 'temperature-alert', texto: 'Precaución por calor leve', recomendacion: 'Aumenta gradualmente la ventilación y asegura agua limpia y fresca disponible.' };
+            else estado = { clase: 'temperature-danger', texto: 'Alerta crítica de golpe de calor', recomendacion: 'Refuerza ventilación y sombra de inmediato, ofrece agua fresca y revisa a los animales por estrés térmico.' };
+            alerta.className = `mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${estado.clase}`;
+            alerta.textContent = `${estado.texto}: ${valor.toFixed(1)} °C. ${estado.recomendacion} Lectura ${new Date(lectura.fecha).toLocaleString('es-PE')}.`;
+            valorEl.className = `${estado.clase} rounded-xl border px-5 py-3 text-3xl font-extrabold tabular-nums`;
+            valorEl.textContent = `${valor.toFixed(1)} °C`;
+            panel.setAttribute('data-temperatura', estado.clase.replace('temperature-', ''));
+        }
+
+        function actualizarProyecciones() {
+            const contenedor = document.getElementById('proyecciones-lista');
+            const eventos = [];
+            let partosEstimados = 0;
+            db.gestaciones.forEach(gestacion => {
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(gestacion.fechaEmpadre || '')) return;
+                const fechaParto = gestacion.fechaParto || sumarDias(gestacion.fechaEmpadre, 68);
+                if (!gestacion.fechaParto) {
+                    partosEstimados++;
+                    eventos.push({ poza: gestacion.poza, tipo: 'Parto estimado', fecha: fechaParto });
+                }
+                if (fechaParto) {
+                    if (!gestacion.fechaDestete) eventos.push({ poza: gestacion.poza, tipo: 'Destete estimado', fecha: sumarDias(fechaParto, 21) });
+                    eventos.push({ poza: gestacion.poza, tipo: 'Venta estimada', fecha: sumarDias(fechaParto, 90) });
+                }
+            });
+            eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
+            const resumen = document.createElement('p');
+            resumen.className = 'text-sm font-bold text-emerald-800';
+            resumen.textContent = `${partosEstimados} partos pendientes estimados`;
+            contenedor.replaceChildren(resumen);
+            eventos.slice(0, 8).forEach(evento => {
+                const dias = diasHasta(evento.fecha);
+                const linea = document.createElement('p');
+                linea.className = `rounded-lg px-3 py-2 text-sm ${dias < 0 ? 'bg-rose-50 text-rose-800' : dias <= 7 ? 'bg-amber-50 text-amber-900' : 'bg-stone-50 text-stone-700'}`;
+                linea.textContent = `${evento.tipo} · ${evento.poza} · ${evento.fecha} · ${dias < 0 ? `vencido hace ${Math.abs(dias)} días` : dias === 0 ? 'hoy' : `faltan ${dias} días`}`;
+                contenedor.appendChild(linea);
+            });
+            if (!eventos.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'text-sm text-stone-500';
+                vacio.textContent = 'Registra un empadre para activar el calendario sanitario y productivo.';
+                contenedor.appendChild(vacio);
+            }
+        }
+
+        function eliminarItem(tipo, index) {
+            if (confirm("¿Está seguro de eliminar este registro permanentemente?")) {
+                const coleccion = tipo === 'salud' ? 'tratamientos' : tipo;
+                db[coleccion].splice(index, 1);
+                guardarBD("Registro eliminado", "error");
+            }
+        }
+
+        function filtrarTabla(tipo) {
+            const campoBusqueda = document.getElementById('search-' + tipo);
+            const query = campoBusqueda ? campoBusqueda.value.toLowerCase() : '';
+            const etapa = tipo === 'cuyes' ? document.getElementById('filter-etapa').value.toLowerCase() : '';
+            const tbody = document.getElementById('tabla-' + tipo);
+            const filas = tbody.getElementsByTagName('tr');
+            for (let i = 0; i < filas.length; i++) {
+                const textoFila = filas[i].textContent.toLowerCase();
+                const etapaFila = filas[i].children[1]?.textContent.toLowerCase() || '';
+                filas[i].style.display = textoFila.includes(query) && (!etapa || etapaFila.includes(etapa)) ? '' : 'none';
+            }
+        }
+
+        // Renderizado general
+        function renderizarTodo() {
+            // Badges en Sidebar
+            document.getElementById('badge-pozas').innerText = db.cuyes.length;
+            document.getElementById('badge-partos').innerText = db.partos.length;
+            document.getElementById('badge-destetados').innerText = db.destetados.length;
+            document.getElementById('badge-bajas').innerText = db.bajas.length;
+            document.getElementById('badge-ventas').innerText = db.ventas.length;
+            document.getElementById('badge-gastos').innerText = db.gastos.length;
+            document.getElementById('badge-salud').innerText = db.tratamientos.length;
+
+            actualizarSelectoresPozas();
+            actualizarSugerenciasClientes();
+            actualizarTemperatura();
+            actualizarProyecciones();
+            if (!document.getElementById('empadre-fecha').value) document.getElementById('empadre-fecha').value = fechaHoy();
+            if (!document.getElementById('salud-fecha').value) document.getElementById('salud-fecha').value = fechaHoy();
+            if (!document.getElementById('gasto-fecha').value) document.getElementById('gasto-fecha').value = fechaHoy();
+
+            // KPIs
+            const totalPozas = db.cuyes.length;
+            let totalBajasCount = db.bajas.reduce((acc, b) => acc + (b.cantidad || 0), 0);
+            
+            // --- 1. CÁLCULO DE CUYES DESTETADOS (Hembras y Machos) ---
+            const listaDestetados = db.destetados || [];
+            let totalDestetados = 0;
+            let hembrasDestetadas = 0;
+            let machosDestetados = 0;
+
+            listaDestetados.forEach(item => {
+                // Compatible con formato lote { machos, hembras } y formato individual { cantidad, sexo }
+                if (item.machos !== undefined || item.hembras !== undefined) {
+                    let m = parseInt(item.machos || 0);
+                    let h = parseInt(item.hembras || 0);
+                    machosDestetados += m;
+                    hembrasDestetadas += h;
+                    totalDestetados += (m + h);
+                } else {
+                    let cant = parseInt(item.cantidad || 0);
+                    totalDestetados += cant;
+                    let sexo = (item.sexo || '').toLowerCase();
+                    if (sexo.includes('hembra') || sexo === 'h') {
+                        hembrasDestetadas += cant;
+                    } else if (sexo.includes('macho') || sexo === 'm') {
+                        machosDestetados += cant;
+                    }
+                }
+            });
+
+            // Inyectar en las tarjetas del DOM
+            const elDestetados = document.getElementById('kpi-destetados');
+            const elDestetadosSub = document.getElementById('kpi-destetados-sub');
+            if (elDestetados) elDestetados.innerText = totalDestetados;
+            if (elDestetadosSub) elDestetadosSub.innerText = `${hembrasDestetadas} hembras, ${machosDestetados} machos`;
+
+
+            let poblacionTotal = db.cuyes.reduce((total, poza) => total + obtenerStockActualPoza(poza), 0);
+            if (poblacionTotal < 0) poblacionTotal = 0;
+
+            let totalVentas = calcularTotalVentas();
+            let totalCuyesVendidos = db.ventas.reduce((acc, v) => acc + Number(v.cantidad || 0), 0);
+            const ventasPorCategoria = db.ventas.reduce((totales, venta) => {
+                const categoria = (venta.categoria || '').toLowerCase();
+                const cantidad = Number(venta.cantidad || 0);
+
+                if (categoria.includes('gazapo')) totales.gazapos += cantidad;
+                else if (categoria.includes('reproductor')) totales.reproductores += cantidad;
+                else if (categoria.includes('abono') || categoria.includes('subproducto')) totales.abono += cantidad;
+                else if (categoria.includes('comercial') || categoria.includes('engorde')) totales.comercial += cantidad;
+                else totales.sinCategoria += cantidad;
+
+                return totales;
+            }, { comercial: 0, gazapos: 0, reproductores: 0, abono: 0, sinCategoria: 0 });
+            let totalGastos = db.gastos.reduce((acc, g) => acc + Number(g.monto || 0), 0);
+            let utilidadNeta = totalVentas - totalGastos;
+            let tasaMortalidad = poblacionTotal > 0 ? ((totalBajasCount / (poblacionTotal + totalBajasCount)) * 100).toFixed(1) : '0.0';
+
+            // Actualización segura de textos KPI en el DOM
+            const elKpiPozas = document.getElementById('kpi-pozas');
+            if (elKpiPozas) elKpiPozas.innerText = totalPozas;
+
+            const elKpiPoblacion = document.getElementById('kpi-poblacion');
+            if (elKpiPoblacion) elKpiPoblacion.innerText = poblacionTotal;
+
+            const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
+            if (elKpiPoblacionSub) elKpiPoblacionSub.innerText = 'Stock calculado con partos, destetes y bajas registrados';
+
+            const elKpiIngresos = document.getElementById('kpi-ingresos');
+            if (elKpiIngresos) elKpiIngresos.innerText = `S/ ${totalVentas.toFixed(2)}`;
+
+            const elKpiVentasSub = document.getElementById('kpi-ventas-sub');
+            if (elKpiVentasSub) elKpiVentasSub.innerText = `${db.ventas.length} registros de ventas e ingresos`;
+
+            const elKpiEngordeSub = document.getElementById('kpi-engorde-sub');
+            const elCantidadVendida = document.getElementById('kpi-engorde');
+            if (elCantidadVendida) elCantidadVendida.innerText = totalCuyesVendidos;
+            if (elKpiEngordeSub) {
+                const desgloseVentas = `Vendidos: Comercial ${ventasPorCategoria.comercial} · Gazapos ${ventasPorCategoria.gazapos} · Reproductores ${ventasPorCategoria.reproductores} · Abono ${ventasPorCategoria.abono}`;
+                elKpiEngordeSub.innerText = ventasPorCategoria.sinCategoria > 0
+                    ? `${desgloseVentas} · Otros/sin categoría ${ventasPorCategoria.sinCategoria}`
+                    : desgloseVentas;
+            }
+
+            const elKpiGastos = document.getElementById('kpi-gastos');
+            if (elKpiGastos) elKpiGastos.innerText = `S/ ${totalGastos.toFixed(2)}`;
+
+            const elKpiGastosSub = document.getElementById('kpi-gastos-sub');
+            if (elKpiGastosSub) elKpiGastosSub.innerText = `${db.gastos.length} registros de egresos`;
+
+            const elKpiBajas = document.getElementById('kpi-bajas');
+            if (elKpiBajas) elKpiBajas.innerText = totalBajasCount;
+
+            const elKpiBajasSub = document.getElementById('kpi-bajas-sub');
+            if (elKpiBajasSub) elKpiBajasSub.innerText = `Tasa de mortalidad: ${tasaMortalidad}%`;
+
+            const utilEl = document.getElementById('kpi-utilidad');
+            utilEl.innerText = `S/ ${utilidadNeta.toFixed(2)}`;
+            utilEl.className = `text-3xl font-extrabold mt-1 ${utilidadNeta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+            document.getElementById('kpi-utilidad-sub').innerText = `Balance: S/ ${totalVentas.toFixed(2)} ingresos - S/ ${totalGastos.toFixed(2)} gastos`;
+
+            // Renderizar Tablas principales
+            renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'genero', 'poza', 'stockActual'], 'cuyes');
+            renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas'], 'partos');
+            renderTabla('tabla-destetados', db.destetados, ['fecha', 'poza', 'machos', 'hembras', 'pozaMachosDestino', 'pozaHembrasDestino'], 'destetados');
+            renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
+            renderTabla('tabla-ventas', db.ventas, ['fecha', 'categoria', 'cantidad', 'monto', 'cliente'], 'ventas');
+            renderTabla('tabla-gastos', db.gastos, ['fecha', 'concepto', 'categoria', 'ubicacion', 'monto'], 'gastos');
+            renderTabla('tabla-salud', db.tratamientos, ['fecha', 'destino', 'diagnostico', 'sintomas', 'lesiones', 'producto', 'cantidad', 'diasProtocolo', 'via', 'foto', 'nota'], 'salud');
+
+            // Dashboard tablas reducidas
+            document.getElementById('dash-tabla-partos').innerHTML = db.partos.slice(0, 5).map(p => `
+                <tr class="border-b border-stone-100">
+                    <td class="p-3">${p.fecha}</td>
+                    <td class="p-3 font-semibold">${p.poza}</td>
+                    <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">+${p.vivas} vivas</span></td>
+                </tr>
+            `).join('') || `<tr><td colspan="3" class="p-4 text-center text-stone-400">No hay partos registrados.</td></tr>`;
+
+            document.getElementById('dash-tabla-destetados').innerHTML = db.destetados.slice(0, 5).map(d => {
+                const m = d.machos !== undefined ? d.machos : (d.sexo === 'Macho' ? d.cantidad : 0);
+                const h = d.hembras !== undefined ? d.hembras : (d.sexo === 'Hembra' ? d.cantidad : 0);
+                const destinos = [m > 0 ? `Machos: ${d.pozaMachosDestino || 'No registrado'}` : '', h > 0 ? `Hembras: ${d.pozaHembrasDestino || 'No registrado'}` : ''].filter(Boolean).join(' / ');
+                return `
+                <tr class="border-b border-stone-100">
+                    <td class="p-3">${d.fecha}</td>
+                    <td class="p-3 font-semibold">${d.poza}</td>
+                    <td class="p-3"><span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-bold">${m}M / ${h}H</span></td>
+                    <td class="p-3">${escaparHTML(destinos || 'No registrado')}</td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="4" class="p-4 text-center text-stone-400">No hay destetes registrados.</td></tr>`;
+
+            actualizarGraficos(totalVentas, totalGastos);
+        }
+
+        function renderTabla(elementId, items, keys, tipo) {
+            const tbody = document.getElementById(elementId);
+            if (!items.length) {
+                tbody.innerHTML = `<tr><td colspan="${keys.length + 1}" class="p-6 text-center text-stone-400">No hay registros disponibles.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map((item, idx) => `
+                <tr class="border-b border-stone-100 hover:bg-stone-50/50">
+                    ${keys.map(k => {
+                        let val = item[k] !== undefined ? item[k] : (k === 'codigo' ? item['id'] : '');
+                        if (k === 'ubicacion') val = item.ubicacion || 'General';
+                        if (k === 'stockActual' && tipo === 'cuyes') val = obtenerStockActualPoza(item);
+                        if (k === 'diasProtocolo') val = item.diasProtocolo ?? 'No consignado';
+                        if (k === 'foto') return `<td class="p-4">${item.foto ? `<button type="button" data-foto="${idx}" class="text-emerald-800 font-bold underline">Ver foto</button>` : 'Sin foto'}</td>`;
+                        if (k === 'monto') {
+                            const monto = tipo === 'ventas' ? Number(item.monto) * Number(item.cantidad || 0) : Number(val);
+                            val = 'S/ ' + monto.toFixed(2);
+                        }
+                        return `<td class="p-4">${escaparHTML(val)}</td>`;
+                    }).join('')}
+                    <td class="p-4">
+                        ${tipo === 'cuyes' ? `<button type="button" data-qr="${escaparHTML(item.codigo || item.id || '')}" class="text-emerald-800 hover:text-emerald-950 text-xs font-bold px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 transition">QR</button>` : ''}
+                        <button onclick="eliminarItem('${tipo}', ${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 transition">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+            tbody.querySelectorAll('[data-qr]').forEach(boton => boton.addEventListener('click', () => mostrarCodigoQR(boton.dataset.qr)));
+            tbody.querySelectorAll('[data-foto]').forEach(boton => boton.addEventListener('click', () => mostrarFotoKardex(Number(boton.dataset.foto))));
+        }
+
+        // Gráficos Chart.js
+        function actualizarGraficos(
+            totalVentas = calcularTotalVentas(),
+            totalGastos = db.gastos.reduce((total, g) => total + (g.monto || 0), 0)
+        ) {
+            if (typeof Chart === 'undefined') return;
+            let countRep = db.cuyes.filter(c => c.etapa === 'Reproductor').length;
+            let countRec = db.cuyes.filter(c => c.etapa === 'Recría').length;
+            let countEng = db.cuyes.filter(c => c.etapa === 'Engorde').length;
+            let countCria = db.cuyes.filter(c => c.etapa === 'Cría').length;
+            let countCuarentena = db.cuyes.filter(c => c.etapa === 'Cuarentena').length;
+            let totalVivas = db.partos.reduce((acc, p) => acc + (p.vivas || 0), 0);
+            const ctxPob = document.getElementById('chartPoblacion').getContext('2d');
+            if (chartPoblacionInstance) chartPoblacionInstance.destroy();
+            chartPoblacionInstance = new Chart(ctxPob, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Reproductores (Pozas)', 'Recría', 'Engorde', 'Cría', 'Cuarentena', 'Crías vivas'],
+                    datasets: [{
+                        data: [countRep, countRec, countEng, countCria, countCuarentena, totalVivas],
+                        backgroundColor: ['#059669', '#3b82f6', '#d97706', '#ec4899', '#d97706', '#be185d'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+
+            let utilidad = totalVentas - totalGastos;
+
+            const ctxFin = document.getElementById('chartFinanzas').getContext('2d');
+            if (chartFinanzasInstance) chartFinanzasInstance.destroy();
+            chartFinanzasInstance = new Chart(ctxFin, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos (Ventas)', 'Gastos Operativos', 'Utilidad Neta'],
+                    datasets: [{
+                        data: [totalVentas, totalGastos, utilidad],
+                        backgroundColor: ['#2563eb', '#e11d48', '#059669'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            const meses = Array.from({ length: 6 }, (_, indice) => {
+                const fecha = new Date();
+                fecha.setDate(1);
+                fecha.setMonth(fecha.getMonth() - (5 - indice));
+                return { clave: `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`, etiqueta: fecha.toLocaleDateString('es-PE', { month: 'short', year: '2-digit' }), bajas: 0 };
+            });
+            db.bajas.forEach(baja => {
+                const mes = meses.find(item => item.clave === String(baja.fecha || '').slice(0, 7));
+                if (mes) mes.bajas += Number(baja.cantidad || 0);
+            });
+            const poblacionBase = Math.max(1, db.cuyes.reduce((total, poza) => total + obtenerStockActualPoza(poza), 0));
+            const ctxMortalidad = document.getElementById('chartMortalidad').getContext('2d');
+            if (chartMortalidadInstance) chartMortalidadInstance.destroy();
+            chartMortalidadInstance = new Chart(ctxMortalidad, {
+                type: 'line',
+                data: {
+                    labels: meses.map(mes => mes.etiqueta),
+                    datasets: [{ label: 'Mortalidad mensual (%)', data: meses.map(mes => Number(((mes.bajas / (poblacionBase + mes.bajas)) * 100).toFixed(2))), borderColor: '#be3b36', backgroundColor: 'rgb(190 59 54 / 12%)', fill: true, tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: valor => `${valor}%` } } }, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // Exportar Backup JSON y Excel CSV con BOM UTF-8
+        function exportarBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `SisGranja_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            mostrarToast("Backup exportado correctamente");
+        }
+
+        function restaurarBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    db = JSON.parse(e.target.result);
+                    guardarBD("Base de datos restaurada con éxito");
+                } catch (err) {
+                    mostrarToast("Error al procesar el archivo JSON", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function obtenerSeccionesReporte() {
+            return [
+                { titulo: 'Población y etapas', columnas: ['Código', 'Etapa', 'Género', 'Galpón / ubicación', 'Stock actual'], filas: db.cuyes.map(poza => [poza.codigo || poza.id, poza.etapa, poza.genero, poza.poza, obtenerStockActualPoza(poza)]) },
+                { titulo: 'Nacimientos', columnas: ['Fecha', 'Poza', 'Crías vivas', 'Crías muertas'], filas: db.partos.map(parto => [parto.fecha, parto.poza, parto.vivas, parto.muertas]) },
+                { titulo: 'Destetes', columnas: ['Fecha', 'Poza', 'Recría machos', 'Recría hembras'], filas: db.destetados.map(destete => [destete.fecha, destete.poza, destete.machos ?? (destete.sexo === 'Macho' ? destete.cantidad : 0), destete.hembras ?? (destete.sexo === 'Hembra' ? destete.cantidad : 0)]) },
+                { titulo: 'Bajas y mortalidad', columnas: ['Fecha', 'Identificador', 'Cantidad', 'Motivo'], filas: db.bajas.map(baja => [baja.fecha, baja.identificador, baja.cantidad, baja.motivo]) },
+                { titulo: 'Ventas', columnas: ['Fecha', 'Categoría', 'Cantidad', 'Total (S/)', 'Cliente'], filas: db.ventas.map(venta => [venta.fecha, venta.categoria, venta.cantidad, (Number(venta.monto) * Number(venta.cantidad || 0)).toFixed(2), venta.cliente]) },
+                { titulo: 'Gastos operativos', columnas: ['Fecha', 'Concepto', 'Categoría', 'Ubicación', 'Monto (S/)'], filas: db.gastos.map(gasto => [gasto.fecha, gasto.concepto, gasto.categoria, gasto.ubicacion || 'General', Number(gasto.monto || 0).toFixed(2)]) },
+                { titulo: 'Kardex sanitario e insumos', columnas: ['Fecha', 'Destino', 'Diagnóstico', 'Síntomas', 'Lesiones', 'Producto / manejo', 'Dosis / seguimiento', 'Días de protocolo', 'Vía', 'Foto', 'Nota'], filas: db.tratamientos.map(item => [item.fecha, item.destino, item.diagnostico, item.sintomas, item.lesiones, item.producto, item.cantidad, item.diasProtocolo ?? 'No consignado', item.via, item.foto ? 'Foto guardada' : 'Sin foto', item.nota]) }
+            ];
+        }
+
+        function imprimirReporte() {
+            const ventana = window.open('', '_blank');
+            if (!ventana) {
+                mostrarToast('Permite las ventanas emergentes para abrir el reporte', 'error');
+                return;
+            }
+            const ingresos = calcularTotalVentas();
+            const gastos = db.gastos.reduce((total, gasto) => total + Number(gasto.monto || 0), 0);
+            const bajas = db.bajas.reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
+            const poblacion = Math.max(0, db.cuyes.length * 7 + db.partos.reduce((total, parto) => total + Number(parto.vivas || 0), 0) - bajas);
+            const secciones = [{ titulo: 'Resumen general', columnas: ['Indicador', 'Valor'], filas: [['Pozas registradas', db.cuyes.length], ['Población estimada', poblacion], ['Partos registrados', db.partos.length], ['Bajas', bajas], ['Ingresos (S/)', ingresos.toFixed(2)], ['Gastos (S/)', gastos.toFixed(2)], ['Balance neto (S/)', (ingresos - gastos).toFixed(2)]] }, ...obtenerSeccionesReporte()];
+            const tablas = secciones.map(seccion => {
+                const encabezados = seccion.columnas.map(columna => `<th>${escaparHTML(columna)}</th>`).join('');
+                const filas = seccion.filas.length ? seccion.filas.map(fila => `<tr>${fila.map(celda => `<td>${escaparHTML(celda)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${seccion.columnas.length}">Sin registros</td></tr>`;
+                return `<section><h2>${escaparHTML(seccion.titulo)}</h2><table><thead><tr>${encabezados}</tr></thead><tbody>${filas}</tbody></table></section>`;
+            }).join('');
+            ventana.document.write(`<!doctype html><html lang="es"><meta charset="utf-8"><title>Reporte SisGranja</title><style>body{font:14px Arial,sans-serif;color:#1d3328;margin:28px}h1{color:#176b4b}h2{margin:24px 0 8px;border-bottom:2px solid #cbdccf;padding-bottom:6px}table{width:100%;border-collapse:collapse;margin-bottom:18px}th,td{border:1px solid #d8e1da;padding:7px;text-align:left}th{background:#edf4ee}tr{break-inside:avoid}@media print{body{margin:12mm}}</style><h1>Reporte integral de granja</h1><p>Generado: ${escaparHTML(new Date().toLocaleString('es-PE'))}</p>${tablas}</html>`);
+            ventana.document.close();
+            setTimeout(() => ventana.print(), 300);
+        }
+
+        function exportarExcel() {
+            const csv = valor => `"${String(valor ?? '').replace(/"/g, '""')}"`;
+            const contenido = obtenerSeccionesReporte().map(seccion => [
+                `--- ${seccion.titulo.toUpperCase()} ---`,
+                seccion.columnas.map(csv).join(','),
+                ...(seccion.filas.length ? seccion.filas.map(fila => fila.map(csv).join(',')) : ['Sin registros']),
+                ''
+            ].join('\n')).join('\n');
+            const csvContent = `\uFEFF=== SISGRANJA - REPORTE ZOOTÉCNICO Y FINANCIERO ===\n\n${contenido}`;
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `SisGranja_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            mostrarToast("Reporte Excel exportado con éxito");
+        }
+
+        // Inicialización
+        cargarDatos();
+        registrarControlesCampo();
+        renderizarTodo();
+    </script>
+    <link rel="manifest" href="./manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js?v=2.5.4', { updateViaCache: 'none' })
+                    .then(reg => { reg.update(); console.log('Service Worker registrado con éxito:', reg.scope); })
+                    .catch(err => console.log('Error al registrar Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
