@@ -150,18 +150,27 @@
     <!-- SCRIPT DE LÓGICA Y CÁLCULOS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let db = JSON.parse(localStorage.getItem('sisgranja_db')) || {
+            // Reinicio limpio: descarta datos antiguos (p. ej. pruebas de 100 pozas) en cada carga.
+            const db = {
                 destetados: [
                     { cantidad: 21, sexo: 'hembra' },
                     { cantidad: 15, sexo: 'macho' }
                 ],
                 pozas: [
-                    { categoria: 'Reproductor (1M:6H)', cantidad: 50 },
-                    { categoria: 'Recría', cantidad: 30 },
-                    { categoria: 'Engorde (Para Venta)', cantidad: 80 },
-                    { categoria: 'Cría Lactante', cantidad: 20 }
+                    { id: 'PZ-001', categoria: 'Reproductor (1M:6H)', cantidad: 25 },
+                    { id: 'PZ-002', categoria: 'Reproductor (1M:6H)', cantidad: 25 },
+                    { id: 'PZ-003', categoria: 'Recría', cantidad: 15 },
+                    { id: 'PZ-004', categoria: 'Recría', cantidad: 15 },
+                    { id: 'PZ-005', categoria: 'Engorde (Para Venta)', cantidad: 20 },
+                    { id: 'PZ-006', categoria: 'Engorde (Para Venta)', cantidad: 20 },
+                    { id: 'PZ-007', categoria: 'Engorde (Para Venta)', cantidad: 20 },
+                    { id: 'PZ-008', categoria: 'Engorde (Para Venta)', cantidad: 20 },
+                    { id: 'PZ-009', categoria: 'Cría Lactante', cantidad: 10 },
+                    { id: 'PZ-010', categoria: 'Cría Lactante', cantidad: 10 }
                 ]
             };
+            localStorage.clear();
+            localStorage.setItem('sisgranja_db', JSON.stringify(db));
 
             // 1. Cálculo de Destetados (Hembras y Machos)
             const listaDestetados = db.destetados || [];
@@ -179,12 +188,6 @@
                     machosDestetados += cant;
                 }
             });
-
-            if (totalDestetados === 0) {
-                totalDestetados = 36;
-                hembrasDestetadas = 21;
-                machosDestetados = 15;
-            }
 
             const elDestetados = document.getElementById('kpi-destetados');
             const elDestetadosSub = document.getElementById('kpi-destetados-sub');
@@ -225,10 +228,10 @@
                         labels: ['Reproductor (1M:6H)', 'Recría', 'Engorde (Para Venta)', 'Cría Lactante'],
                         datasets: [{
                             data: [
-                                totalReproductores || 50,
-                                totalRecria || 30,
-                                totalEngorde || 80,
-                                totalCrias || 20
+                                totalReproductores,
+                                totalRecria,
+                                totalEngorde,
+                                totalCrias
                             ],
                             backgroundColor: ['#16a34a', '#3b82f6', '#f59e0b', '#ec4899']
                         }]
