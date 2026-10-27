@@ -2767,7 +2767,7 @@
         function prepararCanvasGrafico(canvas) {
             const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
             const ancho = Math.max(260, canvas.parentElement.clientWidth || 320);
-            const alto = Math.max(220, canvas.parentElement.clientHeight || 256);
+            const alto = 256;
             canvas.width = Math.round(ancho * pixelRatio);
             canvas.height = Math.round(alto * pixelRatio);
             canvas.style.width = '100%';
@@ -3005,7 +3005,13 @@
         cargarDatos();
         registrarControlesCampo();
         renderizarTodo();
-        window.addEventListener('resize', () => requestAnimationFrame(actualizarGraficos));
+        let temporizadorResize;
+        window.addEventListener('resize', () => {
+            clearTimeout(temporizadorResize);
+            temporizadorResize = setTimeout(() => {
+                if (!document.getElementById('view-dashboard').classList.contains('hidden')) actualizarGraficos();
+            }, 150);
+        });
     </script>
 </body>
 </html>
