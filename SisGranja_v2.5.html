@@ -1658,11 +1658,11 @@
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
-            // Restos de la simulación antigua de 100 pozas en el navegador: se descartan.
-            if (obtenerPozasUnicas().length >= 100 && !db.partos.length && !db.destetados.length && !db.bajas.length) {
-                db.cuyes = [];
-                db.pozas = db.cuyes;
-                escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
+            // Caché antigua de la simulación de 100 pozas (móviles u otros navegadores): se borra por completo.
+            if (obtenerPozasUnicas().length >= 100) {
+                db = { cuyes: [], pozas: [], partos: [], destetados: [], bajas: [], ventas: [], gastos: [], gestaciones: [], tratamientos: [], temperatura: null };
+                try { window.localStorage.removeItem('sisgranja_cuy_db'); } catch (error) { /* sin acceso a localStorage */ }
+                almacenamientoTemporal.delete('sisgranja_cuy_db');
             }
             // Una fila por poza: la tabla y el contador del dashboard usan la misma lista.
             db.cuyes = obtenerPozasUnicas();

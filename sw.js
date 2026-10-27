@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisgranja-v2.5.4-20261026';
+const CACHE_NAME = 'sisgranja-v2.6.1-20261027';
 const OFFLINE_URL = './SisGranja_v2.5.html';
 
 self.addEventListener('install', event => {
