@@ -143,6 +143,28 @@
                         <canvas id="chart-etapas"></canvas>
                     </div>
                 </div>
+
+                <!-- INVENTARIO ACTIVO (fuente única de datos) -->
+                <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs max-w-xl">
+                    <h4 class="font-bold text-stone-800 text-sm mb-4">Inventario Activo de Pozas</h4>
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="text-xs text-stone-400 uppercase"><th>Poza</th><th>Categoría</th><th>Cuyes</th></tr>
+                        </thead>
+                        <tbody id="tabla-inventario">
+                            <tr><td>PZ-001</td><td>Reproductor (1M:6H)</td><td>25</td></tr>
+                            <tr><td>PZ-002</td><td>Reproductor (1M:6H)</td><td>25</td></tr>
+                            <tr><td>PZ-003</td><td>Recría</td><td>15</td></tr>
+                            <tr><td>PZ-004</td><td>Recría</td><td>15</td></tr>
+                            <tr><td>PZ-005</td><td>Engorde (Para Venta)</td><td>20</td></tr>
+                            <tr><td>PZ-006</td><td>Engorde (Para Venta)</td><td>20</td></tr>
+                            <tr><td>PZ-007</td><td>Engorde (Para Venta)</td><td>20</td></tr>
+                            <tr><td>PZ-008</td><td>Engorde (Para Venta)</td><td>20</td></tr>
+                            <tr><td>PZ-009</td><td>Cría Lactante</td><td>10</td></tr>
+                            <tr><td>PZ-010</td><td>Cría Lactante</td><td>10</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -156,18 +178,11 @@
                     { cantidad: 21, sexo: 'hembra' },
                     { cantidad: 15, sexo: 'macho' }
                 ],
-                pozas: [
-                    { id: 'PZ-001', categoria: 'Reproductor (1M:6H)', cantidad: 25 },
-                    { id: 'PZ-002', categoria: 'Reproductor (1M:6H)', cantidad: 25 },
-                    { id: 'PZ-003', categoria: 'Recría', cantidad: 15 },
-                    { id: 'PZ-004', categoria: 'Recría', cantidad: 15 },
-                    { id: 'PZ-005', categoria: 'Engorde (Para Venta)', cantidad: 20 },
-                    { id: 'PZ-006', categoria: 'Engorde (Para Venta)', cantidad: 20 },
-                    { id: 'PZ-007', categoria: 'Engorde (Para Venta)', cantidad: 20 },
-                    { id: 'PZ-008', categoria: 'Engorde (Para Venta)', cantidad: 20 },
-                    { id: 'PZ-009', categoria: 'Cría Lactante', cantidad: 10 },
-                    { id: 'PZ-010', categoria: 'Cría Lactante', cantidad: 10 }
-                ]
+                // Solo las filas actuales de la tabla de inventario; nunca la caché previa.
+                pozas: Array.from(document.querySelectorAll('#tabla-inventario tr')).map(tr => {
+                    const td = tr.querySelectorAll('td');
+                    return { id: td[0].textContent.trim(), categoria: td[1].textContent.trim(), cantidad: parseInt(td[2].textContent, 10) || 0 };
+                })
             };
             localStorage.clear();
             localStorage.setItem('sisgranja_db', JSON.stringify(db));
