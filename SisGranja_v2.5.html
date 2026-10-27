@@ -1669,9 +1669,8 @@
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
-            // Descarta la simulación antigua de 100 pozas (PZ-001..PZ-100 sin movimientos) guardada en el navegador.
-            const esSimulacion100 = db.cuyes.length >= 100
-                && db.cuyes.every((poza, i) => claveUnicaPoza(poza.codigo || poza.id) === 'PZ-' + String(i + 1).padStart(3, '0'))
+            // Descarta la simulación antigua de 100 pozas (sin movimientos) guardada en el navegador.
+            const esSimulacion100 = obtenerPozasUnicas().length >= 100
                 && !db.partos.length && !db.destetados.length && !db.bajas.length;
             if (esSimulacion100) {
                 db.cuyes = [];
