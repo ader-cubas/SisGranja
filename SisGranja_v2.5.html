@@ -1669,6 +1669,15 @@
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
+            // Descarta la simulación antigua de 100 pozas (PZ-001..PZ-100 sin movimientos) guardada en el navegador.
+            const esSimulacion100 = db.cuyes.length >= 100
+                && db.cuyes.every((poza, i) => claveUnicaPoza(poza.codigo || poza.id) === 'PZ-' + String(i + 1).padStart(3, '0'))
+                && !db.partos.length && !db.destetados.length && !db.bajas.length;
+            if (esSimulacion100) {
+                db.cuyes = [];
+                db.pozas = db.cuyes;
+                escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
+            }
             // Registros antiguos: se fija el stock inicial explícito para que el cálculo no dependa de un valor oculto.
             db.cuyes.forEach(poza => {
                 if (poza.stockInicial === undefined) poza.stockInicial = String(poza.etapa || '').toLowerCase().includes('reproductor') ? 7 : 0;
