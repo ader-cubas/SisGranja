@@ -878,9 +878,7 @@
                     <form onsubmit="guardarCuy(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Código / Poza</label>
-                            <select id="cuy-codigo" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
-                                <option value="">Selecciona una poza</option>
-                            </select>
+                            <input type="text" id="cuy-codigo" required maxlength="20" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. PZ-012">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Etapa Zootécnica</label>
@@ -906,7 +904,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
-                            <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 7">
+                            <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="0">
                         </div>
                         <div class="sm:col-span-4 flex justify-end">
                             <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
@@ -1452,14 +1450,6 @@
                 .sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
         }
 
-        // Catálogo PZ-001..PZ-100 solo como opciones del formulario de alta; no crea registros.
-        function obtenerCodigosDisponiblesAlta() {
-            const registrados = new Set(obtenerCodigosPozas());
-            const catalogo = [];
-            for (let n = 1; n <= 100; n++) catalogo.push('PZ-' + String(n).padStart(3, '0'));
-            return [...new Set([...catalogo, ...registrados])];
-        }
-
         function obtenerPozaActiva() {
             return leerAlmacenamiento('sisgranja_poza_activa') || '';
         }
@@ -1480,12 +1470,11 @@
 
         function actualizarSelectoresPozas() {
             const codigos = obtenerCodigosPozas();
-            const codigosAlta = obtenerCodigosDisponiblesAlta();
             const pozaActiva = obtenerPozaActiva();
-            document.querySelectorAll('#cuy-codigo, #parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
+            document.querySelectorAll('#parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
                 const valorActual = selector.value;
                 const textoInicial = 'Selecciona una poza';
-                const lista = selector.id === 'cuy-codigo' ? codigosAlta : codigos;
+                const lista = codigos;
                 const opciones = [new Option(textoInicial, ''), ...lista.map(codigo => new Option(codigo, codigo))];
                 selector.replaceChildren(...opciones);
                 if (lista.includes(valorActual)) selector.value = valorActual;
@@ -1669,17 +1658,14 @@
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
-            // Descarta la simulación antigua de 100 pozas (sin movimientos) guardada en el navegador.
-            const esSimulacion100 = obtenerPozasUnicas().length >= 100
-                && !db.partos.length && !db.destetados.length && !db.bajas.length;
-            if (esSimulacion100) {
+            // Restos de la simulación antigua de 100 pozas en el navegador: se descartan.
+            if (obtenerPozasUnicas().length >= 100 && !db.partos.length && !db.destetados.length && !db.bajas.length) {
                 db.cuyes = [];
                 db.pozas = db.cuyes;
                 escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
             }
-            // Registros antiguos: se fija el stock inicial explícito para que el cálculo no dependa de un valor oculto.
             db.cuyes.forEach(poza => {
-                if (poza.stockInicial === undefined) poza.stockInicial = String(poza.etapa || '').toLowerCase().includes('reproductor') ? 7 : 0;
+                if (poza.stockInicial === undefined) poza.stockInicial = 0;
             });
 
         }
@@ -1758,7 +1744,7 @@
         // Formularios
         function guardarCuy(e) {
             e.preventDefault();
-            const codigo = document.getElementById('cuy-codigo').value;
+            const codigo = claveUnicaPoza(document.getElementById('cuy-codigo').value);
             const datos = {
                 etapa: document.getElementById('cuy-etapa').value,
                 genero: document.getElementById('cuy-genero').value,
