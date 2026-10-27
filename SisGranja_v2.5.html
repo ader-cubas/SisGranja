@@ -425,6 +425,11 @@
         .quick-action i { color: #176b4b; font-size: 1.65rem; }
         .quick-action span { font-size: .88rem; font-weight: 800; line-height: 1.2; }
         .quick-action.quick-action-alert i { color: #a8443e; }
+        .necro-zone-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .necro-zone-button { display: flex; min-height: 70px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border: 1px solid #dce6dd; border-radius: 12px; padding: 10px 14px; background: #f8fbf8; color: #20362a; text-align: left; }
+        .necro-zone-button span { color: #66746a; font-size: .78rem; font-weight: 500; }
+        .necro-zone-button[aria-pressed="true"] { border-color: #176b4b; background: #e8f3eb; box-shadow: inset 0 0 0 1px #176b4b; color: #174b35; }
+        .visually-hidden-control { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; clip-path: inset(50%) !important; }
         .demo-tools { border: 1px solid #e8dfc9; border-radius: 14px; padding: 14px 16px; background: #fffcf5; }
         .demo-tools summary { color: #70551e; cursor: pointer; font-size: .88rem; font-weight: 800; }
         .demo-tools button { margin-top: 12px; }
@@ -1142,35 +1147,46 @@
             <div id="view-salud" class="space-y-6 view-section hidden">
                 <section class="surface space-y-4 border border-stone-200 bg-white p-5 sm:p-6">
                     <div>
-                        <h3 class="text-lg font-bold text-stone-800">Diagnóstico clínico y necropsia</h3>
-                        <p class="mt-1 text-sm text-stone-600">Registra hallazgos y fotografías en el Kardex de la poza. La imagen no confirma por sí sola un diagnóstico.</p>
+                        <h3 class="text-lg font-bold text-stone-800">Orientación clínica y necropsia</h3>
+                        <p class="mt-1 text-sm text-stone-600">Elige el hallazgo para ver una guía local en lenguaje sencillo. La foto se procesa en este dispositivo y no confirma una enfermedad.</p>
                     </div>
                     <form id="necropsia-form" onsubmit="guardarNecropsia(event)" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <label class="text-sm font-bold text-stone-700">Poza
                             <select id="necro-destino" data-poza-activa="true" required class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3"><option value="">Selecciona una poza</option></select>
                         </label>
-                        <label class="text-sm font-bold text-stone-700">Hallazgo principal
-                            <select id="necro-patologia" required onchange="actualizarGuiaNecropsia()" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3">
+                        <div class="sm:col-span-2">
+                            <p class="text-sm font-bold text-stone-700">Selecciona la zona afectada</p>
+                            <div class="necro-zone-grid mt-2" role="group" aria-label="Zona afectada">
+                                <button type="button" class="necro-zone-button" data-necro-zona="salmonelosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('salmonelosis', this)"><strong>Hígado</strong><span>Puntos o manchas</span></button>
+                                <button type="button" class="necro-zone-button" data-necro-zona="coccidiosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('coccidiosis', this)"><strong>Intestino</strong><span>Inflamación o diarrea</span></button>
+                                <button type="button" class="necro-zone-button" data-necro-zona="sarna" aria-pressed="false" onclick="seleccionarZonaNecropsia('sarna', this)"><strong>Piel</strong><span>Picazón, costras o caída de pelo</span></button>
+                                <button type="button" class="necro-zone-button" data-necro-zona="respiratoria" aria-pressed="false" onclick="seleccionarZonaNecropsia('respiratoria', this)"><strong>Pulmón</strong><span>Respiración agitada o ruidosa</span></button>
+                            </div>
+                            <label class="visually-hidden-control">Hallazgo clínico
+                            <select id="necro-patologia" required>
                                 <option value="">Selecciona un hallazgo</option>
-                                <option value="respiratoria">Pulmones congestionados / respiratorio</option>
-                                <option value="salmonelosis">Lesiones hepáticas / digestivo agudo</option>
+                                <option value="respiratoria">Pulmones congestionados / dificultad para respirar</option>
+                                <option value="salmonelosis">Hígado con puntos blancos / problema digestivo</option>
                                 <option value="coccidiosis">Intestino inflamado / diarrea</option>
-                                <option value="sarna">Ácaros o lesiones de piel / sarna</option>
+                                <option value="sarna">Picazón, costras o pérdida de pelo / piel</option>
                             </select>
-                        </label>
+                            </label>
+                        </div>
                         <label class="text-sm font-bold text-stone-700 sm:col-span-2">Fotografía de lesión u órgano
                             <input id="necro-foto" type="file" accept="image/*" capture="environment" required onchange="previsualizarFotoNecropsia(event)" class="mt-1 block w-full rounded-lg border border-stone-300 p-2 text-sm">
                         </label>
                         <div id="necro-preview-wrap" class="hidden sm:col-span-2">
                             <img id="necro-preview" class="max-h-64 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain" alt="Vista previa del hallazgo">
                         </div>
+                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">La foto se previsualiza localmente; selecciona el hallazgo para mostrar una orientación. No hay análisis automático de imagen.</p>
                         <label class="text-sm font-bold text-stone-700 sm:col-span-2">Hallazgos y signos observados
                             <textarea id="necro-observaciones" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Describe signos, órgano, lesiones y fecha de observación"></textarea>
                         </label>
                         <div id="necro-guia" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm sm:col-span-2" aria-live="polite">
                             <p><strong>Orientación probable:</strong> <span id="necro-diagnostico"></span></p>
+                            <p><strong>En palabras sencillas:</strong> <span id="necro-sintomas"></span></p>
                             <p><strong>Bioseguridad:</strong> <span id="necro-bioseguridad"></span></p>
-                            <p><strong>Opciones a validar con veterinario:</strong> <span id="necro-tratamiento"></span></p>
+                            <p><strong>Tratamiento, dosis y duración:</strong> <span id="necro-tratamiento"></span></p>
                         </div>
                         <label class="text-sm font-bold text-stone-700 sm:col-span-2">Tratamiento realmente aplicado (opcional)
                             <textarea id="necro-aplicado" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Solo registra medicamentos ya prescritos y administrados"></textarea>
@@ -1933,40 +1949,64 @@
             }
         }
 
+        function seleccionarZonaNecropsia(categoria, boton) {
+            document.getElementById('necro-patologia').value = categoria;
+            document.querySelectorAll('[data-necro-zona]').forEach(opcion => {
+                const seleccionada = opcion === boton;
+                opcion.setAttribute('aria-pressed', String(seleccionada));
+            });
+            actualizarGuiaNecropsia();
+        }
+
         function actualizarGuiaNecropsia() {
             const guias = {
                 respiratoria: {
-                    diagnostico: 'Congestión pulmonar compatible con proceso respiratorio; el hallazgo no confirma por sí solo neumonía ni identifica su causa.',
-                    bioseguridad: 'Aísla al animal, usa utensilios separados y corrige humedad, polvo y ventilación sin corrientes frías.',
-                    tratamiento: 'El veterinario puede valorar enrofloxacina o tilosina por 3-5 días si están indicadas, y vitamina C según etiqueta. No combinar ni iniciar sin prescripción.'
+                    diagnostico: 'Hallazgo respiratorio; una infección es solo una posibilidad. La foto no confirma neumonía ni su causa.',
+                    sintomas: 'Respiración agitada o ruidosa, secreción nasal, estornudos o decaimiento. Estos signos pueden tener distintas causas.',
+                    bioseguridad: 'Aísla al animal, usa utensilios separados, mantén la cama seca y evita polvo y corrientes frías. Busca atención urgente si le cuesta respirar.',
+                    tratamiento: 'Un veterinario debe examinarlo y decidir si hacen falta pruebas y tratamiento. Esta guía no asigna medicamento, dosis ni días.'
                 },
                 salmonelosis: {
-                    diagnostico: 'Lesiones hepáticas o necrosis son inespecíficas; salmonelosis requiere confirmación y puede transmitirse a personas.',
-                    bioseguridad: 'Aísla el grupo, usa guantes y lavado de manos, separa utensilios y limita el contacto con heces. Solicita evaluación veterinaria y pruebas.',
-                    tratamiento: 'Enrofloxacina o trimetoprim-sulfa solo bajo decisión veterinaria y, de ser posible, sensibilidad antimicrobiana. No se sugiere dosis empírica.'
+                    diagnostico: 'Los puntos o lesiones del hígado tienen varias causas. Salmonelosis es una posibilidad, no un diagnóstico confirmado por foto.',
+                    sintomas: 'Puede haber diarrea, falta de apetito, debilidad o muerte súbita; otras enfermedades pueden verse igual. Algunas salmonelas infectan a personas.',
+                    bioseguridad: 'Aísla la poza, usa guantes y utensilios exclusivos, lávate bien las manos y evita el contacto de niños con animales o heces. Solicita evaluación veterinaria y pruebas.',
+                    tratamiento: 'El veterinario debe confirmar la causa y elegir el manejo. No se asignan antibiótico, dosis ni duración desde una lesión o fotografía.'
                 },
                 coccidiosis: {
-                    diagnostico: 'Intestino inflamado y diarrea pueden ser compatibles con coccidiosis; confirma con examen de heces y evaluación veterinaria.',
-                    bioseguridad: 'Separa la poza, retira heces y cama húmeda, limpia bebederos y comederos y evita compartir utensilios entre grupos.',
-                    tratamiento: 'Toltrazuril 2.5% durante 2 días únicamente si lo prescribe el veterinario; confirma concentración, dosis y vía en la etiqueta.'
+                    diagnostico: 'La inflamación intestinal puede tener varias causas. Coccidiosis es una posibilidad que requiere examen de heces y valoración veterinaria.',
+                    sintomas: 'Diarrea, pérdida de peso, poco crecimiento, pelo áspero o falta de apetito; estos signos no identifican por sí solos el parásito.',
+                    bioseguridad: 'Separa la poza, retira heces y cama húmeda a diario, limpia comederos y bebederos y no compartas utensilios entre grupos.',
+                    tratamiento: 'El veterinario debe confirmar la causa y definir si requiere medicamento. Esta guía no calcula fármaco, dosis ni duración.'
                 },
                 sarna: {
-                    diagnostico: 'Ácaros o lesiones pruriginosas compatibles con sarna; confirma el agente y descarta otras causas dermatológicas.',
-                    bioseguridad: 'Aísla afectados, usa guantes y utensilios exclusivos, cambia cama y limpia/desinfecta jaulas; revisa los animales en contacto.',
-                    tratamiento: 'Ivermectina 1% con repetición a los 14 días únicamente según pauta veterinaria. La dosis no se infiere de la fotografía.'
+                    diagnostico: 'Picazón, costras o pérdida de pelo pueden ser compatibles con sarna, pero también con otros problemas de piel.',
+                    sintomas: 'Rascado frecuente, zonas sin pelo, costras o piel irritada. El veterinario debe revisar al animal y confirmar la causa.',
+                    bioseguridad: 'Aísla al animal, usa guantes y utensilios exclusivos, cambia la cama y limpia el alojamiento. Revisa a los animales que estuvieron en contacto.',
+                    tratamiento: 'El veterinario debe confirmar si son ácaros y definir el producto y la pauta según el animal. No se asignan medicamento, dosis ni días por foto.'
                 }
             };
             const guia = guias[document.getElementById('necro-patologia').value];
             const contenedor = document.getElementById('necro-guia');
             necropsiaResultadoActual = guia || null;
+            document.querySelectorAll('[data-necro-zona]').forEach(opcion => {
+                opcion.setAttribute('aria-pressed', String(opcion.dataset.necroZona === document.getElementById('necro-patologia').value));
+            });
             if (!guia) {
                 contenedor.classList.add('hidden');
                 document.getElementById('necro-save').disabled = true;
                 return;
             }
             document.getElementById('necro-diagnostico').textContent = guia.diagnostico;
+            document.getElementById('necro-sintomas').textContent = guia.sintomas;
             document.getElementById('necro-bioseguridad').textContent = guia.bioseguridad;
             document.getElementById('necro-tratamiento').textContent = guia.tratamiento;
+            const diagnosticoKardex = document.getElementById('salud-diagnostico');
+            diagnosticoKardex.value = `Orientación local no confirmada: ${guia.diagnostico}`;
+            const destinoNecropsia = document.getElementById('necro-destino').value;
+            if (destinoNecropsia) document.getElementById('salud-destino').value = destinoNecropsia;
+            document.getElementById('salud-producto').value = '';
+            document.getElementById('salud-cantidad').value = '';
+            document.getElementById('salud-calculo').textContent = 'No se asigna un fármaco, dosis ni duración por zona o fotografía. Con diagnóstico y pauta veterinaria confirmados, selecciona aquí el producto y registra el peso para calcular el volumen de referencia.';
             contenedor.classList.remove('hidden');
             document.getElementById('necro-save').disabled = !necropsiaFotoBase64;
         }
@@ -1979,18 +2019,27 @@
             if (!archivo) return;
             if (!archivo.type.startsWith('image/') || archivo.size > 12 * 1024 * 1024) {
                 event.target.value = '';
+                document.getElementById('necro-foto-estado').textContent = 'Elige una imagen válida de hasta 12 MB.';
                 mostrarToast('Selecciona una imagen válida de hasta 12 MB', 'error');
                 return;
             }
+            const estadoFoto = document.getElementById('necro-foto-estado');
+            estadoFoto.textContent = 'Leyendo la foto localmente; no se envía ni se analiza automáticamente.';
             const lector = new FileReader();
             lector.onload = () => {
                 if (version !== necropsiaFotoVersion) return;
                 necropsiaFotoBase64 = lector.result;
                 document.getElementById('necro-preview').src = lector.result;
                 document.getElementById('necro-preview-wrap').classList.remove('hidden');
+                estadoFoto.textContent = necropsiaResultadoActual
+                    ? 'Vista previa lista en este dispositivo. La orientación corresponde al hallazgo seleccionado, no a un diagnóstico de la foto.'
+                    : 'Vista previa lista en este dispositivo. Selecciona el hallazgo para mostrar una orientación local.';
                 document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
             };
-            lector.onerror = () => mostrarToast('No se pudo leer la fotografía', 'error');
+            lector.onerror = () => {
+                estadoFoto.textContent = 'No se pudo leer la foto en este dispositivo.';
+                mostrarToast('No se pudo leer la fotografía', 'error');
+            };
             lector.readAsDataURL(archivo);
             comprimirFotoClinica(archivo).then(foto => {
                 if (version !== necropsiaFotoVersion) return;
@@ -2016,7 +2065,7 @@
                 fecha: fechaHoy(),
                 destino: document.getElementById('necro-destino').value,
                 diagnostico: necropsiaResultadoActual.diagnostico,
-                sintomas: observaciones || 'Hallazgo registrado durante necropsia',
+                sintomas: observaciones || necropsiaResultadoActual.sintomas,
                 lesiones: document.getElementById('necro-patologia').selectedOptions[0].textContent,
                 producto: aplicado || 'Sin aplicación farmacológica registrada',
                 cantidad: aplicado ? `Aplicado según prescripción: ${aplicado}` : 'Necropsia registrada; sin fármaco consignado',
@@ -2040,6 +2089,7 @@
                 necropsiaResultadoActual = null;
                 document.getElementById('necro-preview').removeAttribute('src');
                 document.getElementById('necro-preview-wrap').classList.add('hidden');
+                document.getElementById('necro-foto-estado').textContent = 'La foto se previsualiza localmente; selecciona el hallazgo para mostrar una orientación. No hay análisis automático de imagen.';
                 document.getElementById('necro-guia').classList.add('hidden');
                 document.getElementById('necro-save').disabled = true;
             } catch (error) {
