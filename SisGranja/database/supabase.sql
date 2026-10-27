@@ -208,3 +208,14 @@ ON CONFLICT (codigo) DO NOTHING;
 INSERT INTO public.registros_medicos (id, cuy_id, fecha_diagnostico, tipo_evento, diagnostico, medicamento, dosis, veterinario_responsable, fecha_seguimiento, estado, costo_tratamiento, observaciones) VALUES
 ('55555555-5555-5555-5555-555555555501', '22222222-2222-2222-2222-222222222205', '2024-03-10', 'Tratamiento', 'Micosis dérmica leve en pabellón auricular', 'Ketoconazol pomada al 2%', '1 aplicación diaria por 7 días', 'Dr. Carlos Mendoza', '2024-03-18', 'En Tratamiento', 15.00, 'Aislada temporalmente para evitar contagio en la poza.')
 ON CONFLICT DO NOTHING;
+
+-- ==============================================================================
+-- SINCRONIZACIÓN DE SisGranja_v2.5.html: estado completo de la granja en una fila
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.sisgranja_estado (
+  id text PRIMARY KEY,
+  datos jsonb NOT NULL,
+  actualizado timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.sisgranja_estado ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir acceso completo a sisgranja_estado" ON public.sisgranja_estado FOR ALL USING (true) WITH CHECK (true);

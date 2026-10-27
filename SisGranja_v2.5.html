@@ -1649,6 +1649,11 @@
                     console.error("Error al cargar localStorage:", e);
                 }
             }
+            normalizarDB();
+        }
+
+        function normalizarDB() {
+            if (!db || typeof db !== 'object' || Array.isArray(db)) db = {};
             if (!Array.isArray(db.cuyes)) db.cuyes = [];
             if (!Array.isArray(db.partos)) db.partos = [];
             if (!Array.isArray(db.destetados)) db.destetados = [];
@@ -1670,7 +1675,66 @@
             db.cuyes.forEach(poza => {
                 if (poza.stockInicial === undefined) poza.stockInicial = 0;
             });
+        }
 
+        // Sincronización con Supabase: una fila con el estado completo; gana la modificación más reciente (db._ts).
+        const SUPABASE_URL = 'https://mdfwmaxtjhtcuzwsqrci.supabase.co';
+        const SUPABASE_TABLA = SUPABASE_URL + '/rest/v1/sisgranja_estado';
+        const SUPABASE_CLAVE = 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
+        const SUPABASE_FILA = 'granja-principal';
+        let temporizadorNube = null;
+        let sincronizandoNube = false;
+
+        function cabecerasNube(extra = {}) {
+            return { apikey: SUPABASE_CLAVE, 'Content-Type': 'application/json', ...extra };
+        }
+
+        async function descargarDeNube() {
+            const respuesta = await fetch(`${SUPABASE_TABLA}?id=eq.${SUPABASE_FILA}&select=datos`, { headers: cabecerasNube(), signal: AbortSignal.timeout(15000) });
+            if (!respuesta.ok) throw new Error('Supabase ' + respuesta.status);
+            const filas = await respuesta.json();
+            return filas.length ? filas[0].datos : null;
+        }
+
+        async function subirANube() {
+            const respuesta = await fetch(`${SUPABASE_TABLA}?on_conflict=id`, {
+                method: 'POST',
+                headers: cabecerasNube({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+                body: JSON.stringify({ id: SUPABASE_FILA, datos: db, actualizado: new Date().toISOString() }),
+                signal: AbortSignal.timeout(20000)
+            });
+            if (!respuesta.ok) throw new Error('Supabase ' + respuesta.status);
+        }
+
+        function programarSubidaNube() {
+            clearTimeout(temporizadorNube);
+            temporizadorNube = setTimeout(() => subirANube().catch(error => {
+                console.warn('No se pudo sincronizar con Supabase:', error);
+                mostrarToast('Guardado solo en este dispositivo: sin conexión con la nube.', 'error');
+            }), 600);
+        }
+
+        // Aplica el estado remoto si es más reciente; si el local es más nuevo, lo sube.
+        async function sincronizarConNube() {
+            if (sincronizandoNube) return;
+            sincronizandoNube = true;
+            try {
+                const remoto = await descargarDeNube();
+                const tsRemoto = Number(remoto && remoto._ts) || 0;
+                const tsLocal = Number(db._ts) || 0;
+                if (remoto && tsRemoto > tsLocal) {
+                    db = remoto;
+                    normalizarDB();
+                    escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
+                    renderizarTodo();
+                } else if (tsLocal > tsRemoto) {
+                    await subirANube();
+                }
+            } catch (error) {
+                console.warn('Sincronización con Supabase no disponible:', error);
+            } finally {
+                sincronizandoNube = false;
+            }
         }
 
         function guardarBD(mensaje = "Datos guardados correctamente", tipo = 'success') {
@@ -1680,7 +1744,7 @@
             });
             if (db.cuyes && !db.pozas) db.pozas = db.cuyes;
             if (db.pozas && !db.cuyes) db.cuyes = db.pozas;
-
+            db._ts = Date.now();
             db.ventas = Array.isArray(db.ventas) ? db.ventas.map(v => ({
                 ...v,
                 cantidad: Number(v.cantidad || 0),
@@ -1689,6 +1753,7 @@
             })) : [];
 
             const persistido = escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
+            programarSubidaNube();
             renderizarTodo();
             if (mensaje) mostrarToast(persistido ? mensaje : 'Cambios en memoria: el navegador bloquea el almacenamiento. Descarga un backup para conservarlos.', persistido ? tipo : 'error');
         }
@@ -3001,6 +3066,9 @@
         cargarDatos();
         registrarControlesCampo();
         renderizarTodo();
+        sincronizarConNube();
+        setInterval(sincronizarConNube, 15000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizarConNube(); });
         let temporizadorResize;
         window.addEventListener('resize', () => {
             clearTimeout(temporizadorResize);
