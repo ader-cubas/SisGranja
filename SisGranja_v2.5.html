@@ -2683,6 +2683,12 @@
             const elKpiPozas = document.getElementById('kpi-pozas');
             if (elKpiPozas) elKpiPozas.innerText = totalPozas;
 
+            const elKpiPozasSub = document.getElementById('kpi-pozas-sub');
+            if (elKpiPozasSub) {
+                const galpones = [...new Set(pozasUnicas.map(poza => String(poza.poza || '').trim()).filter(Boolean))];
+                elKpiPozasSub.innerText = galpones.length ? galpones.join(', ') : 'Sin pozas registradas';
+            }
+
             const elKpiPoblacion = document.getElementById('kpi-poblacion');
             if (elKpiPoblacion) elKpiPoblacion.innerText = poblacionTotal;
 
