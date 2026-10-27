@@ -774,13 +774,6 @@
                     <p id="temperatura-alerta" class="mt-4 rounded-xl border px-4 py-3 text-sm font-semibold" role="status" aria-live="polite">Registra una lectura para ver el estado y la recomendación técnica.</p>
                 </section>
 
-                <details class="demo-tools no-print">
-                    <summary>Herramientas de demostración</summary>
-                    <p class="mt-2 text-sm text-stone-600">La simulación reemplaza los registros actuales de la granja.</p>
-                    <button onclick="sembrarDatosIniciales()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="ph ph-lightning text-base" aria-hidden="true"></i> Simular 100 Pozas (6H / 1M)
-                    </button>
-                </details>
 
                 <section class="surface bg-white p-5 sm:p-6 border border-stone-200" aria-label="Proyecciones">
                     <div>
@@ -881,9 +874,6 @@
                 <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h3 class="text-lg font-bold text-stone-800">Registrar Nuevo Animal / Poza</h3>
-                        <button type="button" onclick="generar100PozasAutomaticas()" class="bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm hover:bg-emerald-800 transition shadow-sm">
-                            ⚡ Generar 100 Pozas Automáticas
-                        </button>
                     </div>
                     <form onsubmit="guardarCuy(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                         <div>
@@ -1457,14 +1447,17 @@
         }
 
         function obtenerCodigosPozas() {
-            const codigos = Array.from({ length: 100 }, (_, index) => 'PZ-' + String(index + 1).padStart(3, '0'));
-            const codigosBase = new Set(codigos);
-            const codigosAdicionales = db.cuyes
-                .map(poza => String(poza.codigo || poza.id || '').trim())
-                .filter(codigo => codigo && !/^(?:PZ[-\s]?|POZA\s*)0*(?:[1-9]|[1-9]\d|100)$/i.test(codigo))
-                .filter(codigo => !codigosBase.has(codigo))
+            return obtenerPozasUnicas()
+                .map(poza => claveUnicaPoza(poza.codigo || poza.id))
                 .sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
-            return [...codigos, ...new Set(codigosAdicionales)];
+        }
+
+        // Catálogo PZ-001..PZ-100 solo como opciones del formulario de alta; no crea registros.
+        function obtenerCodigosDisponiblesAlta() {
+            const registrados = new Set(obtenerCodigosPozas());
+            const catalogo = [];
+            for (let n = 1; n <= 100; n++) catalogo.push('PZ-' + String(n).padStart(3, '0'));
+            return [...new Set([...catalogo, ...registrados])];
         }
 
         function obtenerPozaActiva() {
@@ -1487,14 +1480,16 @@
 
         function actualizarSelectoresPozas() {
             const codigos = obtenerCodigosPozas();
+            const codigosAlta = obtenerCodigosDisponiblesAlta();
             const pozaActiva = obtenerPozaActiva();
             document.querySelectorAll('#cuy-codigo, #parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
                 const valorActual = selector.value;
                 const textoInicial = 'Selecciona una poza';
-                const opciones = [new Option(textoInicial, ''), ...codigos.map(codigo => new Option(codigo, codigo))];
+                const lista = selector.id === 'cuy-codigo' ? codigosAlta : codigos;
+                const opciones = [new Option(textoInicial, ''), ...lista.map(codigo => new Option(codigo, codigo))];
                 selector.replaceChildren(...opciones);
-                if (codigos.includes(valorActual)) selector.value = valorActual;
-                else if (selector.dataset.pozaActiva === 'true' && codigos.includes(pozaActiva)) selector.value = pozaActiva;
+                if (lista.includes(valorActual)) selector.value = valorActual;
+                else if (selector.dataset.pozaActiva === 'true' && lista.includes(pozaActiva)) selector.value = pozaActiva;
             });
 
             const ubicaciones = [...new Set(db.cuyes.map(poza => String(poza.poza || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
@@ -1643,11 +1638,12 @@
                 mostrarToast('Permite las ventanas emergentes para imprimir identificadores', 'error');
                 return;
             }
-            const pozas = Array.from({ length: 100 }, (_, indice) => {
-                const codigo = `PZ-${String(indice + 1).padStart(3, '0')}`;
-                const registro = db.cuyes.find(poza => String(poza.codigo || poza.id || '').toUpperCase() === codigo);
-                return { codigo, etapa: registro?.etapa || 'Sin asignar', ubicacion: registro?.poza || 'Ubicación sin registrar' };
-            });
+            const pozas = obtenerPozasUnicas().map(registro => ({ codigo: claveUnicaPoza(registro.codigo || registro.id), etapa: registro.etapa || 'Sin asignar', ubicacion: registro.poza || 'Ubicación sin registrar' }));
+            if (!pozas.length) {
+                ventana.close();
+                mostrarToast('No hay pozas registradas para imprimir', 'error');
+                return;
+            }
             const etiquetas = pozas.map(poza => `<article><strong>${poza.codigo}</strong><span>${escaparHTML(poza.ubicacion)}</span><small>${escaparHTML(poza.etapa)}</small></article>`);
             ventana.document.open();
             ventana.document.write(`<!doctype html><html lang="es"><meta charset="utf-8"><title>Identificadores SisGranja</title><style>*{box-sizing:border-box}body{font:11px system-ui,sans-serif;color:#18352b;margin:10mm}.labels{display:grid;grid-template-columns:repeat(4,1fr);gap:5mm}article{border:1px solid #bccdc0;border-radius:6px;padding:6mm 3mm;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:25mm;break-inside:avoid}strong{font-size:16px;margin:2mm 0}span,small{max-width:100%;overflow-wrap:anywhere}@page{size:A4;margin:10mm}</style><h1>SisGranja · Identificadores de pozas</h1><main class="labels">${etiquetas.join('')}</main></html>`);
@@ -1749,60 +1745,6 @@
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
             }
-        }
-
-        function sembrarDatosIniciales() {
-            if (db.cuyes.length > 0 && !confirm("¿Desea recargar la simulación estándar de 100 pozas? Se sobrescribirán los datos actuales.")) return;
-            db.cuyes = [];
-            for (let i = 1; i <= 100; i++) {
-                db.cuyes.push({
-                    codigo: 'PZ-' + String(i).padStart(3, '0'),
-                    etapa: 'Reproductor',
-                    genero: i % 2 === 0 ? 'Hembra' : 'Macho',
-                    stockInicial: 7,
-                    poza: i <= 50 ? 'Galpón A' : 'Galpón B'
-                });
-            }
-            db.pozas = db.cuyes;
-            db.partos = [];
-            db.destetados = [];
-            db.bajas = [];
-            db.ventas = [];
-            db.gastos = [];
-            db.gestaciones = [];
-            db.tratamientos = [];
-            guardarBD();
-            mostrarToast("100 pozas reproductoras cargadas: 700 cuyes, sin destetados ni cuyes para venta.");
-        }
-
-        function generar100PozasAutomaticas() {
-            const numerosExistentes = new Set(db.cuyes.map(poza => {
-                const codigo = String(poza.codigo || poza.id || '').trim().toUpperCase();
-                const coincidencia = codigo.match(/^(?:PZ[-\s]?|POZA\s*)0*(\d+)$/);
-                return coincidencia ? Number(coincidencia[1]) : null;
-            }).filter(Number.isInteger));
-            const nuevasPozas = [];
-
-            for (let numero = 1; numero <= 100; numero++) {
-                if (numerosExistentes.has(numero)) continue;
-
-                nuevasPozas.push({
-                    codigo: 'PZ-' + String(numero).padStart(3, '0'),
-                    etapa: 'Reproductor',
-                    genero: 'Hembra',
-                    stockInicial: 7,
-                    poza: numero <= 50 ? 'Galpón A' : 'Galpón B'
-                });
-            }
-
-            if (nuevasPozas.length === 0) {
-                mostrarToast('Las 100 pozas ya están registradas.');
-                return;
-            }
-
-            db.cuyes.push(...nuevasPozas);
-            db.pozas = db.cuyes;
-            guardarBD(`${nuevasPozas.length} pozas reproductoras agregadas al inventario.`);
         }
 
         // Formularios
