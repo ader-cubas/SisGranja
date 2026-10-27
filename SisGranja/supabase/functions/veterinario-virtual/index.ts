@@ -31,7 +31,7 @@ const schemaFor = (fields: readonly string[]) => ({
   required: [...fields],
 });
 
-const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 5 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"enfermedad más probable","farmaco_dosis":"fármaco principal exacto y su dosis (mg/kg o ml/kg y vía), ej. Enrofloxacina 5% 0.1 ml/kg SC","dias":"días de duración del tratamiento","accion":"acción inmediata en la poza (aislamiento o desinfección)","prevencion":"prevención clave"}. Sin explicaciones, sin Markdown. Español.`;
+const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 5 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"enfermedad más probable","farmaco_dosis":"tratamiento combinado en una sola línea: fármaco principal con su dosis (mg/kg o ml/kg y vía) + soporte con su dosis, separados por ' + ', ej. Enrofloxacina 5% 0.1 ml/kg SC + Complejo B 0.2 ml/animal SC","dias":"días de duración del tratamiento","accion":"acción inmediata en la poza (aislamiento o desinfección)","prevencion":"prevención clave"}. Criterios: en cuyes, hígado con puntos o focos blanquecinos/amarillentos (necrosis multifocal) = Salmonelosis (Salmonella), la causa más frecuente; no lo llames adenitis cervical (eso es de ganglios del cuello). Diarrea y intestino inflamado = Coccidiosis; costras y pérdida de pelo = Sarna; pulmón congestionado = Neumonía. Usa Enrofloxacina 5% a 0.1 ml/kg SC cada 24 h por 5 días en salmonelosis y neumonía, Toltrazuril 2.5% a 0.04 ml/kg oral por 2 días en coccidiosis, Ivermectina 1% a 0.2 ml/kg SC (repetir a los 14 días) en sarna. Indica un solo nombre de enfermedad. En farmaco_dosis incluye siempre el fármaco principal de control más un tratamiento de soporte según el caso (Complejo B o vitamina AD3E/C 0.2 ml/animal SC; en diarrea añade suero oral/electrolitos), mostrando ambos claramente. Sin explicaciones, sin Markdown. Español.`;
 
 const systemPrompt = `Actúa como un asistente veterinario experto en sanidad, manejo y bioseguridad de cuyes (Cavia porcellus) en granjas de crianza; no afirmes ser el veterinario tratante. Analiza la imagen (animal vivo, cadáver o necropsia) y responde exclusivamente con JSON válido, sin Markdown, con exactamente estos seis campos de texto: {"enfermedad_probable":"...","diagnostico_situacion":"...","causa_principal":"...","accion_inmediata":"...","tratamiento_manejo":"...","prevencion_diaria":"..."}.
 - enfermedad_probable: indica una enfermedad solo si la imagen aporta evidencia suficiente y expresa el nivel de certeza. Si no permite identificarla, describe el hallazgo y la incertidumbre, por ejemplo: "Lesiones hepáticas multifocales, causa indeterminada". No inventes un diagnóstico para completar el campo.
@@ -126,7 +126,7 @@ function parseGeminiResult(text: string, fields: readonly string[] = RESULT_FIEL
   return Object.fromEntries(fields.map(field => [field, (record[field] as string).trim().slice(0, 1600)]));
 }
 
-async function callGemini(apiKey: string, parts: GeminiPart[], schema: unknown): Promise<Response> {
+async function callGemini(apiKey: string, parts: GeminiPart[], schema: unknown, temperature: number): Promise<Response> {
   let response!: Response;
   for (let attempt = 0; attempt < GEMINI_MODELS.length; attempt++) {
     const model = GEMINI_MODELS[attempt];
@@ -141,7 +141,7 @@ async function callGemini(apiKey: string, parts: GeminiPart[], schema: unknown):
             generationConfig: {
               responseMimeType: 'application/json',
               responseSchema: schema,
-              temperature: 0.3,
+              temperature,
               maxOutputTokens: 1400,
             },
           }),
@@ -201,7 +201,7 @@ runtime.serve(async (request: Request) => {
       { inline_data: { mime_type: image.mimeType, data: image.base64 } },
     ];
 
-    const geminiResponse = await callGemini(apiKey, parts, schemaFor(summary ? SUMMARY_FIELDS : RESULT_FIELDS));
+    const geminiResponse = await callGemini(apiKey, parts, schemaFor(summary ? SUMMARY_FIELDS : RESULT_FIELDS), summary ? 0.1 : 0.3);
     if (!geminiResponse.ok) {
       const upstream = await geminiResponse.clone().json().catch(() => ({})) as { error?: { message?: string } };
       const detail = String(upstream.error?.message || '').slice(0, 160);
