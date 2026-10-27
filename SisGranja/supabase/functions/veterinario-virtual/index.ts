@@ -15,7 +15,7 @@ const RESULT_FIELDS = ['enfermedad_probable', 'diagnostico_situacion', 'causa_pr
 // Los alias *-latest siguen al modelo vigente, así no fallan cuando Google retira versiones.
 const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
 const RETRYABLE_STATUS = [404, 429, 500, 503, 504];
-const ATTEMPT_TIMEOUT_MS = 12_000;
+const ATTEMPT_TIMEOUT_MS = 25_000;
 const MAX_REQUESTS_PER_MINUTE = 8;
 const MAX_REQUEST_BYTES = 128 * 1024;
 const MAX_BASE64_LENGTH = 120_000;

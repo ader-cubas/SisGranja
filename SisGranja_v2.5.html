@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src https://mdfwmaxtjhtcuzwsqrci.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>SisGranja v2.6 - Unidad Pecuaria Cuyícola</title>
     <style>
         :root {
@@ -1123,14 +1123,14 @@
                 <section class="surface space-y-4 border border-stone-200 bg-white p-5 sm:p-6">
                     <div>
                         <h3 class="text-lg font-bold text-stone-800">Orientación clínica y necropsia</h3>
-                        <p class="mt-1 text-sm text-stone-600">Elige el hallazgo para ver una guía local en lenguaje sencillo. La foto se procesa en este dispositivo y no confirma una enfermedad.</p>
+                        <p class="mt-1 text-sm text-stone-600">Elige el hallazgo para ver una guía local en lenguaje sencillo. La foto se analiza automáticamente con el Dr. Cuy IA cuando hay internet; la orientación no sustituye al veterinario.</p>
                     </div>
                     <form id="necropsia-form" onsubmit="guardarNecropsia(event)" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <label class="text-sm font-bold text-stone-700">Poza
                             <select id="necro-destino" data-poza-activa="true" required class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3"><option value="">Selecciona una poza</option></select>
                         </label>
                         <div class="sm:col-span-2">
-                            <p class="text-sm font-bold text-stone-700">Selecciona la zona afectada</p>
+                            <p class="text-sm font-bold text-stone-700">Zona afectada (opcional, solo si no hay internet)</p>
                             <div class="necro-zone-grid mt-2" role="group" aria-label="Zona afectada">
                                 <button type="button" class="necro-zone-button" data-necro-zona="salmonelosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('salmonelosis', this)"><strong>Hígado</strong><span>Puntos o manchas</span></button>
                                 <button type="button" class="necro-zone-button" data-necro-zona="coccidiosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('coccidiosis', this)"><strong>Intestino</strong><span>Inflamación o diarrea</span></button>
@@ -1138,7 +1138,7 @@
                                 <button type="button" class="necro-zone-button" data-necro-zona="respiratoria" aria-pressed="false" onclick="seleccionarZonaNecropsia('respiratoria', this)"><strong>Pulmón</strong><span>Respiración agitada o ruidosa</span></button>
                             </div>
                             <label class="visually-hidden-control">Hallazgo clínico
-                            <select id="necro-patologia" required>
+                            <select id="necro-patologia">
                                 <option value="">Selecciona un hallazgo</option>
                                 <option value="respiratoria">Pulmones congestionados / dificultad para respirar</option>
                                 <option value="salmonelosis">Hígado con puntos blancos / problema digestivo</option>
@@ -1153,13 +1153,13 @@
                         <div id="necro-preview-wrap" class="hidden sm:col-span-2">
                             <img id="necro-preview" class="max-h-64 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain" alt="Vista previa del hallazgo">
                         </div>
-                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">La foto se previsualiza localmente; selecciona el hallazgo para mostrar una orientación. No hay análisis automático de imagen.</p>
+                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">Sube o toma la foto: el Dr. Cuy IA la analiza automáticamente (requiere internet).</p>
                         <label class="text-sm font-bold text-stone-700 sm:col-span-2">Hallazgos y signos observados
                             <textarea id="necro-observaciones" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Describe signos, órgano, lesiones y fecha de observación"></textarea>
                         </label>
                         <div id="necro-guia" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm sm:col-span-2" aria-live="polite">
                             <p><strong>Orientación probable:</strong> <span id="necro-diagnostico"></span></p>
-                            <p><strong>En palabras sencillas:</strong> <span id="necro-sintomas"></span></p>
+                            <p><strong>Prevención / signos:</strong> <span id="necro-sintomas"></span></p>
                             <p><strong>Bioseguridad:</strong> <span id="necro-bioseguridad"></span></p>
                             <p><strong>Tratamiento, dosis y duración:</strong> <span id="necro-tratamiento"></span></p>
                         </div>
@@ -1993,6 +1993,8 @@
             const archivo = event.target.files[0];
             const version = ++necropsiaFotoVersion;
             necropsiaFotoBase64 = '';
+            necropsiaResultadoActual = null;
+            document.getElementById('necro-guia').classList.add('hidden');
             document.getElementById('necro-save').disabled = true;
             if (!archivo) return;
             if (!archivo.type.startsWith('image/') || archivo.size > 12 * 1024 * 1024) {
@@ -2002,16 +2004,14 @@
                 return;
             }
             const estadoFoto = document.getElementById('necro-foto-estado');
-            estadoFoto.textContent = 'Leyendo la foto localmente; no se envía ni se analiza automáticamente.';
+            estadoFoto.textContent = 'Preparando la foto…';
             const lector = new FileReader();
             lector.onload = () => {
                 if (version !== necropsiaFotoVersion) return;
                 necropsiaFotoBase64 = lector.result;
                 document.getElementById('necro-preview').src = lector.result;
                 document.getElementById('necro-preview-wrap').classList.remove('hidden');
-                estadoFoto.textContent = necropsiaResultadoActual
-                    ? 'Vista previa lista en este dispositivo. La orientación corresponde al hallazgo seleccionado, no a un diagnóstico de la foto.'
-                    : 'Vista previa lista en este dispositivo. Selecciona el hallazgo para mostrar una orientación local.';
+                estadoFoto.textContent = 'Vista previa lista.';
                 document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
             };
             lector.onerror = () => {
@@ -2019,9 +2019,36 @@
                 mostrarToast('No se pudo leer la fotografía', 'error');
             };
             lector.readAsDataURL(archivo);
-            comprimirFotoClinica(archivo).then(foto => {
+            comprimirFotoClinica(archivo).then(async foto => {
                 if (version !== necropsiaFotoVersion) return;
                 necropsiaFotoBase64 = foto;
+                if (!navigator.onLine) {
+                    estadoFoto.textContent = 'Sin conexión: se requiere internet para el análisis fotográfico. Elige la zona afectada.';
+                    document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
+                    return;
+                }
+                estadoFoto.textContent = 'Analizando con Dr. Cuy IA…';
+                try {
+                    const r = await consultarDrCuy(foto);
+                    if (version !== necropsiaFotoVersion) return;
+                    necropsiaResultadoActual = {
+                        diagnostico: r.enfermedad,
+                        sintomas: r.prevencion,
+                        bioseguridad: r.accion,
+                        tratamiento: `${r.farmaco_dosis}. ${r.dias}`
+                    };
+                    document.getElementById('necro-patologia').value = '';
+                    document.querySelectorAll('[data-necro-zona]').forEach(opcion => opcion.setAttribute('aria-pressed', 'false'));
+                    document.getElementById('necro-diagnostico').textContent = r.enfermedad;
+                    document.getElementById('necro-sintomas').textContent = r.prevencion;
+                    document.getElementById('necro-bioseguridad').textContent = r.accion;
+                    document.getElementById('necro-tratamiento').textContent = `${r.farmaco_dosis}. ${r.dias}`;
+                    document.getElementById('necro-guia').classList.remove('hidden');
+                    estadoFoto.textContent = 'Diagnóstico listo (Dr. Cuy IA).';
+                } catch (error) {
+                    if (version !== necropsiaFotoVersion) return;
+                    estadoFoto.textContent = 'No se pudo analizar la foto. Intenta de nuevo o elige la zona afectada.';
+                }
                 document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
             }).catch(error => {
                 console.error('Error al preparar foto de necropsia:', error);
@@ -2044,7 +2071,7 @@
                 destino: document.getElementById('necro-destino').value,
                 diagnostico: necropsiaResultadoActual.diagnostico,
                 sintomas: observaciones || necropsiaResultadoActual.sintomas,
-                lesiones: document.getElementById('necro-patologia').selectedOptions[0].textContent,
+                lesiones: document.getElementById('necro-patologia').selectedOptions[0]?.value ? document.getElementById('necro-patologia').selectedOptions[0].textContent : 'Detectado por foto (Dr. Cuy IA)',
                 producto: aplicado || 'Sin aplicación farmacológica registrada',
                 cantidad: aplicado ? `Aplicado según prescripción: ${aplicado}` : 'Necropsia registrada; sin fármaco consignado',
                 diasProtocolo: datosTratamiento.diasProtocolo,
@@ -2067,7 +2094,7 @@
                 necropsiaResultadoActual = null;
                 document.getElementById('necro-preview').removeAttribute('src');
                 document.getElementById('necro-preview-wrap').classList.add('hidden');
-                document.getElementById('necro-foto-estado').textContent = 'La foto se previsualiza localmente; selecciona el hallazgo para mostrar una orientación. No hay análisis automático de imagen.';
+                document.getElementById('necro-foto-estado').textContent = 'Sube o toma la foto: el Dr. Cuy IA la analiza automáticamente (requiere internet).';
                 document.getElementById('necro-guia').classList.add('hidden');
                 document.getElementById('necro-save').disabled = true;
             } catch (error) {
@@ -2221,7 +2248,7 @@
             }
         }
 
-        async function analizarFotoBaja(imagenBase64, versionCaptura) {
+        async function consultarDrCuy(imagenBase64) {
             const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
             const publicKey = window.SISGRANJA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
             const coincidencia = String(imagenBase64).match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
@@ -2230,15 +2257,20 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', apikey: publicKey },
                 body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido' }),
-                signal: AbortSignal.timeout(45000)
+                signal: AbortSignal.timeout(75000)
             });
             const payload = await respuesta.json().catch(() => ({}));
             if (!respuesta.ok) throw new Error(payload.error || 'Servicio no disponible');
-            if (versionCaptura !== bajaFotoVersion) return;
             const r = payload.result || payload;
             if (['enfermedad', 'farmaco_dosis', 'dias', 'accion', 'prevencion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
                 throw new Error('Respuesta incompleta');
             }
+            return r;
+        }
+
+        async function analizarFotoBaja(imagenBase64, versionCaptura) {
+            const r = await consultarDrCuy(imagenBase64);
+            if (versionCaptura !== bajaFotoVersion) return;
             bajaAnalisisActual = {
                 categoria_clinica: 'Dr. Cuy IA',
                 diagnostico_situacion: r.enfermedad,
