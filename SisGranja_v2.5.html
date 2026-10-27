@@ -319,30 +319,38 @@
         .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
         .disabled\:bg-stone-300:disabled { background-color: #d6d3d1; }
         .disabled\:text-stone-600:disabled { color: #57534e; }
-        i.ph { display: inline-block; font-style: normal; line-height: 1; }
-        i.ph::before { content: '•'; }
-        .ph-baby::before { content: '◉'; }
-        .ph-calendar-check::before { content: '▣'; }
-        .ph-camera::before { content: '◉'; }
-        .ph-chart-bar::before { content: '▥'; }
-        .ph-chart-pie::before { content: '◔'; }
-        .ph-currency-circle-dollar::before { content: 'S/'; }
-        .ph-download-simple::before { content: '↓'; }
-        .ph-file-text::before, .ph-printer::before { content: '▤'; }
-        .ph-file-xls::before { content: 'CSV'; font-size: .55em; font-weight: 800; }
-        .ph-first-aid-kit::before { content: '+'; font-size: 1.25em; }
-        .ph-floppy-disk::before { content: '▣'; }
-        .ph-heartbeat::before { content: '♥'; }
-        .ph-image::before { content: '▧'; }
-        .ph-lightning::before { content: 'ϟ'; }
-        .ph-paw-print::before { content: '✣'; }
-        .ph-qr-code::before { content: '#'; font-weight: 800; }
-        .ph-receipt::before { content: '≡'; }
-        .ph-shield-warning::before { content: '⚠'; }
-        .ph-shopping-cart::before { content: '▱'; }
-        .ph-squares-four::before { content: '▦'; }
-        .ph-upload-simple::before { content: '↑'; }
-        .ph-users-three::before { content: '♟'; }
+        /* Iconos SVG incrustados (sin fuentes externas) */
+        i.ph { display: inline-block; flex: none; width: 1em; height: 1em; font-style: normal; line-height: 1; vertical-align: -0.125em; }
+        i.ph::before { content: ''; display: block; width: 1em; height: 1em; background-color: currentColor; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
+        .ph-paw-print { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='4' r='2'/><circle cx='18' cy='8' r='2'/><circle cx='20' cy='16' r='2'/><path d='M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z'/></svg>"); }
+        .ph-baby { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 12h.01'/><path d='M15 12h.01'/><path d='M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5'/><path d='M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1'/></svg>"); }
+        .ph-users-three { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>"); }
+        .ph-printer { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><path d='M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6'/><rect x='6' y='14' width='12' height='8' rx='1'/></svg>"); }
+        .ph-heartbeat { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2'/></svg>"); }
+        .ph-floppy-disk { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'/><path d='M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7'/><path d='M7 3v4a1 1 0 0 0 1 1h7'/></svg>"); }
+        .ph-first-aid-kit { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='7' width='18' height='13' rx='2'/><path d='M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/><path d='M12 11v5M9.5 13.5h5'/></svg>"); }
+        .ph-currency-circle-dollar { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8'/><path d='M12 18V6'/></svg>"); }
+        .ph-upload-simple { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><path d='m17 8-5-5-5 5'/><path d='M12 3v12'/></svg>"); }
+        .ph-download-simple { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><path d='m7 10 5 5 5-5'/><path d='M12 15V3'/></svg>"); }
+        .ph-stethoscope { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 2v2'/><path d='M5 2v2'/><path d='M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1'/><path d='M8 15a6 6 0 0 0 12 0v-3'/><circle cx='20' cy='10' r='2'/></svg>"); }
+        .ph-squares-four { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/></svg>"); }
+        .ph-shopping-cart { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='8' cy='21' r='1'/><circle cx='19' cy='21' r='1'/><path d='M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12'/></svg>"); }
+        .ph-shield-warning { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/><path d='M12 8v4'/><path d='M12 16h.01'/></svg>"); }
+        .ph-receipt { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z'/><path d='M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8'/><path d='M12 17.5v-11'/></svg>"); }
+        .ph-qr-code { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='5' height='5' rx='1'/><rect x='16' y='3' width='5' height='5' rx='1'/><rect x='3' y='16' width='5' height='5' rx='1'/><path d='M21 16h-3a2 2 0 0 0-2 2v3'/><path d='M21 21v.01'/><path d='M12 7v3a2 2 0 0 1-2 2H7'/><path d='M3 12h.01'/><path d='M12 3h.01'/><path d='M12 16v.01'/><path d='M16 12h1'/><path d='M21 12v.01'/><path d='M12 21v-1'/></svg>"); }
+        .ph-lightning { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z'/></svg>"); }
+        .ph-image { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><circle cx='9' cy='9' r='2'/><path d='m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21'/></svg>"); }
+        .ph-file-xls { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/><path d='M14 2v4a2 2 0 0 0 2 2h4'/><path d='M8 13h2M14 13h2M8 17h2M14 17h2'/></svg>"); }
+        .ph-file-text { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/><path d='M14 2v4a2 2 0 0 0 2 2h4'/><path d='M10 9H8M16 13H8M16 17H8'/></svg>"); }
+        .ph-chart-pie { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21.21 15.89A10 10 0 1 1 8 2.83'/><path d='M22 12A10 10 0 0 0 12 2v10z'/></svg>"); }
+        .ph-chart-bar { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v16a2 2 0 0 0 2 2h16'/><path d='M18 17V9M13 17V5M8 17v-3'/></svg>"); }
+        .ph-camera { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z'/><circle cx='12' cy='13' r='3'/></svg>"); }
+        .ph-calendar-check { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v4M16 2v4'/><rect x='3' y='4' width='18' height='18' rx='2'/><path d='M3 10h18'/><path d='m9 16 2 2 4-4'/></svg>"); }
+        .ph-warning-circle { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 8v4M12 16h.01'/></svg>"); }
+        .ph-microscope { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18h8'/><path d='M3 22h18'/><path d='M14 22a7 7 0 1 0 0-14h-1'/><path d='M9 14h2'/><path d='M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z'/><path d='M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3'/></svg>"); }
+        .ph-leaf { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/><path d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/></svg>"); }
+        .ph-check-circle { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m9 12 2 2 4-4'/></svg>"); }
+        .ph-chart-line-up { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 7 13.5 15.5 8.5 10.5 2 17'/><path d='M16 7h6v6'/></svg>"); }
         @media (min-width: 640px) {
             .sm\:flex { display: flex; }
             .sm\:flex-row { flex-direction: row; }
@@ -475,6 +483,89 @@
             .kpi-card-secondary h3 { font-size: 1.3rem; }
             .quick-action span { font-size: .82rem; }
         }
+
+        /* Tema corporativo agroindustrial: fondo neutro, tarjetas flotantes y acento esmeralda */
+        :root { --emerald: #047857; --emerald-dark: #065f46; --emerald-soft: #ecfdf5; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0; --float: 0 10px 30px rgb(15 23 42 / 8%), 0 1px 3px rgb(15 23 42 / 8%); --farm-canvas: #f4f6f8; }
+        body { font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink); letter-spacing: -0.005em; }
+        body, .app-main { background: #f4f6f8; }
+        h1, h2, h3, h4 { letter-spacing: -0.02em; }
+        .surface, .bg-white.rounded-2xl { border: 1px solid var(--line) !important; border-radius: 16px !important; background: #fff; box-shadow: var(--float) !important; }
+        .app-topbar { background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 2px 12px rgb(15 23 42 / 6%); }
+        .app-sidebar { background: linear-gradient(180deg, #064e3b 0%, #022c22 100%); border-color: #022c22; }
+        .app-sidebar nav button { color: #d1fae5; font-weight: 600; }
+        .app-sidebar nav button i { color: #6ee7b7; font-size: 1.25rem; }
+        .app-sidebar nav button:hover { background: rgb(255 255 255 / 10%); }
+        .app-sidebar nav button.bg-emerald-900 { background: #ecfdf5; color: #065f46; box-shadow: 0 4px 12px rgb(0 0 0 / 22%), inset 4px 0 #10b981; }
+        .app-sidebar nav button.bg-emerald-900 i { color: #047857; }
+
+        /* Botones de la barra superior */
+        .hb { border: 1px solid var(--line); border-radius: 10px !important; background: #fff; color: #334155; box-shadow: 0 1px 2px rgb(15 23 42 / 8%); transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+        .hb:hover { border-color: #6ee7b7; background: var(--emerald-soft); box-shadow: 0 4px 10px rgb(4 120 87 / 14%); }
+        .hb i { color: var(--emerald) !important; font-size: 1.1rem; }
+        .hb-report, .hb-backup { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+        .hb-report:hover, .hb-backup:hover { background: var(--emerald-dark); border-color: var(--emerald-dark); }
+        .hb-report i, .hb-backup i { color: #fff !important; }
+
+        /* Menú de control ejecutivo */
+        .exec-menu { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+        .exec-btn { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font-size: .9rem; font-weight: 700; text-align: left; box-shadow: var(--float); transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+        .exec-btn i { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--emerald-soft); color: var(--emerald); font-size: 1.4rem; }
+        .exec-btn small { display: block; margin-top: 1px; color: var(--muted); font-size: .72rem; font-weight: 500; }
+        .exec-btn:hover { transform: translateY(-2px); border-color: #34d399; box-shadow: 0 14px 30px rgb(4 120 87 / 18%); }
+        .exec-btn.exec-primary { background: linear-gradient(135deg, #059669, #065f46); border-color: transparent; color: #fff; }
+        .exec-btn.exec-primary i { background: rgb(255 255 255 / 18%); color: #fff; }
+        .exec-btn.exec-primary small { color: #a7f3d0; }
+
+        /* Indicadores */
+        .kpi-card { border: 1px solid var(--line) !important; border-top: 3px solid var(--kpi-accent, #047857) !important; border-radius: 16px !important; background: #fff; color: var(--ink); box-shadow: var(--float) !important; }
+        .kpi-card > p:first-child { color: var(--muted) !important; font-weight: 700; letter-spacing: .07em; }
+        .kpi-card h3 { color: var(--ink) !important; font-weight: 800; }
+        .kpi-card > p:last-child { color: var(--muted) !important; }
+        .kpi-card-secondary { background: #fbfdfc; box-shadow: 0 4px 14px rgb(15 23 42 / 6%) !important; }
+        .kpi-accent-green, .kpi-accent-teal { --kpi-accent: #059669; }
+        .kpi-accent-blue, .kpi-accent-amber { --kpi-accent: #f59e0b; }
+        .kpi-accent-rose { --kpi-accent: #e11d48; }
+        .kpi-card h3 { font-size: clamp(1.45rem, 2.4vw, 2rem); }
+        .kpi-accent-amber h3, .kpi-accent-blue h3 { color: #b45309 !important; }
+        .exec-btn:nth-child(4) i { background: #fffbeb; color: #d97706; }
+        .exec-btn:nth-child(4):hover { border-color: #fbbf24; box-shadow: 0 14px 30px rgb(217 119 6 / 18%); }
+        .surface { border-radius: 16px !important; }
+        .app-content { padding: clamp(12px, 2.5vw, 32px); }
+
+        /* Acciones rápidas */
+        .quick-action { border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgb(15 23 42 / 6%); transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+        .quick-action:hover { border-color: #34d399; background: #fff; transform: translateY(-2px); box-shadow: 0 12px 24px rgb(4 120 87 / 16%); }
+        .quick-action i, .quick-action.quick-action-alert i { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--emerald-soft); color: var(--emerald); font-size: 1.45rem; }
+        .quick-action.quick-action-alert i { background: #fff1f2; color: #e11d48; }
+        .quick-action span { color: var(--ink); }
+
+        /* Formularios */
+        .view-section input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .view-section select, .view-section textarea { border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; transition: border-color 150ms ease, box-shadow 150ms ease; }
+        .view-section input:focus, .view-section select:focus, .view-section textarea:focus { outline: 0; border-color: #10b981; box-shadow: 0 0 0 3px rgb(16 185 129 / 22%); }
+        .view-section label { color: #334155; }
+        .view-section th { background: #f1f5f9; color: #334155; }
+
+        @media (max-width: 1100px) { .exec-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 1023px) {
+            /* Tablet y celular: formularios en una columna y controles táctiles */
+            .view-section form.grid { grid-template-columns: minmax(0, 1fr) !important; }
+            .view-section form.grid > * { grid-column: auto !important; }
+            .view-section input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .view-section select, .view-section textarea { min-height: 48px; font-size: 16px; }
+            .view-section button, .app-topbar button, .app-topbar label, .exec-btn, .quick-action { min-height: 48px; }
+            .view-section input[type="checkbox"], .view-section input[type="radio"] { width: 22px; height: 22px; }
+            .app-topbar { height: auto; flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+            .app-topbar > div:last-child { max-width: 100%; width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+            .app-topbar > div:last-child > * { flex: 0 0 auto; white-space: nowrap; }
+            .view-section .overflow-x-auto, .view-section table { max-width: 100%; }
+            .view-section [class*="grid-cols-"]:not(form):not(.dashboard-kpis):not(.quick-action-grid):not(.exec-menu) { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 767px) {
+            .app-sidebar nav button { min-height: 48px; padding: 0 16px; }
+            .quick-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .exec-btn { padding: 10px 12px; }
+        }
+        @media (max-width: 480px) { .exec-menu { grid-template-columns: 1fr; } }
+        @media print { .exec-menu { display: none; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased">
@@ -506,7 +597,7 @@
                     <span id="badge-destetados" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
                 <button onclick="switchView('bajas')" id="nav-bajas" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
-                    <i class="ph ph-shield-warning text-lg"></i><span>Mortalidad y Bajas</span>
+                    <i class="ph ph-stethoscope text-lg"></i><span>Sanidad · Dr. Cuy IA</span>
                     <span id="badge-bajas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
                 <button onclick="switchView('ventas')" id="nav-ventas" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
@@ -540,22 +631,22 @@
                 <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200 hidden sm:flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Ratio Estándar: 1 Macho / 6 Hembras
                 </span>
-                <button onclick="window.print()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                <button onclick="window.print()" class="hb hb-print flex items-center gap-1.5 text-xs font-semibold px-3 py-2">
                     <i class="ph ph-printer text-stone-600 text-base"></i> Imprimir
                 </button>
-                <button onclick="imprimirReporte()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+                <button onclick="imprimirReporte()" class="hb hb-report flex items-center gap-1.5 text-xs font-semibold px-3 py-2">
                     <i class="ph ph-file-text text-base"></i> Reporte
                 </button>
-                <button onclick="imprimirTodosLosQR()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+                <button onclick="imprimirTodosLosQR()" class="hb hb-qr flex items-center gap-1.5 text-xs font-semibold px-3 py-2">
                     <i class="ph ph-qr-code text-base"></i> Imprimir identificadores
                 </button>
-                <button onclick="exportarExcel()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                <button onclick="exportarExcel()" class="hb hb-xls flex items-center gap-1.5 text-xs font-semibold px-3 py-2">
                     <i class="ph ph-file-xls text-emerald-600 text-base"></i> Excel / CSV
                 </button>
-                <button onclick="exportarBackup()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition">
+                <button onclick="exportarBackup()" class="hb hb-backup flex items-center gap-1.5 text-xs font-semibold px-3 py-2">
                     <i class="ph ph-download-simple text-blue-600 text-base"></i> Backup
                 </button>
-                <label class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold px-3 py-2 rounded-lg border border-stone-300 flex items-center gap-1.5 transition cursor-pointer">
+                <label class="hb hb-restore flex items-center gap-1.5 text-xs font-semibold px-3 py-2 cursor-pointer">
                     <i class="ph ph-upload-simple text-amber-600 text-base"></i> Restaurar
                     <input type="file" id="file-restore" onchange="restaurarBackup(event)" class="hidden" accept=".json">
                 </label>
@@ -567,6 +658,13 @@
 
             <!-- 1. DASHBOARD -->
             <div id="view-dashboard" class="space-y-6 view-section">
+                <nav class="exec-menu no-print" aria-label="Menú de control ejecutivo">
+                    <button type="button" onclick="switchView('cuyes')" class="exec-btn"><i class="ph ph-paw-print" aria-hidden="true"></i><span>Pozas<small>Inventario y manejo</small></span></button>
+                    <button type="button" onclick="switchView('partos')" class="exec-btn"><i class="ph ph-baby" aria-hidden="true"></i><span>Partos<small>Reproducción</small></span></button>
+                    <button type="button" onclick="switchView('bajas')" class="exec-btn exec-primary"><i class="ph ph-stethoscope" aria-hidden="true"></i><span>Sanidad · Dr. Cuy IA<small>Diagnóstico por foto</small></span></button>
+                    <button type="button" onclick="switchView('ventas')" class="exec-btn"><i class="ph ph-currency-circle-dollar" aria-hidden="true"></i><span>Ventas<small>Ingresos</small></span></button>
+                    <button type="button" onclick="imprimirReporte()" class="exec-btn"><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>Reportes<small>Resumen integral</small></span></button>
+                </nav>
                 <!-- Tarjetas KPI -->
                 <div class="grid dashboard-kpis">
                     <div class="kpi-card kpi-accent-green">
