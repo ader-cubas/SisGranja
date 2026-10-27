@@ -669,13 +669,13 @@
                 <div class="grid dashboard-kpis">
                     <div class="kpi-card kpi-accent-green">
                         <p class="text-xs font-bold text-stone-500 uppercase">Pozas Activas</p>
-                        <h3 id="kpi-pozas" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p id="kpi-pozas-sub" class="text-xs text-stone-500 mt-1">Galpón A, Galpón B</p>
+                        <h3 id="kpi-pozas" class="text-3xl font-extrabold text-stone-900 mt-1">—</h3>
+                        <p id="kpi-pozas-sub" class="text-xs text-stone-500 mt-1">Calculando…</p>
                     </div>
                     <div class="kpi-card kpi-accent-teal">
                         <p class="text-xs font-bold text-stone-500 uppercase">Población Total</p>
-                        <h3 id="kpi-poblacion" class="text-3xl font-extrabold text-emerald-700 mt-1">0</h3>
-                        <p id="kpi-poblacion-sub" class="text-xs text-stone-500 mt-1">0 hembr., 0 mach., 0 crías</p>
+                        <h3 id="kpi-poblacion" class="text-3xl font-extrabold text-emerald-700 mt-1">—</h3>
+                        <p id="kpi-poblacion-sub" class="text-xs text-stone-500 mt-1">Calculando…</p>
                     </div>
                     <div class="kpi-card kpi-accent-blue">
                         <p class="text-xs font-bold text-stone-500 uppercase">Ventas / Ingresos</p>
@@ -887,6 +887,10 @@
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Galpón / Ubicación</label>
                             <input type="text" id="cuy-poza" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Galpón A">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
+                            <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 7">
                         </div>
                         <div class="sm:col-span-4 flex justify-end">
                             <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
@@ -1410,8 +1414,6 @@
             return String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter]);
         }
 
-        const TOTAL_POZAS_FISICAS = 100;
-
         // Unifica variantes (PZ-1, pz 001, Poza 1) en una sola clave para no contar una poza dos veces.
         function claveUnicaPoza(codigo) {
             const texto = String(codigo || '').trim().toUpperCase();
@@ -1481,10 +1483,7 @@
 
         function obtenerStockActualPoza(poza) {
             const codigo = claveUnicaPoza(poza.codigo || poza.id);
-            const etapa = String(poza.etapa || '').toLowerCase();
-            const stockInicial = poza.stockInicial !== undefined
-                ? Number(poza.stockInicial) || 0
-                : (etapa.includes('reproductor') ? 7 : 0);
+            const stockInicial = Number(poza.stockInicial) || 0;
             const coincidePoza = valor => claveUnicaPoza(valor) === codigo;
             const nacimientos = db.partos
                 .filter(parto => coincidePoza(parto.poza))
@@ -1648,6 +1647,10 @@
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
+            // Registros antiguos: se fija el stock inicial explícito para que el cálculo no dependa de un valor oculto.
+            db.cuyes.forEach(poza => {
+                if (poza.stockInicial === undefined) poza.stockInicial = String(poza.etapa || '').toLowerCase().includes('reproductor') ? 7 : 0;
+            });
 
         }
 
@@ -1730,6 +1733,7 @@
                     codigo: 'PZ-' + String(i).padStart(3, '0'),
                     etapa: 'Reproductor',
                     genero: i % 2 === 0 ? 'Hembra' : 'Macho',
+                    stockInicial: 7,
                     poza: i <= 50 ? 'Galpón A' : 'Galpón B'
                 });
             }
@@ -1760,6 +1764,7 @@
                     codigo: 'PZ-' + String(numero).padStart(3, '0'),
                     etapa: 'Reproductor',
                     genero: 'Hembra',
+                    stockInicial: 7,
                     poza: numero <= 50 ? 'Galpón A' : 'Galpón B'
                 });
             }
@@ -1783,17 +1788,16 @@
                 genero: document.getElementById('cuy-genero').value,
                 poza: document.getElementById('cuy-poza').value
             };
+            const stockTexto = document.getElementById('cuy-stock').value.trim();
             const existente = db.cuyes.find(item => claveUnicaPoza(item.codigo || item.id) === claveUnicaPoza(codigo));
             if (existente) {
                 Object.assign(existente, datos);
+                if (stockTexto !== '') existente.stockInicial = Math.max(0, parseInt(stockTexto, 10) || 0);
             } else {
-                if (obtenerPozasUnicas().length >= TOTAL_POZAS_FISICAS) {
-                    mostrarToast(`La granja tiene ${TOTAL_POZAS_FISICAS} pozas físicas; no se pueden registrar más.`, 'error');
-                    return;
-                }
-                db.cuyes.push({ codigo, ...datos });
+                db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0) });
             }
             document.getElementById('cuy-codigo').value = '';
+            document.getElementById('cuy-stock').value = '';
             guardarBD();
         }
 
@@ -2606,7 +2610,7 @@
         function renderizarTodo() {
             // Badges en Sidebar
             const pozasUnicas = obtenerPozasUnicas();
-            const totalPozas = Math.min(pozasUnicas.length, TOTAL_POZAS_FISICAS);
+            const totalPozas = pozasUnicas.length;
             document.getElementById('badge-pozas').innerText = totalPozas;
             document.getElementById('badge-partos').innerText = db.partos.length;
             document.getElementById('badge-destetados').innerText = db.destetados.length;
