@@ -566,6 +566,32 @@
         }
         @media (max-width: 480px) { .exec-menu { grid-template-columns: 1fr; } }
         @media print { .exec-menu { display: none; } }
+        /* Tema corporativo v2.6: fondos sólidos, alto contraste */
+        .app-sidebar { background: #064e3b !important; border-color: #043d2f !important; }
+        .app-sidebar nav button { background: #ffffff !important; color: #0f172a !important; border: 1px solid #d1d9e0 !important; border-radius: 12px !important; font-weight: 700; box-shadow: 0 1px 3px rgb(15 23 42 / 10%), 0 4px 10px rgb(15 23 42 / 6%); transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease; filter: none !important; }
+        .app-sidebar nav button i { color: #065f46 !important; }
+        .app-sidebar nav button:hover { background: #f1f5f9 !important; border-color: #94a3b8 !important; box-shadow: 0 6px 16px rgb(15 23 42 / 14%); transform: translateY(-1px); }
+        .app-sidebar nav button.bg-emerald-900 { background: #065f46 !important; color: #ffffff !important; border-color: #022c22 !important; box-shadow: 0 6px 16px rgb(2 44 34 / 35%) !important; }
+        .app-sidebar nav button.bg-emerald-900 i { color: #ffffff !important; }
+        .app-sidebar nav button [id^="badge-"] { background: #d1fae5 !important; color: #064e3b !important; font-weight: 800; }
+        .app-sidebar nav button.bg-emerald-900 [id^="badge-"] { background: #ffffff !important; color: #064e3b !important; }
+        .app-sidebar .text-emerald-400 { color: #d1fae5 !important; }
+        .app-sidebar > div:first-child > div:first-child { border-color: #065f46 !important; }
+        .app-sidebar > div:last-child { border-color: #065f46 !important; }
+        .app-sidebar > div:last-child p, .app-sidebar > div:last-child span { color: #ffffff !important; }
+        .app-topbar { background: #ffffff !important; backdrop-filter: none !important; box-shadow: 0 2px 8px rgb(15 23 42 / 8%) !important; }
+        .app-topbar h2 { color: #0f172a !important; }
+        .app-topbar button, .app-topbar label { background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 1px 3px rgb(15 23 42 / 8%); transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; filter: none !important; }
+        .app-topbar button:hover, .app-topbar label:hover { background: #ecfdf5 !important; box-shadow: 0 4px 12px rgb(15 23 42 / 12%); transform: translateY(-1px); }
+        .app-topbar > div:last-child > span { background: #ecfdf5 !important; color: #064e3b !important; border-color: #a7f3d0 !important; }
+        .surface, .bg-white.rounded-2xl { border: 1px solid #d1d9e0 !important; box-shadow: 0 1px 3px rgb(15 23 42 / 8%), 0 8px 20px rgb(15 23 42 / 6%) !important; transition: box-shadow 180ms ease, transform 180ms ease; }
+        .surface:hover, .bg-white.rounded-2xl:hover { box-shadow: 0 2px 6px rgb(15 23 42 / 10%), 0 12px 28px rgb(15 23 42 / 10%) !important; }
+        .view-section h3, .view-section h4, .view-section label { color: #0f172a; }
+        .exec-btn { background: #ffffff !important; color: #0f172a !important; border: 1px solid #d1d9e0 !important; box-shadow: 0 1px 3px rgb(15 23 42 / 8%), 0 6px 16px rgb(15 23 42 / 6%) !important; }
+        .exec-btn small { color: #475569 !important; }
+        .exec-btn.exec-primary { background: #065f46 !important; color: #ffffff !important; border-color: #022c22 !important; }
+        .exec-btn.exec-primary i { background: #ffffff !important; color: #065f46 !important; }
+        .exec-btn.exec-primary small { color: #d1fae5 !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased">
