@@ -1,0 +1,19 @@
+{
+  "name": "SisGranja - Control Cuyícola",
+  "short_name": "SisGranja",
+  "description": "Gestión de pozas, cuyes, sanidad y ventas",
+  "start_url": "./SisGranja_v2.5.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
