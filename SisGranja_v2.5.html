@@ -600,6 +600,27 @@
         .app-topbar .brand-badge i { color: #fff !important; font-size: 1.4rem; }
         .app-topbar .brand-name { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #059669; line-height: 1.1; }
         .app-topbar .brand-card { background: linear-gradient(180deg, #ffffff, #f0fdf4); border: 1px solid #d1fae5; border-radius: 14px; padding: 6px 14px 6px 8px; box-shadow: 0 2px 8px rgb(6 78 59 / 8%); min-width: 0; }
+        .btn-volver-menu { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; padding: .6rem 1rem; margin-bottom: 1rem; border: 0; border-radius: 12px; background: #065f46; color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(6,95,70,.35); cursor: pointer; }
+        .btn-volver-menu:active { background: #064e3b; }
+        @media (min-width: 768px) { .btn-volver-menu { width: auto; } }
+
+        /* Responsivo final: sin desbordes horizontales en móvil */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        img, canvas, video, svg { max-width: 100%; height: auto; }
+        .app-content { overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+        .view-section h2, .view-section h3, .view-section h4, .view-section p, .view-section td, .view-section th { overflow-wrap: anywhere; }
+        .view-section .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #photo-modal > *, #qr-modal > * { max-width: 100%; max-height: 90dvh; overflow: auto; }
+        @media (max-width: 767px) {
+            body { padding-bottom: env(safe-area-inset-bottom); }
+            .view-section table { display: block; max-width: 100%; overflow-x: auto; }
+            .view-section th, .view-section td { padding: 10px 12px !important; }
+            .view-section [class*="w-64"], .view-section [class*="w-72"], .view-section [class*="w-80"] { width: 100% !important; }
+            .view-section .flex.items-center.justify-between { flex-wrap: wrap; gap: 8px; }
+            .view-section section, .view-section .surface { padding: 14px !important; }
+            #toast-container { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+            .btn-volver-menu { top: 0; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased">
@@ -1091,6 +1112,7 @@
                                             <span id="baja-analysis-message">Analizando…</span>
                                         </p>
                                         <p id="baja-analysis-detail" class="mt-2 text-sm text-stone-600"></p>
+                                        <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar / Analizar otra foto</button>
                                     </div>
                                 </div>
                             </div>
@@ -1835,11 +1857,29 @@
                 salud: 'Kardex Sanitario y de Insumos'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
+            document.getElementById('main-content-container').scrollTop = 0;
+            if (viewName === 'salud') {
+                const campoDiagnostico = document.getElementById('salud-diagnostico');
+                if (campoDiagnostico && !campoDiagnostico.value && bajaAnalisisActual) campoDiagnostico.value = bajaAnalisisActual.diagnostico_situacion || '';
+            }
             
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
             }
         }
+
+        // Botón de retorno en todas las subsecciones
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.view-section:not(#view-dashboard)').forEach(seccion => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'btn-volver-menu';
+                boton.setAttribute('aria-label', 'Volver al Menú Principal');
+                boton.innerHTML = '<span aria-hidden="true">⬅️</span><span>Volver al Menú Principal</span>';
+                boton.addEventListener('click', () => switchView('dashboard'));
+                seccion.prepend(boton);
+            });
+        });
 
         // Formularios
         function guardarCuy(e) {
@@ -2084,9 +2124,23 @@
             if (producto.value === 'Toltrazuril 2.5%') salida.textContent += ' Verifica concentración y pauta: 0.04 ml/kg a 25 mg/ml equivale a 1 mg/kg.';
         }
 
-        function guardarTratamiento(e) {
+        async function insertarKardexSupabase(fila) {
+            const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/kardex_sanitario`, {
+                method: 'POST',
+                headers: { ...cabecerasNube(), Authorization: `Bearer ${SUPABASE_CLAVE}`, Prefer: 'return=minimal' },
+                body: JSON.stringify(fila),
+                signal: AbortSignal.timeout(20000)
+            });
+            if (!respuesta.ok) {
+                const detalle = await respuesta.text().catch(() => '');
+                throw new Error(`Supabase ${respuesta.status}${detalle ? ': ' + detalle.slice(0, 120) : ''}`);
+            }
+        }
+
+        async function guardarTratamiento(e) {
             e.preventDefault();
             const formulario = e.currentTarget;
+            if (formulario.dataset.saving === 'true') return;
             const selector = document.getElementById('salud-producto');
             const esManual = selector.value === 'Otro indicado por veterinario' || selector.value === 'Sulfacloximazina indicada por veterinario';
             const producto = esManual ? document.getElementById('salud-producto-manual').value.trim() : selector.value;
@@ -2104,10 +2158,36 @@
                 producto,
                 cantidad,
                 nota: `${document.getElementById('salud-nota').value.trim()} Pauta validada por veterinario.`.trim(),
+                foto: fotoClinicaAnalizadaBase64 || '',
                 ...extraerDatosTratamiento(cantidad)
             };
+            const cuyes = parseInt(document.getElementById('salud-animales').value, 10);
+            if (!registro.destino || !Number.isInteger(cuyes) || cuyes < 1 || !registro.diagnostico) {
+                mostrarToast('Selecciona la poza, la cantidad de animales y el diagnóstico', 'error');
+                return;
+            }
+            formulario.dataset.saving = 'true';
+            const boton = e.submitter || formulario.querySelector('[type="submit"]');
+            if (boton) boton.disabled = true;
             try {
-                guardarRegistroKardex(registro, 'Aplicación sanitaria guardada en el Kardex');
+                try {
+                    guardarRegistroKardex(registro, 'Aplicación sanitaria guardada en el Kardex');
+                } catch (error) {
+                    if (!registro.foto || !esLimiteAlmacenamiento(error)) throw error;
+                    registro.foto = '';
+                    guardarRegistroKardex(registro, 'Aplicación guardada; foto omitida por límite de almacenamiento');
+                }
+                await insertarKardexSupabase({
+                    fecha: registro.fecha,
+                    poza: registro.destino,
+                    cantidad_animales: cuyes,
+                    diagnostico: registro.diagnostico,
+                    producto: registro.producto,
+                    dosis: registro.cantidad,
+                    nota: registro.nota,
+                    imagen: fotoClinicaAnalizadaBase64 || null
+                });
+                alert('✅ Aplicación guardada correctamente en el Kárdex Sanitario.');
                 formulario.reset();
                 document.getElementById('salud-fecha').value = fechaHoy();
                 document.getElementById('salud-dosis-animal-wrap').classList.add('hidden');
@@ -2116,6 +2196,9 @@
             } catch (error) {
                 console.error('Error al guardar la aplicación sanitaria:', error);
                 mostrarToast(error.message || 'No se pudo guardar la aplicación en el Kardex', 'error');
+            } finally {
+                formulario.dataset.saving = 'false';
+                if (boton) boton.disabled = false;
             }
         }
 
@@ -2412,32 +2495,44 @@
                 mostrarToast('Selecciona una imagen válida de hasta 12 MB', 'error');
                 return;
             }
-            const lectorVista = new FileReader();
-            lectorVista.onload = () => {
-                if (versionCaptura !== bajaFotoVersion) return;
-                preview.src = lectorVista.result;
-                preview.classList.remove('hidden');
-            };
-            lectorVista.readAsDataURL(archivo);
             previewCard.classList.remove('hidden');
-
-            if (!navigator.onLine) {
-                actualizarRedDrCuy();
-                previewCard.classList.remove('hidden');
-                return;
-            }
-            document.getElementById('baja-offline-zonas').classList.add('hidden');
-            estadoDrCuy('Analizando…', true);
+            estadoDrCuy('Optimizando foto…', true);
             try {
+                // Se comprime primero (800px, JPEG 0.7) y la vista previa usa la imagen ligera.
                 const foto = await comprimirFotoClinica(archivo);
                 if (versionCaptura !== bajaFotoVersion) return;
                 fotoClinicaAnalizadaBase64 = foto;
+                preview.src = foto;
+                preview.classList.remove('hidden');
+                if (!navigator.onLine) {
+                    estadoDrCuy('Foto lista. Sin conexión: usa el respaldo por zona.');
+                    actualizarRedDrCuy();
+                    return;
+                }
+                document.getElementById('baja-offline-zonas').classList.add('hidden');
+                estadoDrCuy('Analizando…', true);
                 await analizarFotoBaja(foto, versionCaptura);
             } catch (error) {
                 if (versionCaptura !== bajaFotoVersion) return;
                 estadoDrCuy('No se pudo analizar la foto. Intenta de nuevo o usa el respaldo por zona.');
                 document.getElementById('baja-offline-zonas').classList.remove('hidden');
             }
+        }
+
+        function limpiarFotoBaja() {
+            bajaFotoVersion++;
+            fotoClinicaAnalizadaBase64 = '';
+            bajaAnalisisActual = null;
+            ['baja-foto-camara', 'baja-foto-galeria'].forEach(id => { document.getElementById(id).value = ''; });
+            const preview = document.getElementById('baja-preview');
+            preview.removeAttribute('src');
+            preview.classList.add('hidden');
+            document.getElementById('baja-preview-card').classList.add('hidden');
+            document.getElementById('baja-results').classList.add('hidden');
+            document.getElementById('baja-result-lineas').replaceChildren();
+            document.getElementById('baja-analysis-detail').textContent = '';
+            estadoDrCuy('', false);
+            actualizarRedDrCuy();
         }
 
         async function consultarDrCuy(imagenBase64) {
