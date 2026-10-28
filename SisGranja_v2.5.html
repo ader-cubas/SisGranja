@@ -604,6 +604,58 @@
         .btn-volver-menu:active { background: #064e3b; }
         @media (min-width: 768px) { .btn-volver-menu { width: auto; } }
 
+        /* Módulos de granja: pesos, ración y reproducción */
+        .mod-card { margin-bottom: 16px; padding: 18px; border: 1px solid #d1d9e0; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgb(15 23 42 / 8%); }
+        .mod-title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 900; color: #0f172a; }
+        .mod-hint { margin: 0 0 12px; color: #475569; font-size: .92rem; line-height: 1.45; }
+        .mod-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end; }
+        .mod-field { display: block; font-size: .8rem; font-weight: 800; color: #334155; }
+        .mod-input { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; font-size: 16px; }
+        .mod-btn { min-height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #065f46; color: #fff; font-weight: 800; font-size: 1rem; }
+        .mod-btn-sec { background: #fff; color: #065f46; border: 2px solid #065f46; }
+        .mod-result { margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #064e3b; line-height: 1.6; }
+        .mod-result:empty { display: none; }
+        .mod-total { display: block; margin-top: 8px; font-size: 1.6rem; font-weight: 900; color: #065f46; overflow-wrap: anywhere; }
+        .mod-sem { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 800; font-size: .85rem; white-space: nowrap; }
+        .mod-sem-verde { background: #dcfce7; color: #14532d; border: 1px solid #15803d; }
+        .mod-sem-amarillo { background: #fef9c3; color: #713f12; border: 1px solid #ca8a04; }
+        .mod-sem-rojo { background: #fee2e2; color: #7f1d1d; border: 1px solid #b91c1c; }
+        .mod-sem-gris { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .mod-banner { margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-weight: 800; }
+        .mod-curva { width: 100%; max-width: 560px; height: auto; display: block; }
+        .mod-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        .mod-table th { padding: 10px 12px; text-align: left; font-size: .75rem; text-transform: uppercase; color: #475569; white-space: nowrap; }
+        .mod-table td { padding: 10px 12px; border-top: 1px solid #e2e8f0; }
+
+        /* Guía Técnica INIA (100% offline) */
+        .ph-book-open { --ico: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 7v14'/><path d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/></svg>"); }
+        .guia-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+        .guia-tab { flex: 0 0 auto; min-height: 48px; padding: 0 16px; border: 1px solid #cbd5e1; border-radius: 999px; background: #fff; color: #0f172a; font-weight: 800; font-size: .95rem; white-space: nowrap; }
+        .guia-tab[aria-selected="true"] { background: #065f46; border-color: #022c22; color: #fff; }
+        .guia-panel { margin-top: 14px; }
+        .guia-intro { margin: 0 0 12px; color: #475569; font-size: .95rem; line-height: 1.5; }
+        .guia-card { margin-bottom: 10px; border: 1px solid #d1d9e0; border-radius: 14px; background: #fff; overflow: hidden; }
+        .guia-card > summary { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 12px 16px; font-weight: 800; font-size: 1.05rem; color: #0f172a; cursor: pointer; list-style: none; }
+        .guia-card > summary::-webkit-details-marker { display: none; }
+        .guia-card > summary::after { content: '+'; margin-left: auto; font-size: 1.5rem; color: #065f46; }
+        .guia-card[open] > summary::after { content: '\2212'; }
+        .guia-card[open] > summary { background: #ecfdf5; }
+        .guia-body { padding: 4px 16px 16px; font-size: 1rem; line-height: 1.55; color: #1e293b; }
+        .guia-body dt { margin-top: 12px; font-size: .78rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #065f46; }
+        .guia-body dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+        .guia-body ul { margin: 6px 0 0; padding-left: 20px; }
+        .guia-body li { margin-bottom: 4px; }
+        .guia-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 14px; border: 0; border-radius: 12px; background: #065f46; color: #fff; font-weight: 800; font-size: 1rem; }
+        .guia-aviso { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #fcd34d; color: #78350f; font-size: .85rem; }
+        .guia-rojo { border: 2px solid #b91c1c; border-radius: 14px; background: #fef2f2; padding: 14px 16px; color: #7f1d1d; }
+        .guia-verde { border: 2px solid #15803d; border-radius: 14px; background: #f0fdf4; padding: 14px 16px; color: #14532d; margin-top: 14px; }
+        .guia-rojo h4, .guia-verde h4 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 900; }
+        .guia-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; padding: 0; list-style: none; }
+        .guia-chips li { padding: 8px 12px; border-radius: 999px; font-weight: 800; font-size: .95rem; background: #fff; }
+        .guia-rojo .guia-chips li { border: 1px solid #b91c1c; }
+        .guia-verde .guia-chips li { border: 1px solid #15803d; }
+        .guia-regla { margin: 10px 0; padding: 12px 14px; border-left: 5px solid #d97706; border-radius: 8px; background: #fffbeb; color: #78350f; font-weight: 700; }
+
         /* Responsivo final: sin desbordes horizontales en móvil */
         html, body { max-width: 100%; overflow-x: hidden; }
         img, canvas, video, svg { max-width: 100%; height: auto; }
@@ -666,6 +718,15 @@
                 <button onclick="switchView('salud')" id="nav-salud" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-first-aid-kit text-lg"></i><span>Kardex Sanitario</span>
                     <span id="badge-salud" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchView('guia')" id="nav-guia" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-book-open text-lg"></i><span>Guía Técnica INIA</span>
+                </button>
+                <button onclick="switchView('pesos')" id="nav-pesos" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-chart-bar text-lg"></i><span>Control de Pesos</span>
+                </button>
+                <button onclick="switchView('racion')" id="nav-racion" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-leaf text-lg"></i><span>Ración y Forraje</span>
                 </button>
             </nav>
         </div>
@@ -978,6 +1039,27 @@
 
             <!-- 3. REGISTRO DE PARTOS -->
             <div id="view-partos" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">🐹 Control de reproductoras</h3>
+                    <p class="mod-hint">Gestación del cuy: 63 a 68 días. Registra el empadre y el sistema calcula la fecha probable de parto.</p>
+                    <form onsubmit="registrarEmpadre(event)" class="mod-grid">
+                        <label class="mod-field">Poza / Madre
+                            <select id="repro-poza" required class="mod-input"><option value="">Selecciona una poza</option></select>
+                        </label>
+                        <label class="mod-field">Fecha de empadre
+                            <input type="date" id="repro-fecha" required oninput="actualizarPrediccionEmpadre()" class="mod-input">
+                        </label>
+                        <button type="submit" class="mod-btn">Registrar empadre</button>
+                    </form>
+                    <div id="repro-prediccion" class="mod-result" aria-live="polite"></div>
+                    <div class="overflow-x-auto mt-4">
+                        <table class="mod-table">
+                            <thead><tr><th>Poza</th><th>Empadre</th><th>Parto probable (63–68 d)</th><th>Estado</th><th>Vivas</th><th>Muertas</th><th>Viabilidad</th><th>Destete</th><th>Reemplazo</th><th>Acción</th></tr></thead>
+                            <tbody id="tabla-repro"></tbody>
+                        </table>
+                    </div>
+                    <p class="mod-hint mt-2">Criterio referencial de reemplazo: viabilidad de 90 % o más con 3 o más crías vivas; evaluar descarte si la viabilidad es menor de 70 % o nacen menos de 2 crías.</p>
+                </section>
                 <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs">
                     <h3 class="text-lg font-bold text-stone-800 mb-4">Registrar Nuevo Parto en Poza</h3>
                     <form onsubmit="guardarParto(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -1006,11 +1088,13 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
-                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercas                                <tr>
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr>
                                     <th class="p-4">Fecha</th>
                                     <th class="p-4">Poza / Madre</th>
                                     <th class="p-4">Vivas</th>
                                     <th class="p-4">Muertas</th>
+                                    <th class="p-4">Viabilidad</th>
                                     <th class="p-4">Acción</th>
                                 </tr>
                             </thead>
@@ -1379,6 +1463,127 @@
                 </section>
             </div>
 
+            <!-- GUÍA TÉCNICA INIA (contenido embebido, funciona sin conexión) -->
+            <div id="view-guia" class="space-y-6 view-section hidden">
+                <section class="surface bg-white p-5 sm:p-6 border border-stone-200">
+                    <h3 class="text-xl font-extrabold text-stone-900">Guía Técnica INIA</h3>
+                    <p class="guia-intro">Consulta rápida sin internet. Es una guía de referencia: confirma diagnóstico, dosis y pauta con un médico veterinario.</p>
+                    <div class="guia-tabs" role="tablist" aria-label="Secciones de la guía">
+                        <button type="button" class="guia-tab" role="tab" data-guia-tab="atlas" aria-selected="true">🔬 Atlas</button>
+                        <button type="button" class="guia-tab" role="tab" data-guia-tab="semaforo" aria-selected="false">🚦 Antibióticos</button>
+                        <button type="button" class="guia-tab" role="tab" data-guia-tab="bio" aria-selected="false">🧼 Bioseguridad</button>
+                        <button type="button" class="guia-tab" role="tab" data-guia-tab="alim" aria-selected="false">🌿 Alimentación</button>
+                    </div>
+
+                    <div class="guia-panel" data-guia-panel="atlas">
+                        <p class="guia-intro">Atlas de enfermedades y necropsia. Toca una enfermedad para ver su ficha.</p>
+                        <div id="guia-atlas"></div>
+                    </div>
+
+                    <div class="guia-panel hidden" data-guia-panel="semaforo">
+                        <div class="guia-rojo" role="alert">
+                            <h4>🔴 ZONA ROJA · NO USAR EN CUYES</h4>
+                            <p><strong>Antibióticos de alto riesgo toxicológico.</strong> Destruyen la flora intestinal del cuy, permiten la proliferación de bacterias productoras de toxinas y causan enterotoxemia con muerte súbita o en pocos días. Nunca los apliques, ni por inyección ni en el agua.</p>
+                            <ul class="guia-chips"><li>Penicilina</li><li>Amoxicilina</li><li>Ampicilina</li><li>Gentamicina</li><li>Eritromicina</li><li>Lincomicina</li><li>Clindamicina</li><li>Estreptomicina</li><li>Cefalosporinas</li></ul>
+                            <p>Revisa la etiqueta: muchos productos combinados "multi-antibióticos" contienen penicilina o estreptomicina.</p>
+                        </div>
+                        <div class="guia-verde">
+                            <h4>🟢 ZONA VERDE · ALTERNATIVAS APROBADAS POR EL INIA</h4>
+                            <ul class="guia-chips"><li>Enrofloxacina</li><li>Ciprofloxacina</li><li>Sulfadimidina-Trimetoprim</li><li>Oxitetraciclina inyectable</li><li>Fosfomicina</li></ul>
+                            <p>Usa siempre la dosis y la duración indicadas por el veterinario. Complementa con vitamina C y rehidratación.</p>
+                        </div>
+                    </div>
+
+                    <div class="guia-panel hidden" data-guia-panel="bio">
+                        <div class="guia-regla">⏳ Vacío sanitario estricto de 15 días entre lotes: "todo adentro, todo afuera".</div>
+                        <div class="guia-regla">🔄 Rota el principio activo del desinfectante cada 3 meses para evitar resistencia bacteriana.</div>
+                        <details class="guia-card" open><summary>🥾 Pediluvios</summary><div class="guia-body"><ul><li>Un pediluvio con desinfectante en cada entrada del galpón.</li><li>Renueva la solución a diario o cuando se ensucie; la materia orgánica la inactiva.</li><li>Limpia las botas de barro antes de pisarlo.</li></ul></div></details>
+                        <details class="guia-card"><summary>🐓 Especies mixtas</summary><div class="guia-body"><ul><li>Prohibido el ingreso de aves, conejos, perros y gatos al galpón.</li><li>No compartas comederos, jaulas ni forraje con otras especies.</li></ul></div></details>
+                        <details class="guia-card"><summary>🐀 Control de roedores</summary><div class="guia-body"><ul><li><strong>Rata de techos:</strong> entra por vigas y techo; sella huecos, poda ramas cercanas y coloca cebos fuera del alcance de los cuyes.</li><li><strong>Rata de alcantarilla:</strong> cava madrigueras en el suelo y desagües; tapa desagües con malla y rellena madrigueras.</li><li>Guarda el alimento en recipientes cerrados y elimina restos de comida.</li></ul></div></details>
+                        <details class="guia-card"><summary>🪰 Manejo de moscas</summary><div class="guia-body"><ul><li>Espolvorea cal en las esquinas húmedas y en los charcos.</li><li>Retira el estiércol con frecuencia y mantén la cama seca.</li></ul></div></details>
+                        <details class="guia-card"><summary>☠️ Disposición de animales muertos</summary><div class="guia-body"><ul><li>Incinera el cadáver, o entiérralo cubriéndolo con cal viva.</li><li><strong>Prohibido</strong> alimentar a otros animales con vísceras o cadáveres.</li><li>Usa guantes y desinfecta la poza y tus manos después.</li></ul></div></details>
+                    </div>
+
+                    <div class="guia-panel hidden" data-guia-panel="alim">
+                        <details class="guia-card" open><summary>🌱 Forraje fresco: orearlo</summary><div class="guia-body"><p>Deja orear el forraje recién cortado antes de darlo. El forraje mojado o recién cortado fermenta y provoca <strong>timpanismo</strong> (hinchazón por gases).</p></div></details>
+                        <details class="guia-card"><summary>✂️ Altura de corte</summary><div class="guia-body"><p>Corta el pasto a <strong>5 a 8 cm</strong> sobre el suelo para evitar barro y gérmenes del suelo.</p></div></details>
+                        <details class="guia-card"><summary>🍊 Vitamina C (escorbuto)</summary><div class="guia-body"><p>El cuy no fabrica vitamina C. Su falta causa escorbuto: cojera, hinchazón de articulaciones y menor defensa. Dale forraje verde fresco todos los días y suplementa en lactancia, estrés y tratamientos.</p></div></details>
+                        <details class="guia-card"><summary>📦 Almacenamiento de concentrados</summary><div class="guia-body"><ul><li>Guarda los sacos sobre parihuelas, lejos de paredes y del suelo.</li><li>Lugar seco, ventilado y protegido de roedores.</li><li>No uses alimento con moho o mal olor.</li></ul></div></details>
+                    </div>
+                </section>
+            </div>
+
+            <!-- CONTROL DE PESOS Y CURVA DE CRECIMIENTO -->
+            <div id="view-pesos" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">⚖️ Control de pesos</h3>
+                    <p class="mod-hint">Registra el peso promedio de la poza. La ganancia diaria (GDP) se calcula contra el peso anterior de la misma poza.</p>
+                    <form id="peso-form" onsubmit="guardarPeso(event)" class="mod-grid">
+                        <label class="mod-field">Poza
+                            <select id="peso-poza" required onchange="renderCurvaPeso()" class="mod-input"><option value="">Selecciona una poza</option></select>
+                        </label>
+                        <label class="mod-field">Etapa
+                            <select id="peso-etapa" class="mod-input"><option>Nacimiento</option><option>Destete</option><option>Recía</option><option>Acabado</option></select>
+                        </label>
+                        <label class="mod-field">Fecha
+                            <input type="date" id="peso-fecha" required class="mod-input">
+                        </label>
+                        <label class="mod-field">Peso promedio (g)
+                            <input type="number" id="peso-gramos" required min="1" max="3000" step="1" inputmode="numeric" class="mod-input" placeholder="Ej. 650">
+                        </label>
+                        <label class="mod-field">Animales pesados
+                            <input type="number" id="peso-cantidad" required min="1" step="1" value="1" inputmode="numeric" class="mod-input">
+                        </label>
+                        <button type="submit" class="mod-btn">Guardar peso</button>
+                    </form>
+                    <div id="peso-semaforo" class="mod-banner hidden" role="status"></div>
+                    <p class="mod-hint mt-2">Semáforo referencial: <span class="mod-sem mod-sem-verde">Verde ≥ 8 g/día</span> <span class="mod-sem mod-sem-amarillo">Amarillo 5 a 7.9</span> <span class="mod-sem mod-sem-rojo">Rojo &lt; 5</span></p>
+                </section>
+                <section class="mod-card">
+                    <h4 class="mod-title">Curva de crecimiento</h4>
+                    <div id="peso-curva"></div>
+                </section>
+                <section class="mod-card">
+                    <h4 class="mod-title">Historial de pesos</h4>
+                    <div class="overflow-x-auto">
+                        <table class="mod-table">
+                            <thead><tr><th>Fecha</th><th>Poza</th><th>Etapa</th><th>Peso (g)</th><th>N.º</th><th>GDP (g/día)</th><th>Estado</th><th>Acción</th></tr></thead>
+                            <tbody id="tabla-pesos"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- CALCULADORA DE RACIÓN -->
+            <div id="view-racion" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">🌿 Calculadora de ración</h3>
+                    <p class="mod-hint">Estándar: 0.300 kg (300 g) de forraje verde por reproductor adulto al día, para empadre continuo y lactancia.</p>
+                    <div class="mod-grid">
+                        <label class="mod-field">Reproductores adultos
+                            <input type="number" id="racion-adultos" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 40">
+                        </label>
+                        <label class="mod-field">Cuyes de recía
+                            <input type="number" id="racion-recria" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 60">
+                        </label>
+                        <label class="mod-field">Ración por recía (g/día, editable)
+                            <input type="number" id="racion-g-recria" min="0" step="10" value="150" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Tipo de forraje
+                            <select id="racion-forraje" onchange="calcularRacion()" class="mod-input">
+                                <option value="Alfalfa">Alfalfa</option>
+                                <option value="Rye Grass Ecotipo Cajamarquino">Rye Grass Ecotipo Cajamarquino</option>
+                                <option value="Mezcla">Mezcla</option>
+                                <option value="Maíz Chala / Otros">Maíz Chala / Otros</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="mt-3"><button type="button" class="mod-btn mod-btn-sec" onclick="usarStockRacion()">Usar stock de mis pozas</button></div>
+                    <div id="racion-resultado" class="mod-result" aria-live="polite"></div>
+                    <p id="racion-consejo" class="guia-aviso"></p>
+                </section>
+            </div>
+
         </div>
     </main>
 
@@ -1410,6 +1615,7 @@
             gastos: [],
             gestaciones: [],
             tratamientos: [],
+            pesos: [],
             temperatura: null
         };
 
@@ -1509,7 +1715,7 @@
         function actualizarSelectoresPozas() {
             const codigos = obtenerCodigosPozas();
             const pozaActiva = obtenerPozaActiva();
-            document.querySelectorAll('#parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
+            document.querySelectorAll('#parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #repro-poza, #peso-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
                 const valorActual = selector.value;
                 const textoInicial = 'Selecciona una poza';
                 const lista = codigos;
@@ -1700,6 +1906,7 @@
             if (!Array.isArray(db.gastos)) db.gastos = [];
             if (!Array.isArray(db.gestaciones)) db.gestaciones = [];
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
+            if (!Array.isArray(db.pesos)) db.pesos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
             // Caché antigua de la simulación de 100 pozas (móviles u otros navegadores): se borra por completo.
             if (obtenerPozasUnicas().length >= 100) {
@@ -1793,7 +2000,7 @@
 
         function guardarBD(mensaje = "Datos guardados correctamente", tipo = 'success') {
             if (!db || typeof db !== 'object' || Array.isArray(db)) db = {};
-            ['cuyes', 'partos', 'destetados', 'bajas', 'ventas', 'gastos', 'gestaciones', 'tratamientos'].forEach(clave => {
+            ['cuyes', 'partos', 'destetados', 'bajas', 'ventas', 'gastos', 'gestaciones', 'tratamientos', 'pesos'].forEach(clave => {
                 if (!Array.isArray(db[clave])) db[clave] = [];
             });
             if (db.cuyes && !db.pozas) db.pozas = db.cuyes;
@@ -1854,7 +2061,10 @@
                 bajas: 'Mortalidad y Bajas Sanitarias',
                 ventas: 'Ventas de Cuyes e Ingresos',
                 gastos: 'Gastos Operativos',
-                salud: 'Kardex Sanitario y de Insumos'
+                salud: 'Kardex Sanitario y de Insumos',
+                guia: 'Guía Técnica INIA',
+                pesos: 'Control de Pesos y Curva de Crecimiento',
+                racion: 'Ración y Forraje'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
             document.getElementById('main-content-container').scrollTop = 0;
@@ -1867,6 +2077,276 @@
                 setTimeout(actualizarGraficos, 50);
             }
         }
+
+        // ===== Reproducción =====
+        const GESTACION_MIN_DIAS = 63;
+        const GESTACION_MAX_DIAS = 68;
+
+        function diferenciaDias(desde, hasta) {
+            return Math.round((new Date(`${hasta}T00:00:00`) - new Date(`${desde}T00:00:00`)) / 86400000);
+        }
+
+        function actualizarPrediccionEmpadre() {
+            const fecha = document.getElementById('repro-fecha').value;
+            const salida = document.getElementById('repro-prediccion');
+            salida.textContent = fecha
+                ? `Fecha probable de parto: del ${sumarDias(fecha, GESTACION_MIN_DIAS)} al ${sumarDias(fecha, GESTACION_MAX_DIAS)}.`
+                : '';
+        }
+
+        function registrarEmpadre(e) {
+            e.preventDefault();
+            const formulario = e.currentTarget;
+            const poza = formulario.querySelector('select').value;
+            const fechaEmpadre = formulario.querySelector('input[type="date"]').value;
+            if (!poza || !/^\d{4}-\d{2}-\d{2}$/.test(fechaEmpadre)) {
+                mostrarToast('Selecciona la poza y la fecha de empadre', 'error');
+                return;
+            }
+            if (db.gestaciones.some(item => item.poza === poza && !item.fechaParto)) {
+                mostrarToast(`La poza ${poza} ya tiene un empadre pendiente de parto.`, 'error');
+                return;
+            }
+            db.gestaciones.unshift({ poza, fechaEmpadre });
+            guardarBD(`Empadre registrado. Parto probable del ${sumarDias(fechaEmpadre, GESTACION_MIN_DIAS)} al ${sumarDias(fechaEmpadre, GESTACION_MAX_DIAS)}`);
+        }
+
+        function renderReproduccion() {
+            const tbody = document.getElementById('tabla-repro');
+            if (!tbody) return;
+            const mismaPoza = (a, b) => claveUnicaPoza(a) === claveUnicaPoza(b);
+            const filas = db.gestaciones.map((g, indice) => {
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(g.fechaEmpadre || '')) return '';
+                const desde = sumarDias(g.fechaEmpadre, GESTACION_MIN_DIAS);
+                const hasta = sumarDias(g.fechaEmpadre, GESTACION_MAX_DIAS);
+                const parto = g.fechaParto ? db.partos.find(p => mismaPoza(p.poza, g.poza) && p.fecha === g.fechaParto) : null;
+                let estado;
+                if (g.fechaParto) estado = ['verde', 'Parió'];
+                else if (diasHasta(hasta) < 0) estado = ['rojo', 'Vencida: confirma preñez'];
+                else if (diasHasta(desde) <= 0) estado = ['amarillo', 'En ventana de parto'];
+                else estado = ['gris', `Faltan ${diasHasta(desde)} días`];
+                let vivas = '—', muertas = '—', viabilidad = '—', destete = '—', reemplazo = '—';
+                if (parto) {
+                    const nv = Number(parto.vivas) || 0;
+                    const nm = Number(parto.muertas) || 0;
+                    vivas = nv; muertas = nm;
+                    const pct = nv + nm ? Math.round(nv / (nv + nm) * 100) : 0;
+                    viabilidad = `${pct} %`;
+                    if (g.fechaDestete) {
+                        const destetados = db.destetados
+                            .filter(d => mismaPoza(d.poza, g.poza) && d.fecha === g.fechaDestete)
+                            .reduce((total, d) => total + (Number(d.machos) || 0) + (Number(d.hembras) || 0), 0);
+                        destete = nv ? `${Math.round(destetados / nv * 100)} % (${destetados})` : '—';
+                    }
+                    if (pct >= 90 && nv >= 3) reemplazo = '⭐ Reemplazo';
+                    else if (pct < 70 || nv < 2) reemplazo = '⚠️ Evaluar descarte';
+                }
+                return `<tr><td><strong>${escaparHTML(g.poza)}</strong></td><td>${escaparHTML(g.fechaEmpadre)}</td><td>${desde} → ${hasta}</td><td><span class="mod-sem mod-sem-${estado[0]}">${escaparHTML(estado[1])}</span></td><td>${vivas}</td><td>${muertas}</td><td>${viabilidad}</td><td>${escaparHTML(destete)}</td><td>${reemplazo}</td><td><button type="button" onclick="eliminarItem('gestaciones', ${indice})" class="text-rose-600 text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50">Eliminar</button></td></tr>`;
+            });
+            tbody.innerHTML = filas.join('') || '<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:20px">Sin empadres registrados.</td></tr>';
+        }
+
+        // ===== Control de pesos =====
+        const GDP_VERDE = 8;
+        const GDP_AMARILLO = 5;
+
+        function clasificarGDP(gdp) {
+            if (gdp >= GDP_VERDE) return { nivel: 'verde', icono: '🟢', texto: 'Crecimiento adecuado' };
+            if (gdp >= GDP_AMARILLO) return { nivel: 'amarillo', icono: '🟡', texto: 'Crecimiento lento: revisa ración y sanidad' };
+            return { nivel: 'rojo', icono: '🔴', texto: 'Crecimiento deficiente: actúa ahora' };
+        }
+
+        function calcularGDPPeso(registro) {
+            const anteriores = db.pesos.filter(p => p.poza === registro.poza && p.fecha < registro.fecha);
+            if (!anteriores.length) return null;
+            const previo = anteriores.reduce((a, b) => (b.fecha > a.fecha ? b : a));
+            const dias = diferenciaDias(previo.fecha, registro.fecha);
+            return dias > 0 ? (registro.gramos - previo.gramos) / dias : null;
+        }
+
+        function guardarPeso(e) {
+            e.preventDefault();
+            const registro = {
+                poza: document.getElementById('peso-poza').value,
+                etapa: document.getElementById('peso-etapa').value,
+                fecha: document.getElementById('peso-fecha').value,
+                gramos: Number(document.getElementById('peso-gramos').value),
+                cantidad: parseInt(document.getElementById('peso-cantidad').value, 10) || 1
+            };
+            if (!registro.poza || !registro.fecha || !(registro.gramos > 0)) {
+                mostrarToast('Completa poza, fecha y peso', 'error');
+                return;
+            }
+            db.pesos.push(registro);
+            document.getElementById('peso-gramos').value = '';
+            guardarBD('Peso registrado');
+            const gdp = calcularGDPPeso(registro);
+            const banner = document.getElementById('peso-semaforo');
+            if (gdp === null) {
+                banner.className = 'mod-banner mod-sem-gris';
+                banner.textContent = 'Primer peso de esta poza: la GDP se calculará con el siguiente registro.';
+            } else {
+                const estado = clasificarGDP(gdp);
+                banner.className = `mod-banner mod-sem-${estado.nivel}`;
+                banner.textContent = `${estado.icono} GDP: ${gdp.toFixed(1)} g/día · ${estado.texto}`;
+            }
+        }
+
+        function renderPesos() {
+            const tbody = document.getElementById('tabla-pesos');
+            if (!tbody) return;
+            const filas = db.pesos.map((p, indice) => ({ p, indice, gdp: calcularGDPPeso(p) }))
+                .sort((a, b) => b.p.fecha.localeCompare(a.p.fecha));
+            tbody.innerHTML = filas.map(({ p, indice, gdp }) => {
+                const estado = gdp === null ? null : clasificarGDP(gdp);
+                return `<tr><td>${escaparHTML(p.fecha)}</td><td><strong>${escaparHTML(p.poza)}</strong></td><td>${escaparHTML(p.etapa)}</td><td>${Number(p.gramos)}</td><td>${Number(p.cantidad) || 1}</td><td>${gdp === null ? '—' : gdp.toFixed(1)}</td><td>${estado ? `<span class="mod-sem mod-sem-${estado.nivel}">${estado.icono} ${estado.nivel}</span>` : '<span class="mod-sem mod-sem-gris">Sin dato</span>'}</td><td><button type="button" onclick="eliminarItem('pesos', ${indice})" class="text-rose-600 text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50">Eliminar</button></td></tr>`;
+            }).join('') || '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px">Sin pesos registrados.</td></tr>';
+            renderCurvaPeso();
+        }
+
+        function renderCurvaPeso() {
+            const contenedor = document.getElementById('peso-curva');
+            if (!contenedor) return;
+            const poza = document.getElementById('peso-poza').value;
+            const puntos = db.pesos.filter(p => p.poza === poza).sort((a, b) => a.fecha.localeCompare(b.fecha));
+            if (puntos.length < 2) {
+                contenedor.textContent = poza ? 'Registra al menos 2 pesos de esta poza para ver la curva.' : 'Selecciona una poza para ver su curva.';
+                return;
+            }
+            const inicio = puntos[0].fecha;
+            const ancho = 320, alto = 200, margen = 36;
+            const maxX = Math.max(1, diferenciaDias(inicio, puntos[puntos.length - 1].fecha));
+            const maxY = Math.max(...puntos.map(p => p.gramos)) * 1.1;
+            const x = p => margen + diferenciaDias(inicio, p.fecha) / maxX * (ancho - margen - 10);
+            const y = p => alto - margen - p.gramos / maxY * (alto - margen - 10);
+            const linea = puntos.map(p => `${x(p).toFixed(1)},${y(p).toFixed(1)}`).join(' ');
+            const circulos = puntos.map(p => `<circle cx="${x(p).toFixed(1)}" cy="${y(p).toFixed(1)}" r="4" fill="#065f46"/>`).join('');
+            contenedor.innerHTML = `<svg class="mod-curva" viewBox="0 0 ${ancho} ${alto}" role="img" aria-label="Curva de peso de ${escaparHTML(poza)}"><line x1="${margen}" y1="${alto - margen}" x2="${ancho - 10}" y2="${alto - margen}" stroke="#94a3b8"/><line x1="${margen}" y1="10" x2="${margen}" y2="${alto - margen}" stroke="#94a3b8"/><polyline points="${linea}" fill="none" stroke="#065f46" stroke-width="3"/>${circulos}<text x="${margen}" y="${alto - 14}" font-size="10" fill="#475569">${escaparHTML(inicio)}</text><text x="${ancho - 10}" y="${alto - 14}" font-size="10" text-anchor="end" fill="#475569">${escaparHTML(puntos[puntos.length - 1].fecha)}</text><text x="4" y="16" font-size="10" fill="#475569">${Math.round(maxY)} g</text></svg>`;
+        }
+
+        // ===== Ración =====
+        const RACION_ADULTO_G = 300;
+        const CONSEJOS_FORRAJE = {
+            'Alfalfa': 'Oreá la alfalfa antes de darla: la alfalfa tierna o mojada provoca timpanismo. Introdúcela de forma gradual.',
+            'Rye Grass Ecotipo Cajamarquino': 'Corta a 5–8 cm del suelo y oreá antes de suministrar. Complementa con una leguminosa para mejorar la proteína.',
+            'Mezcla': 'Combina gramínea y leguminosa; oreá siempre la mezcla recién cortada antes de repartirla.',
+            'Maíz Chala / Otros': 'Pica el forraje, órealo y complementa con una fuente de proteína y vitamina C.'
+        };
+
+        function calcularRacion() {
+            const adultos = Math.max(0, parseInt(document.getElementById('racion-adultos').value, 10) || 0);
+            const recria = Math.max(0, parseInt(document.getElementById('racion-recria').value, 10) || 0);
+            const gRecria = Math.max(0, Number(document.getElementById('racion-g-recria').value) || 0);
+            const forraje = document.getElementById('racion-forraje').value;
+            const gramosAdultos = adultos * RACION_ADULTO_G;
+            const gramosRecria = recria * gRecria;
+            const kg = gramos => (gramos / 1000).toFixed(3);
+            const salida = document.getElementById('racion-resultado');
+            const crear = (tag, texto, clase) => { const el = document.createElement(tag); el.textContent = texto; if (clase) el.className = clase; return el; };
+            salida.replaceChildren(
+                crear('div', `Reproductores: ${adultos} × 0.300 kg = ${kg(gramosAdultos)} kg`),
+                crear('div', `Recía: ${recria} × ${(gRecria / 1000).toFixed(3)} kg = ${kg(gramosRecria)} kg`),
+                crear('span', `Total a cortar y repartir hoy: ${kg(gramosAdultos + gramosRecria)} kg de ${forraje}`, 'mod-total')
+            );
+            document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
+            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gRecria, forraje }));
+        }
+
+        function usarStockRacion() {
+            const totalPorEtapa = etapa => obtenerPozasUnicas()
+                .filter(poza => String(poza.etapa || '').toLowerCase() === etapa)
+                .reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
+            document.getElementById('racion-adultos').value = totalPorEtapa('reproductor');
+            document.getElementById('racion-recria').value = totalPorEtapa('recía');
+            calcularRacion();
+        }
+
+        function cargarRacionGuardada() {
+            try {
+                const guardado = JSON.parse(leerAlmacenamiento('sisgranja_racion') || 'null');
+                if (guardado) {
+                    document.getElementById('racion-adultos').value = guardado.adultos || '';
+                    document.getElementById('racion-recria').value = guardado.recria || '';
+                    document.getElementById('racion-g-recria').value = guardado.gRecria ?? 150;
+                    if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
+                }
+            } catch (error) { /* datos corruptos: se ignoran */ }
+            calcularRacion();
+        }
+
+        function renderModulosGranja() {
+            ['repro-fecha', 'peso-fecha'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo && !campo.value) campo.value = fechaHoy();
+            });
+            actualizarPrediccionEmpadre();
+            renderReproduccion();
+            renderPesos();
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarRacionGuardada);
+
+        // Guía Técnica INIA: datos embebidos para uso sin conexión
+        const PATRON_ANTIBIOTICOS_RIESGO = /penicilin|amoxicilin|ampicilin|gentamicin|eritromicin|lincomicin|clindamicin|estreptomicin|cefalospor|cefalexin|ceftiofur/i;
+        const GUIA_ENFERMEDADES = [
+            { nombre: 'Salmonelosis', icono: '🦠', agente: 'Salmonella typhimurium / S. enteritidis (bacteria).', signos: 'Decaimiento, pelo erizado, falta de apetito, diarrea, abortos y muertes súbitas.', pulmones: 'Congestión leve; puede haber neumonía secundaria.', higado: 'Aumentado de tamaño, con focos necróticos blanquecinos puntiformes.', bazo: 'Esplenomegalia (bazo agrandado y oscuro).', intestinos: 'Enteritis, ganglios mesentéricos aumentados.', tratamiento: 'Enrofloxacina (zona verde) con vitamina C y rehidratación; aislar enfermos y desinfectar la poza.' },
+            { nombre: 'Neumonía', icono: '🫁', agente: 'Streptococcus pneumoniae, Bordetella bronchiseptica, Pasteurella (bacterias).', signos: 'Respiración ruidosa y con esfuerzo, estornudos, secreción nasal, pérdida de peso.', pulmones: 'Consolidados, de color rojo oscuro (hepatización), a veces con pus y adherencias a la pleura.', higado: 'Normal o congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Sin lesiones características.', tratamiento: 'Enrofloxacina u oxitetraciclina inyectable; ventilar sin corrientes y reducir humedad y polvo.' },
+            { nombre: 'Sarna', icono: '🪲', agente: 'Trixacarus caviae (ácaro).', signos: 'Picazón intensa, rascado, pérdida de pelo, costras y piel engrosada, pérdida de peso.', pulmones: 'Sin lesiones internas características.', higado: 'Sin lesiones internas características.', bazo: 'Sin lesiones internas características.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Ivermectina por vía subcutánea, repetida según pauta veterinaria; cambiar cama y desinfectar jaulas.' },
+            { nombre: 'Coccidiosis', icono: '💧', agente: 'Eimeria caviae (protozoo).', signos: 'Diarrea (a veces con sangre), deshidratación, retraso de crecimiento, abdomen hinchado.', pulmones: 'Sin lesiones características.', higado: 'Normal o pálido.', bazo: 'Normal.', intestinos: 'Ciego y colon inflamados, mucosa engrosada con hemorragias y contenido líquido.', tratamiento: 'Toltrazuril o sulfadimidina-trimetoprim (zona verde) con rehidratación; limpieza y cama seca.' },
+            { nombre: 'Linfadenitis Cervical', icono: '🔴', agente: 'Streptococcus zooepidemicus (bacteria).', signos: 'Abscesos (bultos) en el cuello, dificultad para comer, pérdida de peso.', pulmones: 'Pueden tener abscesos si la infección se generalizó.', higado: 'Normal; a veces abscesos.', bazo: 'Normal; a veces abscesos.', intestinos: 'Sin lesiones características. Hallazgo principal: abscesos con pus cremoso en ganglios cervicales.', tratamiento: 'Drenar y desinfectar el absceso, antibiótico de zona verde (oxitetraciclina o enrofloxacina) y descartar a los animales recurrentes.' },
+            { nombre: 'Hongos / Tiña', icono: '🍄', agente: 'Trichophyton mentagrophytes (hongo).', signos: 'Zonas circulares sin pelo con escamas, sobre todo en cabeza y lomo; contagiosa al humano.', pulmones: 'Sin lesiones internas.', higado: 'Sin lesiones internas.', bazo: 'Sin lesiones internas.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Antifúngico tópico (por ejemplo miconazol o yodo) o griseofulvina según veterinario; desinfectar instalaciones y usar guantes.' },
+            { nombre: 'Colibacilosis', icono: '💦', agente: 'Escherichia coli (bacteria).', signos: 'Diarrea acuosa, deshidratación, decaimiento y muerte rápida, sobre todo en crías.', pulmones: 'Normales o congestionados.', higado: 'Congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Intestino delgado congestionado con contenido líquido.', tratamiento: 'Enrofloxacina (zona verde) y rehidratación oral; mejorar higiene y agua limpia.' },
+            { nombre: 'Enfermedad de Tyzzer', icono: '⚫', agente: 'Clostridium piliforme (bacteria).', signos: 'Diarrea, decaimiento y muerte súbita, favorecida por estrés.', pulmones: 'Sin lesiones características.', higado: 'Múltiples focos necróticos blanquecinos pequeños.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Inflamación del íleon y ciego, con hemorragias.', tratamiento: 'No hay tratamiento eficaz; apoyo con oxitetraciclina y rehidratación según veterinario. Prevenir reduciendo estrés y mejorando la higiene.' }
+        ];
+
+        function renderGuiaAtlas() {
+            const contenedor = document.getElementById('guia-atlas');
+            if (!contenedor) return;
+            const campos = [['Agente causal', 'agente'], ['Signos clínicos directos', 'signos']];
+            const necropsia = [['Pulmones', 'pulmones'], ['Hígado', 'higado'], ['Bazo', 'bazo'], ['Intestinos', 'intestinos']];
+            const crear = (tag, texto, clase) => { const el = document.createElement(tag); if (clase) el.className = clase; if (texto !== undefined) el.textContent = texto; return el; };
+            contenedor.replaceChildren(...GUIA_ENFERMEDADES.map((d, indice) => {
+                const ficha = crear('details', undefined, 'guia-card');
+                ficha.appendChild(crear('summary', `${d.icono} ${d.nombre}`));
+                const cuerpo = crear('div', undefined, 'guia-body');
+                const lista = crear('dl');
+                const agregar = (titulo, texto) => { lista.append(crear('dt', titulo), crear('dd', texto)); };
+                campos.forEach(([titulo, clave]) => agregar(titulo, d[clave]));
+                lista.appendChild(crear('dt', 'Hallazgos clave a la necropsia'));
+                const ul = crear('ul');
+                necropsia.forEach(([titulo, clave]) => { const li = crear('li'); li.append(crear('strong', `${titulo}: `), d[clave]); ul.appendChild(li); });
+                const ddNecropsia = crear('dd'); ddNecropsia.appendChild(ul); lista.appendChild(ddNecropsia);
+                agregar('Tratamiento autorizado', d.tratamiento);
+                cuerpo.appendChild(lista);
+                cuerpo.appendChild(crear('p', 'Referencia: dosis y pauta deben ser validadas por un veterinario.', 'guia-aviso'));
+                const boton = crear('button', '📋 Registrar en Kárdex', 'guia-btn');
+                boton.type = 'button';
+                boton.addEventListener('click', () => registrarDesdeGuia(indice));
+                cuerpo.appendChild(boton);
+                ficha.appendChild(cuerpo);
+                return ficha;
+            }));
+        }
+
+        function registrarDesdeGuia(indice) {
+            const enfermedad = GUIA_ENFERMEDADES[indice];
+            if (!enfermedad) return;
+            switchView('salud');
+            document.getElementById('salud-diagnostico').value = enfermedad.nombre;
+            const nota = document.getElementById('salud-nota');
+            if (!nota.value) nota.value = 'Desde Guía Técnica INIA';
+            mostrarToast(`Diagnóstico "${enfermedad.nombre}" cargado en el Kárdex. Completa el formulario.`);
+        }
+
+        function activarPestanaGuia(nombre) {
+            document.querySelectorAll('[data-guia-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.guiaTab === nombre)));
+            document.querySelectorAll('[data-guia-panel]').forEach(panel => panel.classList.toggle('hidden', panel.dataset.guiaPanel !== nombre));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGuiaAtlas();
+            document.querySelectorAll('[data-guia-tab]').forEach(tab => tab.addEventListener('click', () => activarPestanaGuia(tab.dataset.guiaTab)));
+        });
 
         // Botón de retorno en todas las subsecciones
         document.addEventListener('DOMContentLoaded', () => {
@@ -2145,6 +2625,10 @@
             const esManual = selector.value === 'Otro indicado por veterinario' || selector.value === 'Sulfacloximazina indicada por veterinario';
             const producto = esManual ? document.getElementById('salud-producto-manual').value.trim() : selector.value;
             const cantidad = document.getElementById('salud-cantidad').value.trim();
+            if (PATRON_ANTIBIOTICOS_RIESGO.test(`${producto} ${cantidad}`)) {
+                mostrarToast('🔴 Producto bloqueado: antibiótico de alto riesgo para cuyes. Consulta la Guía Técnica INIA.', 'error');
+                return;
+            }
             if (!producto || !cantidad || !document.getElementById('salud-pauta-validada').checked) {
                 mostrarToast('Completa el producto y confirma la validación veterinaria', 'error');
                 return;
@@ -2779,6 +3263,7 @@
             actualizarSugerenciasClientes();
             actualizarTemperatura();
             actualizarProyecciones();
+            renderModulosGranja();
             if (!document.getElementById('empadre-fecha').value) document.getElementById('empadre-fecha').value = fechaHoy();
             if (!document.getElementById('salud-fecha').value) document.getElementById('salud-fecha').value = fechaHoy();
             if (!document.getElementById('gasto-fecha').value) document.getElementById('gasto-fecha').value = fechaHoy();
@@ -2890,7 +3375,7 @@
 
             // Renderizar Tablas principales
             renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'genero', 'poza', 'stockActual'], 'cuyes');
-            renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas'], 'partos');
+            renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas', 'viabilidad'], 'partos');
             renderTabla('tabla-destetados', db.destetados, ['fecha', 'poza', 'machos', 'hembras', 'pozaMachosDestino', 'pozaHembrasDestino'], 'destetados');
             renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
             renderTabla('tabla-ventas', db.ventas, ['fecha', 'categoria', 'cantidad', 'monto', 'cliente'], 'ventas');
@@ -2935,6 +3420,10 @@
                         if (k === 'ubicacion') val = item.ubicacion || 'General';
                         if (k === 'stockActual' && tipo === 'cuyes') val = obtenerStockActualPoza(item);
                         if (k === 'diasProtocolo') val = item.diasProtocolo ?? 'No consignado';
+                        if (k === 'viabilidad') {
+                            const totalNacidas = (Number(item.vivas) || 0) + (Number(item.muertas) || 0);
+                            val = totalNacidas ? `${Math.round((Number(item.vivas) || 0) / totalNacidas * 100)} %` : '—';
+                        }
                         if (k === 'foto') return `<td class="p-4">${item.foto ? `<button type="button" data-foto="${idx}" class="text-emerald-800 font-bold underline">Ver foto</button>` : 'Sin foto'}</td>`;
                         if (k === 'monto') {
                             const monto = tipo === 'ventas' ? Number(item.monto) * Number(item.cantidad || 0) : Number(val);
