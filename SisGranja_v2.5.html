@@ -1968,6 +1968,40 @@
             });
         }
 
+        const MENSAJE_CONFIRMACION = '⚠️ ¿Estás seguro de realizar esta acción? Esto podría modificar tus datos locales. Presiona Aceptar para continuar o Cancelar.';
+        const CLAVE_RESPALDO_EMERGENCIA = 'sisgranja_respaldo_emergencia';
+        const CLAVES_DATOS = ['cuyes', 'pozas', 'partos', 'destetados', 'bajas', 'ventas', 'gastos', 'gestaciones', 'tratamientos', 'pesos'];
+
+        function datosSinRegistros(datos) {
+            if (!datos || typeof datos !== 'object' || Array.isArray(datos)) return true;
+            return !CLAVES_DATOS.some(clave => Array.isArray(datos[clave]) && datos[clave].length > 0);
+        }
+
+        // Copia de emergencia en sessionStorage antes de cualquier operación que reemplace db.
+        function respaldarEmergencia(origen) {
+            try {
+                window.sessionStorage.setItem(CLAVE_RESPALDO_EMERGENCIA, JSON.stringify({ origen, fecha: new Date().toISOString(), datos: db }));
+                return true;
+            } catch (error) {
+                console.warn('No se pudo crear el respaldo de emergencia:', error);
+                return false;
+            }
+        }
+
+        function recuperarRespaldoEmergencia() {
+            try {
+                const crudo = window.sessionStorage.getItem(CLAVE_RESPALDO_EMERGENCIA);
+                if (!crudo) { mostrarToast('No hay respaldo de emergencia en esta sesión', 'error'); return; }
+                if (!confirm(MENSAJE_CONFIRMACION)) return;
+                db = JSON.parse(crudo).datos;
+                db._ts = Date.now();
+                normalizarDB();
+                guardarBD('Respaldo de emergencia recuperado');
+            } catch (error) {
+                mostrarToast('No se pudo recuperar el respaldo de emergencia', 'error');
+            }
+        }
+
         // Sincronización con Supabase: una fila con el estado completo; gana la modificación más reciente (db._ts).
         const SUPABASE_URL = 'https://mdfwmaxtjhtcuzwsqrci.supabase.co';
         const SUPABASE_TABLA = SUPABASE_URL + '/rest/v1/sisgranja_estado';
@@ -1999,6 +2033,12 @@
 
         // Sube el estado local ahora y verifica leyendo la fila de vuelta.
         async function sincronizarAhora() {
+            if (!confirm(MENSAJE_CONFIRMACION)) return;
+            if (datosSinRegistros(db)) {
+                mostrarToast('Datos locales vacíos: no se sube nada para no borrar la nube.', 'error');
+                return;
+            }
+            respaldarEmergencia('sincronizar-nube');
             try {
                 db._ts = Date.now();
                 escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
@@ -2029,7 +2069,10 @@
                 const remoto = await descargarDeNube();
                 const tsRemoto = Number(remoto && remoto._ts) || 0;
                 const tsLocal = Number(db._ts) || 0;
-                if (remoto && tsRemoto > tsLocal) {
+                if (datosSinRegistros(remoto)) {
+                    // Nube vacía o sin respuesta útil: se conservan los datos locales.
+                } else if (tsRemoto > tsLocal) {
+                    respaldarEmergencia('nube-automatica');
                     db = remoto;
                     normalizarDB();
                     escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
@@ -4064,14 +4107,24 @@
         function restaurarBackup(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (!confirm(MENSAJE_CONFIRMACION)) {
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    db = JSON.parse(e.target.result);
+                    const nuevo = JSON.parse(e.target.result);
+                    if (datosSinRegistros(nuevo)) throw new Error('Backup vacío o inválido');
+                    respaldarEmergencia('restaurar-backup');
+                    db = nuevo;
+                    db._ts = Date.now();
+                    normalizarDB();
                     guardarBD("Base de datos restaurada con éxito");
                 } catch (err) {
                     mostrarToast("Error al procesar el archivo JSON", "error");
                 }
+                event.target.value = '';
             };
             reader.readAsText(file);
         }
