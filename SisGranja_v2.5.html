@@ -2700,6 +2700,11 @@
             const fichaDe = d => {
                 const indice = GUIA_ENFERMEDADES.indexOf(d);
                 const ficha = crear('details', undefined, 'guia-card');
+                ficha.name = 'atlas-enfermedades';
+                ficha.addEventListener('toggle', () => {
+                    if (!ficha.open) return;
+                    contenedor.querySelectorAll('details.guia-card[open]').forEach(otra => { if (otra !== ficha) otra.open = false; });
+                });
                 ficha.appendChild(crear('summary', `${d.icono} ${ATLAS_TITULOS[d.nombre] || d.nombre}`));
                 const cuerpo = crear('div', undefined, 'guia-body');
                 const fotos = crear('div', undefined, 'atlas-par');
