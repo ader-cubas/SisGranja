@@ -1733,6 +1733,14 @@
                     </aside>
                     <div id="racion-resultado" class="mod-result" aria-live="polite"></div>
                     <p id="racion-consejo" class="guia-aviso"></p>
+                    <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Desglose de ración por poza</h4>
+                    <p class="mod-hint">Pozas activas con animales, sincronizadas con el inventario. Cantidades diarias por poza en gramos.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-base sm:text-lg">
+                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Poza</th><th class="p-2">Adultos</th><th class="p-2">Recría</th><th class="p-2">Crías</th><th class="p-2">Forraje verde (g/día)</th><th class="p-2">Concentrado (g/día)</th></tr></thead>
+                            <tbody id="racion-desglose"></tbody>
+                        </table>
+                    </div>
                 </section>
             </div>
 
@@ -2499,6 +2507,49 @@
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
             escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, sync: document.getElementById('racion-sync').checked }));
             calcularAlmacen();
+            renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
+        }
+
+        function renderDesgloseRacion(q) {
+            const cuerpo = document.getElementById('racion-desglose');
+            if (!cuerpo) return;
+            const filas = [];
+            try {
+                obtenerPozasUnicas().forEach(poza => {
+                    const cantidad = Math.max(0, obtenerStockActualPoza(poza));
+                    if (!cantidad) return;
+                    const etapa = String(poza.etapa || '').toLowerCase();
+                    const n = { a: 0, r: 0, c: 0 };
+                    if (etapa === 'reproductor') n.a = cantidad;
+                    else if (etapa === 'recía' || etapa === 'engorde') n.r = cantidad;
+                    else if (etapa === 'cría') n.c = cantidad;
+                    else return;
+                    filas.push({
+                        codigo: claveUnicaPoza(poza.codigo || poza.id), ...n,
+                        forraje: n.a * q.gAdulto + n.r * q.gRecria + n.c * q.gCrias,
+                        conc: n.a * q.cAdulto + n.r * q.cRecria + n.c * q.cCrias
+                    });
+                });
+            } catch (error) { /* registro de pozas no disponible */ }
+            filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
+            const fila = (celdas, clase) => {
+                const tr = document.createElement('tr');
+                tr.className = clase || 'border-t border-stone-200';
+                celdas.forEach((texto, i) => { const td = document.createElement('td'); td.className = 'p-2' + (i === 0 ? ' font-bold' : ''); td.textContent = texto; tr.append(td); });
+                return tr;
+            };
+            if (!filas.length) {
+                const tr = fila(['Sin pozas con animales registradas']);
+                tr.firstChild.colSpan = 6;
+                cuerpo.replaceChildren(tr);
+                return;
+            }
+            const formatoGramos = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
+            const tot = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
+            cuerpo.replaceChildren(
+                ...filas.map(f => fila([f.codigo, f.a, f.r, f.c, formatoGramos(f.forraje), formatoGramos(f.conc)])),
+                fila(['TOTAL', tot.a, tot.r, tot.c, formatoGramos(tot.forraje), formatoGramos(tot.conc)], 'border-t-2 border-emerald-700 bg-emerald-50 font-extrabold')
+            );
         }
 
         // Cantidades tomadas del registro de pozas: reproductor; recría + engorde; cría.
