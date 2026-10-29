@@ -1734,10 +1734,10 @@
                     <div id="racion-resultado" class="mod-result" aria-live="polite"></div>
                     <p id="racion-consejo" class="guia-aviso"></p>
                     <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Desglose de ración por poza</h4>
-                    <p class="mod-hint">Pozas activas con animales, sincronizadas con el inventario. Cantidades diarias por poza en gramos.</p>
+                    <p class="mod-hint">Pozas activas con animales, sincronizadas con el inventario. Forraje en kg y concentrado en g por día.</p>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-base sm:text-lg">
-                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Poza</th><th class="p-2">Adultos</th><th class="p-2">Recría</th><th class="p-2">Crías</th><th class="p-2">Forraje verde (g/día)</th><th class="p-2">Concentrado (g/día)</th></tr></thead>
+                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Poza</th><th class="p-2">Adultos</th><th class="p-2">Recría</th><th class="p-2">Crías</th><th class="p-2">Forraje verde (kg/día)</th><th class="p-2">Concentrado (g/día)</th></tr></thead>
                             <tbody id="racion-desglose"></tbody>
                         </table>
                     </div>
@@ -1920,14 +1920,15 @@
             });
         }
 
-        function obtenerStockActualPoza(poza) {
+        function obtenerStockActualPoza(poza, fuente = db) {
             const codigo = claveUnicaPoza(poza.codigo || poza.id);
             const stockInicial = Number(poza.stockInicial) || 0;
             const coincidePoza = valor => claveUnicaPoza(valor) === codigo;
-            const nacimientos = db.partos
+            const registros = clave => Array.isArray(fuente[clave]) ? fuente[clave] : [];
+            const nacimientos = registros('partos')
                 .filter(parto => coincidePoza(parto.poza))
                 .reduce((total, parto) => total + Number(parto.vivas || 0), 0);
-            const destetadosOrigen = db.destetados
+            const destetadosOrigen = registros('destetados')
                 .filter(destete => coincidePoza(destete.poza))
                 .reduce((total, destete) => {
                     if (destete.machos !== undefined || destete.hembras !== undefined) {
@@ -1936,12 +1937,12 @@
                     const sexo = String(destete.sexo || '').toLowerCase();
                     return total + (sexo.includes('macho') || sexo.includes('hembra') || sexo === 'm' || sexo === 'h' ? Number(destete.cantidad || 0) : 0);
                 }, 0);
-            const destetadosDestino = db.destetados.reduce((total, destete) => {
+            const destetadosDestino = registros('destetados').reduce((total, destete) => {
                 const machos = coincidePoza(destete.pozaMachosDestino) ? Number(destete.machos || 0) : 0;
                 const hembras = coincidePoza(destete.pozaHembrasDestino) ? Number(destete.hembras || 0) : 0;
                 return total + machos + hembras;
             }, 0);
-            const bajas = db.bajas
+            const bajas = registros('bajas')
                 .filter(baja => coincidePoza(baja.identificador))
                 .reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
 
@@ -2083,7 +2084,7 @@
 
         function normalizarDB() {
             if (!db || typeof db !== 'object' || Array.isArray(db)) db = {};
-            if (!Array.isArray(db.cuyes)) db.cuyes = [];
+            if (!Array.isArray(db.cuyes) || (!db.cuyes.length && Array.isArray(db.pozas) && db.pozas.length)) db.cuyes = Array.isArray(db.pozas) ? db.pozas : [];
             if (!Array.isArray(db.partos)) db.partos = [];
             if (!Array.isArray(db.destetados)) db.destetados = [];
             if (!Array.isArray(db.bajas)) db.bajas = [];
@@ -2510,27 +2511,60 @@
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
         }
 
+        function obtenerConteosRacionPoza(poza, fuente = db) {
+            const campos = {
+                adultos: ['adultos', 'cantidadAdultos', 'cantidad_adultos', 'numAdultos'],
+                recria: ['recria', 'cantidadRecria', 'cantidad_recria', 'numRecria', 'cantidadEngorde'],
+                crias: ['crias', 'cantidadCrias', 'cantidad_crias', 'numCrias', 'destetados', 'cantidadDestetados', 'cantidad_destetados']
+            };
+            const tieneConteos = Object.values(campos).flat().some(campo => poza[campo] !== undefined);
+            if (tieneConteos) {
+                const leer = opciones => {
+                    const valor = opciones.map(campo => poza[campo]).find(cantidad => cantidad !== undefined);
+                    return Math.max(0, Number(valor) || 0);
+                };
+                return { adultos: leer(campos.adultos), recria: leer(campos.recria), crias: leer(campos.crias) };
+            }
+
+            const cantidad = Math.max(0, obtenerStockActualPoza(poza, fuente));
+            const etapa = String(poza.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            if (etapa.includes('reproductor') || etapa.includes('adulto')) return { adultos: cantidad, recria: 0, crias: 0 };
+            if (etapa.includes('recria') || etapa.includes('engorde')) return { adultos: 0, recria: cantidad, crias: 0 };
+            if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) return { adultos: 0, recria: 0, crias: cantidad };
+            return { adultos: 0, recria: 0, crias: 0 };
+        }
+
         function renderDesgloseRacion(q) {
             const cuerpo = document.getElementById('racion-desglose');
             if (!cuerpo) return;
             const filas = [];
+            let errorInventario = false;
             try {
-                obtenerPozasUnicas().forEach(poza => {
-                    const cantidad = Math.max(0, obtenerStockActualPoza(poza));
-                    if (!cantidad) return;
-                    const etapa = String(poza.etapa || '').toLowerCase();
-                    const n = { a: 0, r: 0, c: 0 };
-                    if (etapa === 'reproductor') n.a = cantidad;
-                    else if (etapa === 'recía' || etapa === 'engorde') n.r = cantidad;
-                    else if (etapa === 'cría') n.c = cantidad;
-                    else return;
+                let fuente = db;
+                let pozas = Array.isArray(fuente.cuyes) && fuente.cuyes.length ? fuente.cuyes : Array.isArray(fuente.pozas) ? fuente.pozas : [];
+                if (!pozas.length) {
+                    const guardado = leerAlmacenamiento('sisgranja_cuy_db');
+                    if (guardado) {
+                        fuente = typeof guardado === 'string' ? JSON.parse(guardado) : guardado;
+                        pozas = Array.isArray(fuente.cuyes) && fuente.cuyes.length ? fuente.cuyes : Array.isArray(fuente.pozas) ? fuente.pozas : [];
+                    }
+                }
+                const unicas = new Map();
+                pozas.forEach(poza => {
+                    const codigo = claveUnicaPoza(poza && (poza.codigo || poza.id));
+                    if (codigo && !unicas.has(codigo)) unicas.set(codigo, poza);
+                });
+                [...unicas.values()].forEach(poza => {
+                    const conteos = obtenerConteosRacionPoza(poza, fuente);
+                    if (!conteos.adultos && !conteos.recria && !conteos.crias) return;
+                    const n = { a: conteos.adultos, r: conteos.recria, c: conteos.crias };
                     filas.push({
                         codigo: claveUnicaPoza(poza.codigo || poza.id), ...n,
                         forraje: n.a * q.gAdulto + n.r * q.gRecria + n.c * q.gCrias,
                         conc: n.a * q.cAdulto + n.r * q.cRecria + n.c * q.cCrias
                     });
                 });
-            } catch (error) { /* registro de pozas no disponible */ }
+            } catch (error) { errorInventario = true; }
             filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
             const fila = (celdas, clase) => {
                 const tr = document.createElement('tr');
@@ -2539,16 +2573,17 @@
                 return tr;
             };
             if (!filas.length) {
-                const tr = fila(['Sin pozas con animales registradas']);
+                const tr = fila([errorInventario ? 'No se pudo leer el inventario de pozas.' : 'Sin pozas activas con animales registradas.']);
                 tr.firstChild.colSpan = 6;
                 cuerpo.replaceChildren(tr);
                 return;
             }
             const formatoGramos = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
+            const formatoKilos = gramos => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(gramos / 1000);
             const tot = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
             cuerpo.replaceChildren(
-                ...filas.map(f => fila([f.codigo, f.a, f.r, f.c, formatoGramos(f.forraje), formatoGramos(f.conc)])),
-                fila(['TOTAL', tot.a, tot.r, tot.c, formatoGramos(tot.forraje), formatoGramos(tot.conc)], 'border-t-2 border-emerald-700 bg-emerald-50 font-extrabold')
+                ...filas.map(f => fila([f.codigo, f.a, f.r, f.c, formatoKilos(f.forraje), formatoGramos(f.conc)])),
+                fila(['TOTAL', tot.a, tot.r, tot.c, formatoKilos(tot.forraje), formatoGramos(tot.conc)], 'border-t-2 border-emerald-700 bg-emerald-50 font-extrabold')
             );
         }
 
@@ -2560,12 +2595,16 @@
             campos.forEach(c => { c.readOnly = check.checked; });
             if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
             try {
-                const total = etapas => obtenerPozasUnicas()
-                    .filter(poza => etapas.includes(String(poza.etapa || '').toLowerCase()))
-                    .reduce((suma, poza) => suma + Math.max(0, obtenerStockActualPoza(poza)), 0);
-                campos[0].value = total(['reproductor']);
-                campos[1].value = total(['recría', 'engorde']);
-                campos[2].value = total(['cría']);
+                const totales = obtenerPozasUnicas().reduce((suma, poza) => {
+                    const conteos = obtenerConteosRacionPoza(poza);
+                    suma.adultos += conteos.adultos;
+                    suma.recria += conteos.recria;
+                    suma.crias += conteos.crias;
+                    return suma;
+                }, { adultos: 0, recria: 0, crias: 0 });
+                campos[0].value = totales.adultos;
+                campos[1].value = totales.recria;
+                campos[2].value = totales.crias;
                 info.textContent = 'Cantidades sincronizadas con el registro de pozas (reproductores, recría/engorde y crías).';
             } catch (error) { info.textContent = 'No se pudo leer el registro de pozas; ingresa las cantidades manualmente.'; }
             calcularRacion();
