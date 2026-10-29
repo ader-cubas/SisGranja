@@ -3673,12 +3673,32 @@
             document.getElementById('temperatura-actual').value = lectura.valor;
             const valor = Number(lectura.valor);
             let estado;
-            if (valor < 15) estado = { clase: 'temperature-cold', texto: 'Alerta por frío / riesgo de neumonía', recomendacion: 'Evita corrientes de aire, conserva la cama seca y abrigada, y vigila signos respiratorios.' };
-            else if (valor <= 22) estado = { clase: 'temperature-ok', texto: 'Zona de confort ideal', recomendacion: 'Mantén la ventilación estable y continúa con el monitoreo rutinario.' };
+            let medidasFrio = null;
+            if (valor < 16) {
+                estado = { clase: 'temperature-cold', texto: '❄️ Alerta de Frío Altoandino (< 16°C)', recomendacion: '🌡️ Rango ideal: 16°C a 23°C. Es normal que baje la temperatura en la noche a 3,600 msnm. Aplica estas medidas prácticas sin alarmarte:' };
+                medidasFrio = [
+                    'Densidad adecuada para abrigo: maneja una ligera mayor concentración de animales por poza (un poco más juntos) para que se abriguen entre ellos, sin llegar a sobrepoblación (evita saturar el ambiente con humedad por respiración).',
+                    'Cortinas protectoras: baja las cortinas o mallas cortavientos antes del atardecer.',
+                    'Cama profunda: refuerza la paja seca y limpia para mantener el suelo abrigado.',
+                    'Ventilación alta: evita corrientes de aire directo a nivel de los cuyes para prevenir neumonía.'
+                ];
+            }
+            else if (valor <= 23) estado = { clase: 'temperature-ok', texto: 'Zona de confort ideal', recomendacion: 'Mantén la ventilación estable y continúa con el monitoreo rutinario.' };
             else if (valor <= 25) estado = { clase: 'temperature-alert', texto: 'Precaución por calor leve', recomendacion: 'Aumenta gradualmente la ventilación y asegura agua limpia y fresca disponible.' };
             else estado = { clase: 'temperature-danger', texto: 'Alerta crítica de golpe de calor', recomendacion: 'Refuerza ventilación y sombra de inmediato, ofrece agua fresca y revisa a los animales por estrés térmico.' };
             alerta.className = `mt-4 rounded-xl border px-4 py-3 text-sm font-semibold ${estado.clase}`;
-            alerta.textContent = `${estado.texto}: ${valor.toFixed(1)} °C. ${estado.recomendacion} Lectura ${new Date(lectura.fecha).toLocaleString('es-PE')}.`;
+            alerta.textContent = `${estado.texto}: ${valor.toFixed(1)} °C. ${estado.recomendacion}`;
+            if (medidasFrio) {
+                const lista = document.createElement('ul');
+                lista.className = 'mt-2 list-disc pl-5 space-y-1 font-medium';
+                medidasFrio.forEach(medida => {
+                    const item = document.createElement('li');
+                    item.textContent = medida;
+                    lista.appendChild(item);
+                });
+                alerta.appendChild(lista);
+            }
+            alerta.appendChild(document.createTextNode(` Lectura ${new Date(lectura.fecha).toLocaleString('es-PE')}.`));
             valorEl.className = `${estado.clase} rounded-xl border px-5 py-3 text-3xl font-extrabold tabular-nums`;
             valorEl.textContent = `${valor.toFixed(1)} °C`;
             panel.setAttribute('data-temperatura', estado.clase.replace('temperature-', ''));
