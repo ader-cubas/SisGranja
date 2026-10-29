@@ -1674,32 +1674,40 @@
             <div id="view-racion" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">🌿 Calculadora de ración</h3>
-                    <p class="mod-hint">Cuotas por animal al día (editables): adultos 150–300 g de forraje verde y 25–30 g de concentrado; recría 100–150 g de forraje y 15–20 g de concentrado.</p>
+                    <p class="mod-hint">Parámetros INIA (zona altoandina, 3,600 m s.n.m.), por animal al día y editables: adultos 315 g de forraje + 30 g de concentrado; recría/engorde 150–200 g + 15 g; destetados/crías 100 g + 10–15 g.</p>
                     <div class="mod-grid">
                         <label class="mod-field">Reproductores adultos
                             <input type="number" id="racion-adultos" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 40">
                         </label>
-                        <label class="mod-field">Cuyes de recía
+                        <label class="mod-field">Cuyes de recría / engorde
                             <input type="number" id="racion-recria" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 60">
                         </label>
+                        <label class="mod-field">Cuyes destetados / crías
+                            <input type="number" id="racion-crias" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 30">
+                        </label>
                         <label class="mod-field">Forraje por adulto (g/día)
-                            <input type="number" id="racion-g-adulto" min="0" step="10" value="300" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                            <input type="number" id="racion-g-adulto" min="0" step="5" value="315" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Concentrado por adulto (g/día)
-                            <input type="number" id="racion-c-adulto" min="0" step="1" value="28" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                            <input type="number" id="racion-c-adulto" min="0" step="1" value="30" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
-                        <label class="mod-field">Forraje por recría (g/día)
-                            <input type="number" id="racion-g-recria" min="0" step="10" value="150" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        <label class="mod-field">Forraje por recría (g/día, 150–200)
+                            <input type="number" id="racion-g-recria" min="0" step="5" value="175" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Concentrado por recría (g/día)
-                            <input type="number" id="racion-c-recria" min="0" step="1" value="18" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                            <input type="number" id="racion-c-recria" min="0" step="1" value="15" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Forraje por cría (g/día)
+                            <input type="number" id="racion-g-crias" min="0" step="5" value="100" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Concentrado por cría (g/día, 10–15)
+                            <input type="number" id="racion-c-crias" min="0" step="0.5" value="12.5" inputmode="decimal" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Tipo de forraje
                             <select id="racion-forraje" onchange="calcularRacion()" class="mod-input">
                                 <option value="Alfalfa">Alfalfa</option>
                                 <option value="Rye Grass Ecotipo Cajamarquino">Rye Grass Ecotipo Cajamarquino</option>
-                                <option value="Mezcla">Mezcla</option>
-                                <option value="Maíz Chala / Otros">Maíz Chala / Otros</option>
+                                <option value="Rye Grass + Trébol">Rye Grass + Trébol</option>
                             </select>
                         </label>
                     </div>
@@ -1707,11 +1715,19 @@
                         <label class="flex items-center gap-2 text-base font-semibold text-stone-800"><input type="checkbox" id="racion-sync" checked onchange="sincronizarRacionPozas()" class="h-5 w-5"> Tomar cantidades de mis pozas automáticamente</label>
                     </div>
                     <p id="racion-sync-info" class="mod-hint mt-1"></p>
+                    <aside class="mt-4 rounded-2xl border-2 border-red-400 bg-red-50 p-4 text-stone-900" role="note" aria-label="Técnica del oreado">
+                        <p class="text-lg font-extrabold text-red-900">⚠️ Técnica del oreado (obligatoria)</p>
+                        <p class="mt-2 text-base leading-snug sm:text-lg">Orea la <strong>alfalfa de riego a la sombra entre 8 y 12 horas</strong> antes de darla. El forraje recién cortado, tierno o mojado causa <strong>timpanismo (meteorismo)</strong>.</p>
+                    </aside>
+                    <aside class="mt-4 rounded-2xl border-2 border-emerald-400 bg-emerald-50 p-4 text-stone-900" role="note" aria-label="Alimentación mixta">
+                        <p class="text-lg font-extrabold text-emerald-900">🌿 + 🌾 Alimentación mixta</p>
+                        <p class="mt-2 text-base leading-snug sm:text-lg">Forraje verde <strong>más</strong> concentrado todos los días asegura ganancias de peso <strong>superiores a 12 g/día</strong>. Solo forraje no alcanza.</p>
+                    </aside>
                     <aside class="mt-4 rounded-2xl border-2 border-amber-400 bg-amber-50 p-4 text-stone-900" role="note" aria-label="Nota de manejo con gazaperas">
                         <p class="text-lg font-extrabold text-amber-900">💡 Manejo con gazaperas</p>
                         <ul class="mt-2 space-y-2 text-base leading-snug sm:text-lg">
-                            <li>🥕 <strong>Adultos:</strong> su alimento va en el <strong>comedero principal</strong>.</li>
-                            <li>🐹 <strong>Gazapos:</strong> el concentrado y el forraje fino se colocan <strong>solo dentro de la gazapera</strong>.</li>
+                            <li>🥕 <strong>Adultos y recía:</strong> su concentrado va en el <strong>comedero principal</strong>.</li>
+                            <li>🐹 <strong>Destetados / crías:</strong> el concentrado y el forraje fino se colocan <strong>solo dentro de la gazapera</strong>.</li>
                         </ul>
                         <p class="mt-2 text-base font-semibold text-amber-900 sm:text-lg">Así los adultos no se lo quitan y las crías siempre comen.</p>
                     </aside>
@@ -2443,21 +2459,21 @@
 
         // ===== Ración =====
         const CONSEJOS_FORRAJE = {
-            'Alfalfa': 'Oreá la alfalfa antes de darla: la alfalfa tierna o mojada provoca timpanismo. Introdúcela de forma gradual.',
-            'Rye Grass Ecotipo Cajamarquino': 'Corta a 5–8 cm del suelo y oreá antes de suministrar. Complementa con una leguminosa para mejorar la proteína.',
-            'Mezcla': 'Combina gramínea y leguminosa; oreá siempre la mezcla recién cortada antes de repartirla.',
-            'Maíz Chala / Otros': 'Pica el forraje, órealo y complementa con una fuente de proteína y vitamina C.'
+            'Alfalfa': 'Orea la alfalfa de riego a la sombra de 8 a 12 horas: la alfalfa tierna o mojada provoca timpanismo. Introdúcela de forma gradual.',
+            'Rye Grass Ecotipo Cajamarquino': 'Corta a 5–8 cm del suelo y orea antes de suministrar. Complementa siempre con concentrado para superar los 12 g/día de ganancia.',
+            'Rye Grass + Trébol': 'Asociación gramínea + leguminosa: orea el trébol a la sombra antes de darlo para evitar timpanismo y complementa siempre con concentrado.'
         };
 
         function calcularRacion() {
-            const adultos = Math.max(0, parseInt(document.getElementById('racion-adultos').value, 10) || 0);
-            const recria = Math.max(0, parseInt(document.getElementById('racion-recria').value, 10) || 0);
+            const ent = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+            const adultos = ent('racion-adultos'), recria = ent('racion-recria'), crias = ent('racion-crias');
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
             const gAdulto = num('racion-g-adulto'), cAdulto = num('racion-c-adulto');
             const gRecria = num('racion-g-recria'), cRecria = num('racion-c-recria');
+            const gCrias = num('racion-g-crias'), cCrias = num('racion-c-crias');
             const forraje = document.getElementById('racion-forraje').value;
-            const forrajeAdultos = adultos * gAdulto, forrajeRecria = recria * gRecria;
-            const concAdultos = adultos * cAdulto, concRecria = recria * cRecria;
+            const fA = adultos * gAdulto, fR = recria * gRecria, fC = crias * gCrias;
+            const cA = adultos * cAdulto, cR = recria * cRecria, cC = crias * cCrias;
             const kg = gramos => (gramos / 1000).toFixed(2);
             const salida = document.getElementById('racion-resultado');
             const crear = (tag, texto, clase) => { const el = document.createElement(tag); el.textContent = texto; if (clase) el.className = clase; return el; };
@@ -2469,34 +2485,37 @@
                 return caja;
             };
             salida.replaceChildren(
-                bloque('🌿 Total de forraje verde a cortar', `${kg(forrajeAdultos + forrajeRecria)} kg de ${forraje}`, [
-                    `Adultos: ${adultos} × ${gAdulto} g = ${kg(forrajeAdultos)} kg`,
-                    `Recría: ${recria} × ${gRecria} g = ${kg(forrajeRecria)} kg`
-                ], '⚠️ Orea el forraje a la sombra antes de darlo: el forraje recién cortado, tierno o mojado causa timpanismo.'),
-                bloque('🌾 Total de concentrado a preparar', `${kg(concAdultos + concRecria)} kg`, [
-                    `Comederos de adultos: ${kg(concAdultos)} kg (${adultos} × ${cAdulto} g)`,
-                    `Dentro de las gazaperas: ${kg(concRecria)} kg (${recria} × ${cRecria} g)`
+                bloque('🌿 Total de forraje verde a cortar', `${kg(fA + fR + fC)} kg de ${forraje}`, [
+                    `Adultos: ${adultos} × ${gAdulto} g = ${kg(fA)} kg`,
+                    `Recría / engorde: ${recria} × ${gRecria} g = ${kg(fR)} kg`,
+                    `Destetados / crías: ${crias} × ${gCrias} g = ${kg(fC)} kg`
+                ], '⚠️ Orea el forraje a la sombra de 8 a 12 horas antes de darlo: el forraje recién cortado, tierno o mojado causa timpanismo.'),
+                bloque('🌾 Total de concentrado a preparar', `${kg(cA + cR + cC)} kg`, [
+                    `Comedero principal (adultos): ${kg(cA)} kg (${adultos} × ${cAdulto} g)`,
+                    `Comedero principal (recría / engorde): ${kg(cR)} kg (${recria} × ${cRecria} g)`,
+                    `Dentro de las gazaperas (crías): ${kg(cC)} kg (${crias} × ${cCrias} g)`
                 ])
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
-            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gAdulto, cAdulto, gRecria, cRecria, forraje, sync: document.getElementById('racion-sync').checked }));
+            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, sync: document.getElementById('racion-sync').checked }));
             calcularAlmacen();
         }
 
-        // Cantidades de reproductores y recría tomadas del registro general de pozas.
+        // Cantidades tomadas del registro de pozas: reproductor; recría + engorde; cría.
         function sincronizarRacionPozas() {
             const check = document.getElementById('racion-sync');
             const info = document.getElementById('racion-sync-info');
-            const campos = [document.getElementById('racion-adultos'), document.getElementById('racion-recria')];
+            const campos = ['racion-adultos', 'racion-recria', 'racion-crias'].map(id => document.getElementById(id));
             campos.forEach(c => { c.readOnly = check.checked; });
             if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
             try {
-                const totalPorEtapa = etapa => obtenerPozasUnicas()
-                    .filter(poza => String(poza.etapa || '').toLowerCase() === etapa)
-                    .reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
-                campos[0].value = totalPorEtapa('reproductor');
-                campos[1].value = totalPorEtapa('recía');
-                info.textContent = 'Cantidades sincronizadas con el registro de pozas (reproductores y recía).';
+                const total = etapas => obtenerPozasUnicas()
+                    .filter(poza => etapas.includes(String(poza.etapa || '').toLowerCase()))
+                    .reduce((suma, poza) => suma + Math.max(0, obtenerStockActualPoza(poza)), 0);
+                campos[0].value = total(['reproductor']);
+                campos[1].value = total(['recría', 'engorde']);
+                campos[2].value = total(['cría']);
+                info.textContent = 'Cantidades sincronizadas con el registro de pozas (reproductores, recría/engorde y crías).';
             } catch (error) { info.textContent = 'No se pudo leer el registro de pozas; ingresa las cantidades manualmente.'; }
             calcularRacion();
         }
@@ -2505,9 +2524,9 @@
             const salida = document.getElementById('alm-resultado');
             if (!salida) return;
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
-            const adultos = num('racion-adultos'), recria = num('racion-recria');
-            const forrajeDia = (adultos * num('racion-g-adulto') + recria * num('racion-g-recria')) / 1000;
-            const concDia = (adultos * num('racion-c-adulto') + recria * num('racion-c-recria')) / 1000;
+            const adultos = num('racion-adultos'), recria = num('racion-recria'), crias = num('racion-crias');
+            const forrajeDia = (adultos * num('racion-g-adulto') + recria * num('racion-g-recria') + crias * num('racion-g-crias')) / 1000;
+            const concDia = (adultos * num('racion-c-adulto') + recria * num('racion-c-recria') + crias * num('racion-c-crias')) / 1000;
             const periodo = Number(document.getElementById('alm-periodo').value);
             const campoDias = document.getElementById('alm-dias');
             if (periodo) campoDias.value = periodo;
@@ -2556,15 +2575,18 @@
 
         function cargarRacionGuardada() {
             try {
-                const guardado = JSON.parse(leerAlmacenamiento('sisgranja_racion') || 'null');
+                const guardado = JSON.parse(leerAlmacenamiento('sisgranja_racion_inia') || 'null');
                 if (guardado) {
                     document.getElementById('racion-sync').checked = guardado.sync !== false;
                     document.getElementById('racion-adultos').value = guardado.adultos || '';
                     document.getElementById('racion-recria').value = guardado.recria || '';
-                    document.getElementById('racion-g-adulto').value = guardado.gAdulto ?? 300;
-                    document.getElementById('racion-c-adulto').value = guardado.cAdulto ?? 28;
-                    document.getElementById('racion-g-recria').value = guardado.gRecria ?? 150;
-                    document.getElementById('racion-c-recria').value = guardado.cRecria ?? 18;
+                    document.getElementById('racion-crias').value = guardado.crias || '';
+                    document.getElementById('racion-g-adulto').value = guardado.gAdulto ?? 315;
+                    document.getElementById('racion-c-adulto').value = guardado.cAdulto ?? 30;
+                    document.getElementById('racion-g-recria').value = guardado.gRecria ?? 175;
+                    document.getElementById('racion-c-recria').value = guardado.cRecria ?? 15;
+                    document.getElementById('racion-g-crias').value = guardado.gCrias ?? 100;
+                    document.getElementById('racion-c-crias').value = guardado.cCrias ?? 12.5;
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
