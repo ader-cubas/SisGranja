@@ -2344,7 +2344,8 @@
         };
 
         // Fotos reales: URL directa (JPG/WEBP) por clave `${nombre}|clinica` o `${nombre}|necropsia`. Solo URL verificadas por el técnico; también se pueden cargar desde el celular.
-        const ATLAS_FOTOS_REALES = {};
+        const ATLAS_FOTOS_REALES = { 'Sarna|clinica': 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Meerschweinchenr%C3%A4ude.jpg' };
+        const ATLAS_FOTOS_CREDITOS = { 'Sarna|clinica': 'Trixacarus caviae en cuy · Wikimedia Commons, CC BY 3.0' };
         const ATLAS_BUSQUEDA = { 'Sarna': 'guinea pig mange Trixacarus caviae', 'Hongos / Tiña': 'guinea pig dermatophytosis Trichophyton', 'Salmonelosis': 'guinea pig salmonellosis necropsy liver', 'Neumonía': 'guinea pig pneumonia necropsy lung', 'Coccidiosis': 'guinea pig coccidiosis necropsy intestine', 'Colibacilosis': 'guinea pig colibacilosis enteritis necropsy', 'Enfermedad de Tyzzer': 'Tyzzer disease necropsy liver', 'Linfadenitis Cervical': 'guinea pig cervical lymphadenitis abscess', 'Timpanismo': 'guinea pig bloat gastric tympany' };
         const ATLAS_PESO_CLAVE = 'sisgranja_atlas_peso';
 
@@ -2419,6 +2420,7 @@
                 const real = propia || ATLAS_FOTOS_REALES[claveReal];
                 imagen.src = real || placeholderAtlas(d, tipo);
                 imagen.alt = `${titulo} — ${d.nombre}${real ? '' : ' (sin foto cargada)'}`;
+                leyenda.textContent = !propia && ATLAS_FOTOS_CREDITOS[claveReal] ? `${titulo} · ${ATLAS_FOTOS_CREDITOS[claveReal]}` : titulo;
                 quitar.classList.toggle('hidden', !propia);
             };
             enlace.addEventListener('click', async () => {
