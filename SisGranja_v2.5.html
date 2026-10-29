@@ -662,6 +662,20 @@
         .atlas-acciones { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 12px 12px; }
         .view-section .atlas-acciones button, .view-section .atlas-acciones label { flex: 1 1 120px; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 10px; border: 2px solid #065f46; border-radius: 10px; background: #fff; color: #065f46; font-weight: 800; font-size: .9rem; cursor: pointer; }
         .view-section .atlas-acciones button.atlas-quitar { border-color: #b91c1c; color: #b91c1c; }
+        .bio-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+        @media (min-width: 768px) { .bio-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .bio-card { padding: 18px; border: 1px solid #d1d9e0; border-left: 8px solid #065f46; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgb(15 23 42 / 8%); }
+        .bio-card h3 { margin: 0 0 10px; font-size: 1.3rem; line-height: 1.25; font-weight: 900; color: #022c22; }
+        .bio-card h4 { margin: 14px 0 6px; font-size: 1.05rem; font-weight: 800; color: #065f46; }
+        .bio-card ul { margin: 0; padding-left: 22px; list-style: disc; }
+        .bio-card li { margin: 0 0 8px; font-size: 1.1rem; line-height: 1.45; color: #1e293b; overflow-wrap: anywhere; }
+        .bio-card .bio-no { color: #b91c1c; font-weight: 800; }
+        .atlas-bloque { margin-top: 12px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; }
+        .atlas-bloque h5 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 900; color: #0f172a; }
+        .atlas-bloque ul { margin: 0; padding-left: 20px; list-style: disc; }
+        .atlas-bloque li { margin: 0 0 6px; font-size: 1.05rem; line-height: 1.45; color: #1e293b; overflow-wrap: anywhere; }
+        .atlas-bloque-tto { border-color: #86efac; background: #f0fdf4; }
+        .atlas-mas { margin-top: 12px; }
         .atlas-comp { margin-top: 16px; padding: 12px; border: 2px dashed #94a3b8; border-radius: 16px; background: #f8fafc; }
         .atlas-comp-titulo { margin: 0 0 4px; font-size: 1.05rem; font-weight: 900; color: #0f172a; }
         .atlas-par { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
@@ -753,6 +767,9 @@
                 </button>
                 <button onclick="switchView('guia')" id="nav-guia" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-book-open text-lg"></i><span>Guía Técnica INIA</span>
+                </button>
+                <button onclick="switchView('bioseguridad')" id="nav-bioseguridad" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-shield-check text-lg"></i><span>Bioseguridad y Prevención</span>
                 </button>
                 <button onclick="switchView('pesos')" id="nav-pesos" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-chart-bar text-lg"></i><span>Control de Pesos</span>
@@ -1559,6 +1576,54 @@
                 </section>
             </div>
 
+            <div id="view-bioseguridad" class="space-y-6 view-section hidden">
+                <section class="surface bg-white p-5 sm:p-6 border border-stone-200" aria-labelledby="bio-titulo">
+                    <h2 id="bio-titulo" class="text-2xl font-extrabold text-stone-800">🛡️ Bioseguridad y Prevención</h2>
+                    <p class="mt-1 text-base text-stone-600">Cuatro pilares para evitar enfermedades en el galpón.</p>
+                    <div class="bio-grid mt-4">
+                        <article class="bio-card">
+                            <h3>🌿 1. Manejo y oreado de forraje</h3>
+                            <ul>
+                                <li><span class="bio-no">Prohibido</span> dar forraje recién cortado y caliente, o fermentado.</li>
+                                <li>Lava el forraje para quitar tierra y huevos de parásitos.</li>
+                                <li>Oreálo a la sombra hasta que esté fresco y sin agua en las hojas.</li>
+                                <li>Así evitas el timpanismo (hinchazón) y las infestaciones por parásitos.</li>
+                            </ul>
+                        </article>
+                        <article class="bio-card">
+                            <h3>🧥 2. Control ambiental y de ingresos</h3>
+                            <h4>Ambiente</h4>
+                            <ul>
+                                <li>Usa cortinas para frenar corrientes de aire helado y la humedad excesiva.</li>
+                                <li>Previene así la neumonía; ventila siempre por la parte alta.</li>
+                            </ul>
+                            <h4>Ingresos</h4>
+                            <ul>
+                                <li>Pediluvio con desinfectante en la entrada del galpón.</li>
+                                <li>Restringe el ingreso de personal ajeno.</li>
+                            </ul>
+                        </article>
+                        <article class="bio-card">
+                            <h3>🧹 3. Control de plagas y limpieza</h3>
+                            <ul>
+                                <li>Desratización estricta: las ratas transmiten salmonelosis.</li>
+                                <li>Limpia las pozas todos los días.</li>
+                                <li>Desinfecta periódicamente con cal o amonio cuaternario.</li>
+                                <li>Mantén la cama siempre seca.</li>
+                            </ul>
+                        </article>
+                        <article class="bio-card">
+                            <h3>🚧 4. Cuarentena y animales enfermizos</h3>
+                            <ul>
+                                <li>Aísla de inmediato a los animales sospechosos.</li>
+                                <li><span class="bio-no">Prohibido</span> medicar preventivamente a toda la poza sin diagnóstico clínico.</li>
+                                <li>Consulta al veterinario antes de aplicar cualquier tratamiento.</li>
+                            </ul>
+                        </article>
+                    </div>
+                </section>
+            </div>
+
             <!-- CONTROL DE PESOS Y CURVA DE CRECIMIENTO -->
             <div id="view-pesos" class="space-y-6 view-section hidden">
                 <section class="mod-card">
@@ -2166,6 +2231,7 @@
                 gastos: 'Gastos Operativos',
                 salud: 'Kardex Sanitario y de Insumos',
                 guia: 'Guía Técnica INIA',
+                bioseguridad: 'Bioseguridad y Prevención',
                 pesos: 'Control de Pesos y Curva de Crecimiento',
                 racion: 'Ración y Forraje'
             };
@@ -2435,6 +2501,25 @@
         const ATLAS_FOTOS_CREDITOS = { 'Sarna|clinica': 'Trixacarus caviae en cuy · Wikimedia Commons, CC BY 3.0' };
         const ATLAS_BUSQUEDA = { 'Sarna': 'guinea pig mange Trixacarus caviae', 'Hongos / Tiña': 'guinea pig dermatophytosis Trichophyton', 'Salmonelosis': 'guinea pig salmonellosis necropsy liver', 'Neumonía': 'guinea pig pneumonia necropsy lung', 'Coccidiosis': 'guinea pig coccidiosis necropsy intestine', 'Colibacilosis': 'guinea pig colibacilosis enteritis necropsy', 'Enfermedad de Tyzzer': 'Tyzzer disease necropsy liver', 'Linfadenitis Cervical': 'guinea pig cervical lymphadenitis abscess', 'Timpanismo': 'guinea pig bloat gastric tympany' };
         const ATLAS_PESO_CLAVE = 'sisgranja_atlas_peso';
+        // Foto de referencia clínica local (precacheada por el Service Worker para uso sin conexión).
+        const ATLAS_IMG_REF = { 'Sarna': './SisGranja/img/acaros.png.jpg', 'Timpanismo': './SisGranja/img/timpanismo.png.jpg', 'Salmonelosis': './SisGranja/img/salmonella.png.jpg', 'Neumonía': './SisGranja/img/neumonia-hermorragica.png.jpeg', 'Coccidiosis': './SisGranja/img/coccidiosis.png.jpg' };
+        const ATLAS_CAUSAS = {
+            'Sarna': ['Ácaro Trixacarus caviae, que se contagia por contacto directo entre cuyes.', 'Hacinamiento y cama sucia o húmeda.', 'Animales estresados o mal alimentados, con defensas bajas.', 'Ingreso de animales nuevos sin cuarentena.'],
+            'Timpanismo': ['Forraje verde mojado, recién cortado o fermentado.', 'Exceso de alfalfa o pastos muy tiernos sin orear.', 'Cambio brusco de alimento.', 'Ayuno largo seguido de comida abundante.'],
+            'Salmonelosis': ['Bacteria Salmonella en agua o alimento contaminado.', 'Heces de roedores, aves u otros animales en el galpón.', 'Comederos y pozas sucios, hacinamiento y estrés.', 'Ingreso de animales portadores sin cuarentena.'],
+            'Neumonía': ['Bacterias (Streptococcus, Bordetella, Pasteurella).', 'Frío, corrientes de aire y humedad.', 'Polvo y amoníaco por cama sucia.', 'Estrés y hacinamiento.'],
+            'Coccidiosis': ['Protozoo Eimeria caviae que se transmite por heces.', 'Cama húmeda y sucia.', 'Hacinamiento, sobre todo en crías recién destetadas.', 'Agua o forraje contaminados con heces.']
+        };
+
+        // Dosis por cada 100 g de peso vivo según el perfil de GUIA_DOSIS.
+        function resumenTratamientoAtlas(nombre) {
+            const p = GUIA_DOSIS[nombre];
+            if (!p) return [];
+            if (p.tópico) return [p.tópico];
+            const ml100 = p.mgkg * 0.1 / p.conc;
+            const ejemplo = p.mgkg * 0.8 / p.conc;
+            return [`Medicamento: ${p.farmaco}.`, `Dosis: ${ml100.toFixed(3)} ml por cada 100 g de peso (${p.mgkg} mg/kg). Ejemplo: cuy de 800 g = ${ejemplo.toFixed(2)} ml.`, `Vía: ${p.via}; ${p.frec}.`, `Duración: ${p.dias} ${p.dias === 1 ? 'día' : 'días'}.`];
+        }
 
         function calcularDosisCuy(nombre, gramos) {
             const p = GUIA_DOSIS[nombre];
@@ -2451,7 +2536,7 @@
         }
 
         function placeholderAtlas(d, tipo) {
-            const texto = tipo === 'clinica' ? 'Sin foto clínica real' : 'Sin foto de necropsia real';
+            const texto = tipo === 'campo' ? 'Sin foto de campo' : tipo === 'clinica' ? 'Sin foto clínica real' : 'Sin foto de necropsia real';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480"><rect width="640" height="480" fill="#e2e8f0"/><text x="320" y="230" font-size="32" font-weight="700" text-anchor="middle" fill="#334155" font-family="sans-serif">${texto}</text><text x="320" y="278" font-size="22" text-anchor="middle" fill="#475569" font-family="sans-serif">Sube tu foto o pega un enlace</text></svg>`;
             return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
         }
@@ -2474,7 +2559,7 @@
         function crearSlotFotoAtlas(d, indice, tipo) {
             const clave = `${indice}-${tipo}`;
             const claveReal = `${d.nombre}|${tipo}`;
-            const titulo = tipo === 'clinica' ? 'Foto Externa: Signos clínicos' : 'Foto Necropsia: Órganos afectados';
+            const titulo = tipo === 'campo' ? 'Foto de campo (opcional)' : tipo === 'clinica' ? 'Foto Externa: Signos clínicos' : 'Foto Necropsia: Órganos afectados';
             const figura = document.createElement('figure');
             figura.className = 'atlas-foto';
             const imagen = document.createElement('img');
@@ -2799,9 +2884,32 @@
                 const ficha = crear('details', undefined, 'guia-card');
                 ficha.appendChild(crear('summary', `${d.icono} ${d.nombre === 'Colibacilosis' ? 'Colibacilosis / Enteritis' : d.nombre}`));
                 const cuerpo = crear('div', undefined, 'guia-body');
-                const fotos = crear('div', undefined, 'atlas-fotos');
-                fotos.append(crearSlotFotoAtlas(d, indice, 'clinica'), crearSlotFotoAtlas(d, indice, 'necropsia'));
+                const fotos = crear('div', undefined, 'atlas-par');
+                const figuraRef = crear('figure', undefined, 'atlas-foto');
+                const imgRef = crear('img');
+                imgRef.decoding = 'async'; imgRef.loading = 'lazy';
+                imgRef.alt = `Foto de referencia clínica — ${d.nombre}`;
+                imgRef.addEventListener('error', () => { imgRef.src = placeholderAtlas(d, 'clinica'); }, { once: true });
+                imgRef.src = ATLAS_IMG_REF[d.nombre] || placeholderAtlas(d, 'clinica');
+                figuraRef.append(imgRef, crear('figcaption', 'Referencia clínica'));
+                fotos.append(figuraRef, crearSlotFotoAtlas(d, indice, 'campo'));
                 cuerpo.appendChild(fotos);
+                const bloque = (titulo, items, extra) => {
+                    const caja = crear('section', undefined, 'atlas-bloque' + (extra ? ' ' + extra : ''));
+                    caja.appendChild(crear('h5', titulo));
+                    const lista = crear('ul');
+                    items.forEach(t => lista.appendChild(crear('li', t)));
+                    caja.appendChild(lista);
+                    return caja;
+                };
+                if (ATLAS_CAUSAS[d.nombre]) cuerpo.appendChild(bloque('¿A qué se debe y causas principales?', ATLAS_CAUSAS[d.nombre]));
+                cuerpo.appendChild(bloque('Signos clínicos directos', d.signos.split(/[.;]\s*/).map(s => s.trim()).filter(Boolean).flatMap(s => s.split(/,\s*/)).map(s => s.charAt(0).toUpperCase() + s.slice(1))));
+                const resumen = resumenTratamientoAtlas(d.nombre);
+                cuerpo.appendChild(bloque('Tratamiento autorizado', resumen.length ? resumen : [d.tratamiento], 'atlas-bloque-tto'));
+                const mas = crear('details', undefined, 'atlas-mas');
+                mas.appendChild(crear('summary', 'Más detalles: necropsia, calculadora y comparación'));
+                const masCuerpo = crear('div');
+                mas.appendChild(masCuerpo);
                 const busqueda = ATLAS_BUSQUEDA[d.nombre];
                 if (busqueda) {
                     const a = crear('a', '🌐 Buscar fotos reales (requiere internet)', 'guia-btn');
@@ -2817,10 +2925,11 @@
                 necropsia.forEach(([titulo, clave]) => { const li = crear('li'); li.append(crear('strong', `${titulo}: `), d[clave]); ul.appendChild(li); });
                 const ddNecropsia = crear('dd'); ddNecropsia.appendChild(ul); lista.appendChild(ddNecropsia);
                 agregar('Tratamiento autorizado', d.tratamiento);
-                cuerpo.appendChild(lista);
-                cuerpo.appendChild(crearCalculadoraDosis(d));
-                cuerpo.appendChild(crearProtocoloColectivo(d));
-                cuerpo.appendChild(crearComparacionAtlas(d, indice));
+                masCuerpo.appendChild(lista);
+                masCuerpo.appendChild(crearCalculadoraDosis(d));
+                masCuerpo.appendChild(crearProtocoloColectivo(d));
+                masCuerpo.appendChild(crearComparacionAtlas(d, indice));
+                cuerpo.appendChild(mas);
                 cuerpo.appendChild(crear('p', 'Referencia: dosis y pauta deben ser validadas por un veterinario.', 'guia-aviso'));
                 const boton = crear('button', '📋 Registrar en Kárdex', 'guia-btn');
                 boton.type = 'button';

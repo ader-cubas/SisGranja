@@ -1,9 +1,10 @@
-const CACHE_NAME = 'sisgranja-v2.6.6-20261029g';
+const CACHE_NAME = 'sisgranja-v2.7.1-20261029i';
 const OFFLINE_URL = './SisGranja_v2.5.html';
+const IMAGENES_ATLAS = ['acaros.png.jpg', 'timpanismo.png.jpg', 'salmonella.png.jpg', 'neumonia-hermorragica.png.jpeg', 'coccidiosis.png.jpg'].map(n => './SisGranja/img/' + n);
 
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(OFFLINE_URL)));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(OFFLINE_URL).then(() => Promise.all(IMAGENES_ATLAS.map(u => cache.add(u).catch(() => null))))));
 });
 
 self.addEventListener('activate', event => {
