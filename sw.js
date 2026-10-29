@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisgranja-v2.6.1-20261027';
+const CACHE_NAME = 'sisgranja-v2.6.1-20261029';
 const OFFLINE_URL = './SisGranja_v2.5.html';
 
 self.addEventListener('install', event => {
@@ -20,7 +20,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (response.ok && new URL(event.request.url).origin === self.location.origin) {
+        if ((response.ok && new URL(event.request.url).origin === self.location.origin) || (response.type === 'opaque' && event.request.destination === 'image')) {
           const copia = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copia));
         }

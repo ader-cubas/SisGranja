@@ -2318,13 +2318,44 @@
             { nombre: 'Neumonía', icono: '🫁', agente: 'Streptococcus pneumoniae, Bordetella bronchiseptica, Pasteurella (bacterias).', signos: 'Respiración ruidosa y con esfuerzo, estornudos, secreción nasal, pérdida de peso.', pulmones: 'Consolidados, de color rojo oscuro (hepatización), a veces con pus y adherencias a la pleura.', higado: 'Normal o congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Sin lesiones características.', tratamiento: 'Enrofloxacina u oxitetraciclina inyectable; ventilar sin corrientes y reducir humedad y polvo.' },
             { nombre: 'Sarna', icono: '🪲', agente: 'Trixacarus caviae (ácaro).', signos: 'Picazón intensa, rascado, pérdida de pelo, costras y piel engrosada, pérdida de peso.', pulmones: 'Sin lesiones internas características.', higado: 'Sin lesiones internas características.', bazo: 'Sin lesiones internas características.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Ivermectina por vía subcutánea, repetida según pauta veterinaria; cambiar cama y desinfectar jaulas.' },
             { nombre: 'Coccidiosis', icono: '💧', agente: 'Eimeria caviae (protozoo).', signos: 'Diarrea (a veces con sangre), deshidratación, retraso de crecimiento, abdomen hinchado.', pulmones: 'Sin lesiones características.', higado: 'Normal o pálido.', bazo: 'Normal.', intestinos: 'Ciego y colon inflamados, mucosa engrosada con hemorragias y contenido líquido.', tratamiento: 'Toltrazuril o sulfadimidina-trimetoprim (zona verde) con rehidratación; limpieza y cama seca.' },
-            { nombre: 'Linfadenitis Cervical', icono: '🔴', agente: 'Streptococcus zooepidemicus (bacteria).', signos: 'Abscesos (bultos) en el cuello, dificultad para comer, pérdida de peso.', pulmones: 'Pueden tener abscesos si la infección se generalizó.', higado: 'Normal; a veces abscesos.', bazo: 'Normal; a veces abscesos.', intestinos: 'Sin lesiones características. Hallazgo principal: abscesos con pus cremoso en ganglios cervicales.', tratamiento: 'Drenar y desinfectar el absceso, antibiótico de zona verde (oxitetraciclina o enrofloxacina) y descartar a los animales recurrentes.' },
+            { nombre: 'Linfadenitis Cervical', icono: '🔴', agente: 'Streptococcus zooepidemicus (bacteria).', signos: 'Abscesos (bultos) en el cuello, dificultad para comer, pérdida de peso.', pulmones: 'Pueden tener abscesos si la infección se generalizó.', higado: 'Normal; a veces abscesos.', bazo: 'Normal; a veces abscesos.', intestinos: 'Sin lesiones características. Hallazgo principal: abscesos con pus cremoso en ganglios cervicales.', tratamiento: 'SIN ANTIBIÓTICOS. Aislar de inmediato al animal y descartarlo (sacrificio sanitario).' },
             { nombre: 'Hongos / Tiña', icono: '🍄', agente: 'Trichophyton mentagrophytes (hongo).', signos: 'Zonas circulares sin pelo con escamas, sobre todo en cabeza y lomo; contagiosa al humano.', pulmones: 'Sin lesiones internas.', higado: 'Sin lesiones internas.', bazo: 'Sin lesiones internas.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Antifúngico tópico (por ejemplo miconazol o yodo) o griseofulvina según veterinario; desinfectar instalaciones y usar guantes.' },
             { nombre: 'Colibacilosis', icono: '💦', agente: 'Escherichia coli (bacteria).', signos: 'Diarrea acuosa, deshidratación, decaimiento y muerte rápida, sobre todo en crías.', pulmones: 'Normales o congestionados.', higado: 'Congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Intestino delgado congestionado con contenido líquido.', tratamiento: 'Enrofloxacina (zona verde) y rehidratación oral; mejorar higiene y agua limpia.' },
-            { nombre: 'Enfermedad de Tyzzer', icono: '⚫', agente: 'Clostridium piliforme (bacteria).', signos: 'Diarrea, decaimiento y muerte súbita, favorecida por estrés.', pulmones: 'Sin lesiones características.', higado: 'Múltiples focos necróticos blanquecinos pequeños.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Inflamación del íleon y ciego, con hemorragias.', tratamiento: 'No hay tratamiento eficaz; apoyo con oxitetraciclina y rehidratación según veterinario. Prevenir reduciendo estrés y mejorando la higiene.' }
+            { nombre: 'Enfermedad de Tyzzer', icono: '⚫', agente: 'Clostridium piliforme (bacteria).', signos: 'Diarrea, decaimiento y muerte súbita, favorecida por estrés.', pulmones: 'Sin lesiones características.', higado: 'Múltiples focos necróticos blanquecinos pequeños.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Inflamación del íleon y ciego, con hemorragias.', tratamiento: 'No hay tratamiento eficaz; apoyo con oxitetraciclina y rehidratación según veterinario. Prevenir reduciendo estrés y mejorando la higiene.' },
+            { nombre: 'Timpanismo', icono: '🎈', agente: 'Trastorno digestivo: fermentación por forraje mojado, recién cortado o muy tierno (no es un germen).', signos: 'Abdomen hinchado y duro tipo tambor, dolor, respiración difícil, no come, decaimiento y muerte si no se atiende.', pulmones: 'Congestión por presión del abdomen sobre el diafragma.', higado: 'Congestionado.', bazo: 'Normal.', intestinos: 'Estómago y ciego distendidos por gas, con contenido espumoso y fermentado.', tratamiento: 'Retirar el forraje mojado, dar masaje abdominal suave y antiespumante; luego solo forraje oreado.' }
         ];
 
-        // Fotos del Atlas: ilustración embebida por defecto; el usuario puede cargar su propia foto (se guarda en localStorage).
+        const GUIA_CATEGORIAS = [
+            { id: 'externa', titulo: '🐾 Enfermedades Externas y Parasitarias', nombres: ['Sarna', 'Hongos / Tiña'] },
+            { id: 'interna', titulo: '🫀 Enfermedades Internas, Infecciosas y Digestivas', nombres: ['Salmonelosis', 'Neumonía', 'Coccidiosis', 'Colibacilosis', 'Enfermedad de Tyzzer', 'Linfadenitis Cervical', 'Timpanismo'] }
+        ];
+
+        // Zona Verde: mgkg = dosis por kg de peso vivo; conc = mg por ml del producto. Referencial: validar con veterinario.
+        const ENROFLOXACINA = { farmaco: 'Enrofloxacina 5 % inyectable', conc: 50, mgkg: 5, via: 'Subcutánea (SC)', frec: 'cada 24 h', dias: 5 };
+        const GUIA_DOSIS = {
+            'Salmonelosis': ENROFLOXACINA,
+            'Neumonía': ENROFLOXACINA,
+            'Colibacilosis': ENROFLOXACINA,
+            'Coccidiosis': { farmaco: 'Toltrazuril 2.5 %', conc: 25, mgkg: 1, via: 'Oral', frec: 'cada 24 h; repetir el ciclo a los 7 días', dias: 2 },
+            'Enfermedad de Tyzzer': { farmaco: 'Oxitetraciclina 20 % inyectable', conc: 200, mgkg: 20, via: 'Intramuscular (IM)', frec: 'cada 24 h', dias: 3 },
+            'Sarna': { farmaco: 'Ivermectina 1 % diluida 1:10 (1 ml + 9 ml de suero fisiológico = 1 mg/ml)', conc: 1, mgkg: 0.2, via: 'Subcutánea (SC)', frec: 'dosis única; repetir a los 14 días', dias: 1 },
+            'Hongos / Tiña': { tópico: 'Antifúngico tópico (miconazol o yodo povidona) una vez al día sobre la lesión, con guantes, durante 14 a 21 días. No se dosifica por peso.' },
+            'Timpanismo': { farmaco: 'Simeticona 4 % gotas (antiespumante, uso oral)', conc: 40, mgkg: 20, via: 'Oral', frec: 'dosis única, repetir a las 6 h si persiste', dias: 1 }
+        };
+
+        // Fotos reales: URL directa (JPG/WEBP) por clave `${nombre}|clinica` o `${nombre}|necropsia`. Solo URL verificadas por el técnico; también se pueden cargar desde el celular.
+        const ATLAS_FOTOS_REALES = {};
+        const ATLAS_BUSQUEDA = { 'Sarna': 'guinea pig mange Trixacarus caviae', 'Hongos / Tiña': 'guinea pig dermatophytosis Trichophyton', 'Salmonelosis': 'guinea pig salmonellosis necropsy liver', 'Neumonía': 'guinea pig pneumonia necropsy lung', 'Coccidiosis': 'guinea pig coccidiosis necropsy intestine', 'Colibacilosis': 'guinea pig colibacilosis enteritis necropsy', 'Enfermedad de Tyzzer': 'Tyzzer disease necropsy liver', 'Linfadenitis Cervical': 'guinea pig cervical lymphadenitis abscess', 'Timpanismo': 'guinea pig bloat gastric tympany' };
+        const ATLAS_PESO_CLAVE = 'sisgranja_atlas_peso';
+
+        function calcularDosisCuy(nombre, gramos) {
+            const p = GUIA_DOSIS[nombre];
+            if (!p || p.tópico || !(gramos >= 50 && gramos <= 2000)) return null;
+            const ml = p.mgkg * (gramos / 1000) / p.conc;
+            return { ...p, ml, gotas: ml * 20, mg: p.mgkg * gramos / 1000 };
+        }
+
+        // Fotos del Atlas: reales (URL verificada o cargadas por el usuario en localStorage); sin ilustraciones.
         const ATLAS_FOTOS_CLAVE = 'sisgranja_atlas_fotos';
 
         function leerFotosAtlas() {
@@ -2332,16 +2363,29 @@
         }
 
         function placeholderAtlas(d, tipo) {
-            const clinica = tipo === 'clinica';
-            const xml = texto => String(texto).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
-            const [c1, c2] = clinica ? ['#0f766e', '#134e4a'] : ['#9f1239', '#4c0519'];
-            const titulo = clinica ? 'Foto Externa: Signos clínicos' : 'Foto Necropsia: Órganos afectados';
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="640" height="480" fill="url(#g)"/><circle cx="520" cy="90" r="130" fill="#fff" fill-opacity=".08"/><circle cx="90" cy="420" r="160" fill="#fff" fill-opacity=".06"/><text x="320" y="215" font-size="120" text-anchor="middle">${clinica ? d.icono : '🔬'}</text><text x="320" y="300" font-size="30" font-weight="700" text-anchor="middle" fill="#fff" font-family="sans-serif">${xml(titulo)}</text><text x="320" y="345" font-size="26" text-anchor="middle" fill="#fff" fill-opacity=".9" font-family="sans-serif">${xml(d.nombre)}</text><text x="320" y="430" font-size="18" text-anchor="middle" fill="#fff" fill-opacity=".75" font-family="sans-serif">Ilustración de referencia · sube tu foto real</text></svg>`;
+            const texto = tipo === 'clinica' ? 'Sin foto clínica real' : 'Sin foto de necropsia real';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480"><rect width="640" height="480" fill="#e2e8f0"/><text x="320" y="230" font-size="32" font-weight="700" text-anchor="middle" fill="#334155" font-family="sans-serif">${texto}</text><text x="320" y="278" font-size="22" text-anchor="middle" fill="#475569" font-family="sans-serif">Sube tu foto o pega un enlace</text></svg>`;
             return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        }
+
+        // Guarda la foto en localStorage para verla sin conexión; si el sitio bloquea la descarga, se conserva el enlace.
+        async function fotoAtlasDesdeUrl(url) {
+            if (!/^https:\/\//i.test(url)) throw new Error('El enlace debe empezar con https://');
+            try {
+                const respuesta = await fetch(url, { mode: 'cors' });
+                if (!respuesta.ok) throw new Error('descarga');
+                const blob = await respuesta.blob();
+                if (!/^image\//.test(blob.type)) throw new Error('El enlace no es una imagen');
+                return await comprimirFotoClinica(new File([blob], 'foto', { type: blob.type }));
+            } catch (error) {
+                if (error.message === 'El enlace no es una imagen') throw error;
+                return url;
+            }
         }
 
         function crearSlotFotoAtlas(d, indice, tipo) {
             const clave = `${indice}-${tipo}`;
+            const claveReal = `${d.nombre}|${tipo}`;
             const titulo = tipo === 'clinica' ? 'Foto Externa: Signos clínicos' : 'Foto Necropsia: Órganos afectados';
             const figura = document.createElement('figure');
             figura.className = 'atlas-foto';
@@ -2364,15 +2408,32 @@
             quitar.type = 'button';
             quitar.className = 'atlas-quitar';
             quitar.textContent = '🗑️ Quitar';
-            acciones.append(subir, quitar);
+            const enlace = document.createElement('button');
+            enlace.type = 'button';
+            enlace.textContent = '🔗 Enlace';
+            acciones.append(subir, enlace, quitar);
             figura.append(imagen, leyenda, acciones);
 
             const pintar = () => {
                 const propia = leerFotosAtlas()[clave];
-                imagen.src = propia || placeholderAtlas(d, tipo);
-                imagen.alt = `${titulo} — ${d.nombre}${propia ? '' : ' (ilustración de referencia)'}`;
+                const real = propia || ATLAS_FOTOS_REALES[claveReal];
+                imagen.src = real || placeholderAtlas(d, tipo);
+                imagen.alt = `${titulo} — ${d.nombre}${real ? '' : ' (sin foto cargada)'}`;
                 quitar.classList.toggle('hidden', !propia);
             };
+            enlace.addEventListener('click', async () => {
+                const url = (prompt('Pega el enlace https:// de la foto real (con internet se guarda para uso sin conexión):') || '').trim();
+                if (!url) return;
+                try {
+                    const fotos = leerFotosAtlas();
+                    fotos[clave] = await fotoAtlasDesdeUrl(url);
+                    escribirAlmacenamiento(ATLAS_FOTOS_CLAVE, JSON.stringify(fotos));
+                    pintar();
+                    mostrarToast('Foto guardada en este dispositivo');
+                } catch (error) {
+                    mostrarToast(esLimiteAlmacenamiento(error) ? 'Sin espacio para guardar la foto.' : (error.message || 'No se pudo cargar la foto'), 'error');
+                }
+            });
             entrada.addEventListener('change', async () => {
                 const archivo = entrada.files[0];
                 entrada.value = '';
@@ -2408,7 +2469,8 @@
             'Linfadenitis Cervical': ['Bultos (abscesos) en el cuello', 'Pus cremoso en ganglios cervicales', 'Dificultad para comer', 'Pérdida de peso', 'Abscesos en pulmones, hígado o bazo'],
             'Hongos / Tiña': ['Zonas circulares sin pelo', 'Escamas en cabeza o lomo', 'Sin lesiones internas', 'Lesiones en la piel de las personas que manejan los animales'],
             'Colibacilosis': ['Diarrea acuosa en crías', 'Deshidratación y muerte rápida', 'Intestino delgado congestionado con líquido', 'Hígado congestionado'],
-            'Enfermedad de Tyzzer': ['Diarrea y decaimiento', 'Muerte súbita tras estrés', 'Hígado con múltiples focos blancos pequeños', 'Íleon y ciego inflamados con hemorragias']
+            'Enfermedad de Tyzzer': ['Diarrea y decaimiento', 'Muerte súbita tras estrés', 'Hígado con múltiples focos blancos pequeños', 'Íleon y ciego inflamados con hemorragias'],
+            'Timpanismo': ['Abdomen hinchado y duro', 'Respiración difícil', 'Antecedente de forraje mojado o recién cortado', 'Estómago y ciego llenos de gas']
         };
 
         function leerComparacionAtlas() {
@@ -2548,8 +2610,8 @@
             function pintar() {
                 const estado = leer();
                 botonesRef.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ref === estado.ref)));
-                imgRef.src = placeholderAtlas(d, estado.ref);
-                imgRef.alt = `Referencia de la guía: ${d.nombre}, ${estado.ref === 'clinica' ? 'signos clínicos' : 'necropsia'} (ilustración)`;
+                imgRef.src = leerFotosAtlas()[`${indice}-${estado.ref}`] || ATLAS_FOTOS_REALES[`${d.nombre}|${estado.ref}`] || placeholderAtlas(d, estado.ref);
+                imgRef.alt = `Referencia: ${d.nombre}, ${estado.ref === 'clinica' ? 'signos clínicos' : 'necropsia'}`;
                 capRef.textContent = `Referencia de la guía · ${estado.ref === 'clinica' ? 'signos' : 'necropsia'}`;
                 const propia = leerFotosAtlas()[claveFoto];
                 imgUsuario.src = propia || placeholderGalpon();
@@ -2575,19 +2637,88 @@
             return seccion;
         }
 
+        function crearCalculadoraDosis(d) {
+            const el = (tag, texto, clase) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
+            const caja = el('section', undefined, 'atlas-comp');
+            caja.appendChild(el('h5', '🧮 Calculadora de dosis por peso vivo', 'atlas-comp-titulo'));
+            const perfil = GUIA_DOSIS[d.nombre];
+            if (d.nombre === 'Linfadenitis Cervical') {
+                const aviso = el('div', undefined, 'guia-rojo');
+                aviso.setAttribute('role', 'alert');
+                aviso.append(el('h4', '⛔ LINFADENITIS ("SECA"): NO LLEVA ANTIBIÓTICOS'), el('p', 'Según el INIA no hay tratamiento antibiótico efectivo. Protocolo: aislamiento inmediato, descarte / sacrificio sanitario y desinfección de instalaciones. No drenar abscesos en la poza: el pus contagia al resto.'));
+                caja.appendChild(aviso);
+                return caja;
+            }
+            const etiqueta = el('label', 'Peso exacto del cuy (gramos)', 'mod-field');
+            const entrada = el('input', undefined, 'mod-input');
+            entrada.type = 'number'; entrada.min = '50'; entrada.max = '2000'; entrada.step = '1'; entrada.inputMode = 'numeric'; entrada.placeholder = 'Ej. 850';
+            entrada.value = leerAlmacenamiento(ATLAS_PESO_CLAVE) || '';
+            etiqueta.appendChild(entrada);
+            const salida = el('div', undefined, 'mod-result');
+            salida.setAttribute('aria-live', 'polite');
+            caja.append(etiqueta, salida);
+            const pintar = () => {
+                const g = Number(entrada.value);
+                if (perfil && perfil.tópico) { salida.replaceChildren(el('p', perfil.tópico)); return; }
+                const r = calcularDosisCuy(d.nombre, g);
+                if (!r) { salida.replaceChildren(el('p', 'Ingresa un peso entre 50 y 2000 g.')); return; }
+                try { escribirAlmacenamiento(ATLAS_PESO_CLAVE, String(g)); } catch (error) { /* sin espacio */ }
+                const filas = [
+                    ['Dosis', `${r.ml.toFixed(2)} ml  (≈ ${Math.max(1, Math.round(r.gotas))} gotas)`],
+                    ['Fármaco (Zona Verde)', `${r.farmaco}`],
+                    ['Cantidad de principio activo', `${r.mg.toFixed(2)} mg (${r.mgkg} mg/kg)`],
+                    ['Vía', r.via],
+                    ['Frecuencia', r.frec],
+                    ['Duración', `${r.dias} ${r.dias === 1 ? 'día' : 'días'}`]
+                ];
+                const dl = el('dl');
+                filas.forEach(([t, v], i) => { const dt = el('dt', t); const dd = el('dd', v); if (i === 0) dd.style.fontWeight = '900'; dl.append(dt, dd); });
+                salida.replaceChildren(dl, el('p', 'Complementa con vitamina C y rehidratación. Nunca uses Zona Roja.', 'guia-aviso'));
+            };
+            entrada.addEventListener('input', pintar);
+            pintar();
+            return caja;
+        }
+
+        function crearProtocoloColectivo(d) {
+            const caja = document.createElement('div');
+            caja.className = 'guia-regla';
+            if (d.nombre === 'Linfadenitis Cervical') {
+                caja.textContent = '☠️ Bioseguridad: descartar el animal (incinerar o enterrar con cal viva), desinfectar la poza con amonio cuaternario o cal y lavarse las manos. No hay tratamiento colectivo.';
+                return caja;
+            }
+            const ul = document.createElement('ul');
+            ['Aislar al enfermo y tratar a toda la poza de forma preventiva con el mismo principio activo (consulta al veterinario por la dosis colectiva).',
+             'Desinfectar la poza, comederos y bebederos; cama nueva y seca; cal en esquinas húmedas.',
+             'Pediluvio en la entrada y manejo de la poza enferma al final del día.',
+             'Vitamina C y agua limpia para toda la poza; vigilar 7 días.'].forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+            const titulo = document.createElement('strong');
+            titulo.textContent = '🧼 Protocolo colectivo por poza';
+            caja.append(titulo, ul);
+            return caja;
+        }
+
         function renderGuiaAtlas() {
             const contenedor = document.getElementById('guia-atlas');
             if (!contenedor) return;
             const campos = [['Agente causal', 'agente'], ['Signos clínicos directos', 'signos']];
             const necropsia = [['Pulmones', 'pulmones'], ['Hígado', 'higado'], ['Bazo', 'bazo'], ['Intestinos', 'intestinos']];
             const crear = (tag, texto, clase) => { const el = document.createElement(tag); if (clase) el.className = clase; if (texto !== undefined) el.textContent = texto; return el; };
-            contenedor.replaceChildren(...GUIA_ENFERMEDADES.map((d, indice) => {
+            const fichaDe = d => {
+                const indice = GUIA_ENFERMEDADES.indexOf(d);
                 const ficha = crear('details', undefined, 'guia-card');
-                ficha.appendChild(crear('summary', `${d.icono} ${d.nombre}`));
+                ficha.appendChild(crear('summary', `${d.icono} ${d.nombre === 'Colibacilosis' ? 'Colibacilosis / Enteritis' : d.nombre}`));
                 const cuerpo = crear('div', undefined, 'guia-body');
                 const fotos = crear('div', undefined, 'atlas-fotos');
                 fotos.append(crearSlotFotoAtlas(d, indice, 'clinica'), crearSlotFotoAtlas(d, indice, 'necropsia'));
                 cuerpo.appendChild(fotos);
+                const busqueda = ATLAS_BUSQUEDA[d.nombre];
+                if (busqueda) {
+                    const a = crear('a', '🌐 Buscar fotos reales (requiere internet)', 'guia-btn');
+                    a.href = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(busqueda)}`;
+                    a.target = '_blank'; a.rel = 'noopener noreferrer';
+                    cuerpo.appendChild(a);
+                }
                 const lista = crear('dl');
                 const agregar = (titulo, texto) => { lista.append(crear('dt', titulo), crear('dd', texto)); };
                 campos.forEach(([titulo, clave]) => agregar(titulo, d[clave]));
@@ -2597,6 +2728,8 @@
                 const ddNecropsia = crear('dd'); ddNecropsia.appendChild(ul); lista.appendChild(ddNecropsia);
                 agregar('Tratamiento autorizado', d.tratamiento);
                 cuerpo.appendChild(lista);
+                cuerpo.appendChild(crearCalculadoraDosis(d));
+                cuerpo.appendChild(crearProtocoloColectivo(d));
                 cuerpo.appendChild(crearComparacionAtlas(d, indice));
                 cuerpo.appendChild(crear('p', 'Referencia: dosis y pauta deben ser validadas por un veterinario.', 'guia-aviso'));
                 const boton = crear('button', '📋 Registrar en Kárdex', 'guia-btn');
@@ -2605,7 +2738,13 @@
                 cuerpo.appendChild(boton);
                 ficha.appendChild(cuerpo);
                 return ficha;
-            }));
+            };
+            const nodos = [];
+            GUIA_CATEGORIAS.forEach(cat => {
+                nodos.push(crear('h4', cat.titulo, 'atlas-comp-titulo'));
+                cat.nombres.forEach(n => { const d = GUIA_ENFERMEDADES.find(x => x.nombre === n || x.nombre.startsWith(n)); if (d) nodos.push(fichaDe(d)); });
+            });
+            contenedor.replaceChildren(...nodos);
         }
 
         function registrarDesdeGuia(indice) {
