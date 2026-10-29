@@ -1671,7 +1671,7 @@
             <div id="view-racion" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">🌿 Calculadora de ración</h3>
-                    <p class="mod-hint">Estándar: 0.300 kg (300 g) de forraje verde por reproductor adulto al día, para empadre continuo y lactancia.</p>
+                    <p class="mod-hint">Cuotas por animal al día (editables): adultos 150–300 g de forraje verde y 25–30 g de concentrado; recría 100–150 g de forraje y 15–20 g de concentrado.</p>
                     <div class="mod-grid">
                         <label class="mod-field">Reproductores adultos
                             <input type="number" id="racion-adultos" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 40">
@@ -1679,8 +1679,17 @@
                         <label class="mod-field">Cuyes de recía
                             <input type="number" id="racion-recria" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 60">
                         </label>
-                        <label class="mod-field">Ración por recía (g/día, editable)
+                        <label class="mod-field">Forraje por adulto (g/día)
+                            <input type="number" id="racion-g-adulto" min="0" step="10" value="300" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Concentrado por adulto (g/día)
+                            <input type="number" id="racion-c-adulto" min="0" step="1" value="28" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Forraje por recría (g/día)
                             <input type="number" id="racion-g-recria" min="0" step="10" value="150" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Concentrado por recría (g/día)
+                            <input type="number" id="racion-c-recria" min="0" step="1" value="18" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Tipo de forraje
                             <select id="racion-forraje" onchange="calcularRacion()" class="mod-input">
@@ -2399,7 +2408,6 @@
         }
 
         // ===== Ración =====
-        const RACION_ADULTO_G = 300;
         const CONSEJOS_FORRAJE = {
             'Alfalfa': 'Oreá la alfalfa antes de darla: la alfalfa tierna o mojada provoca timpanismo. Introdúcela de forma gradual.',
             'Rye Grass Ecotipo Cajamarquino': 'Corta a 5–8 cm del suelo y oreá antes de suministrar. Complementa con una leguminosa para mejorar la proteína.',
@@ -2410,20 +2418,34 @@
         function calcularRacion() {
             const adultos = Math.max(0, parseInt(document.getElementById('racion-adultos').value, 10) || 0);
             const recria = Math.max(0, parseInt(document.getElementById('racion-recria').value, 10) || 0);
-            const gRecria = Math.max(0, Number(document.getElementById('racion-g-recria').value) || 0);
+            const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
+            const gAdulto = num('racion-g-adulto'), cAdulto = num('racion-c-adulto');
+            const gRecria = num('racion-g-recria'), cRecria = num('racion-c-recria');
             const forraje = document.getElementById('racion-forraje').value;
-            const gramosAdultos = adultos * RACION_ADULTO_G;
-            const gramosRecria = recria * gRecria;
-            const kg = gramos => (gramos / 1000).toFixed(3);
+            const forrajeAdultos = adultos * gAdulto, forrajeRecria = recria * gRecria;
+            const concAdultos = adultos * cAdulto, concRecria = recria * cRecria;
+            const kg = gramos => (gramos / 1000).toFixed(2);
             const salida = document.getElementById('racion-resultado');
             const crear = (tag, texto, clase) => { const el = document.createElement(tag); el.textContent = texto; if (clase) el.className = clase; return el; };
+            const bloque = (titulo, total, lineas, alerta) => {
+                const caja = crear('div', '', 'mb-4 rounded-2xl border-2 border-emerald-300 bg-white p-4');
+                caja.append(crear('p', titulo, 'text-lg font-extrabold text-emerald-900'), crear('p', total, 'text-3xl font-extrabold text-emerald-800 my-1'));
+                lineas.forEach(t => caja.append(crear('p', t, 'text-base sm:text-lg')));
+                if (alerta) caja.append(crear('p', alerta, 'mt-2 rounded-xl bg-amber-50 border border-amber-300 p-3 text-base font-semibold text-amber-900'));
+                return caja;
+            };
             salida.replaceChildren(
-                crear('div', `Reproductores: ${adultos} × 0.300 kg = ${kg(gramosAdultos)} kg`),
-                crear('div', `Recía: ${recria} × ${(gRecria / 1000).toFixed(3)} kg = ${kg(gramosRecria)} kg`),
-                crear('span', `Total a cortar y repartir hoy: ${kg(gramosAdultos + gramosRecria)} kg de ${forraje}`, 'mod-total')
+                bloque('🌿 Total de forraje verde a cortar', `${kg(forrajeAdultos + forrajeRecria)} kg de ${forraje}`, [
+                    `Adultos: ${adultos} × ${gAdulto} g = ${kg(forrajeAdultos)} kg`,
+                    `Recría: ${recria} × ${gRecria} g = ${kg(forrajeRecria)} kg`
+                ], '⚠️ Orea el forraje a la sombra antes de darlo: el forraje recién cortado, tierno o mojado causa timpanismo.'),
+                bloque('🌾 Total de concentrado a preparar', `${kg(concAdultos + concRecria)} kg`, [
+                    `Comederos de adultos: ${kg(concAdultos)} kg (${adultos} × ${cAdulto} g)`,
+                    `Dentro de las gazaperas: ${kg(concRecria)} kg (${recria} × ${cRecria} g)`
+                ])
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
-            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gRecria, forraje }));
+            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gAdulto, cAdulto, gRecria, cRecria, forraje }));
         }
 
         function usarStockRacion() {
@@ -2441,7 +2463,10 @@
                 if (guardado) {
                     document.getElementById('racion-adultos').value = guardado.adultos || '';
                     document.getElementById('racion-recria').value = guardado.recria || '';
+                    document.getElementById('racion-g-adulto').value = guardado.gAdulto ?? 300;
+                    document.getElementById('racion-c-adulto').value = guardado.cAdulto ?? 28;
                     document.getElementById('racion-g-recria').value = guardado.gRecria ?? 150;
+                    document.getElementById('racion-c-recria').value = guardado.cRecria ?? 18;
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
