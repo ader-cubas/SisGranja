@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisgranja-v2.8.4-20261029o';
+const CACHE_NAME = 'sisgranja-v2.8.6-20261029p';
 const OFFLINE_URL = './SisGranja_v2.5.html';
 const IMAGENES_ATLAS = ['acaros.png.jpg', 'timpanismo.png.jpg', 'salmonella.png.jpg', 'neumonia-hermorragica.png.jpeg', 'coccidiosis.png.jpg', 'dermatitis.png.jpg', 'linfadenitis.png.jpg', 'colibacilosis.jpg.jpg'].map(n => './SisGranja/img/' + n);
 

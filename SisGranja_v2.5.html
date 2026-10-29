@@ -765,6 +765,9 @@
                 <button onclick="switchView('racion')" id="nav-racion" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-leaf text-lg"></i><span>Ración y Forraje</span>
                 </button>
+                <button onclick="switchView('almacen')" id="nav-almacen" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-package text-lg"></i><span>Proyección de Almacén</span>
+                </button>
             </nav>
         </div>
         <div class="p-4 border-t border-emerald-900/50 text-xs text-stone-400">
@@ -1700,7 +1703,10 @@
                             </select>
                         </label>
                     </div>
-                    <div class="mt-3"><button type="button" class="mod-btn mod-btn-sec" onclick="usarStockRacion()">Usar stock de mis pozas</button></div>
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        <label class="flex items-center gap-2 text-base font-semibold text-stone-800"><input type="checkbox" id="racion-sync" checked onchange="sincronizarRacionPozas()" class="h-5 w-5"> Tomar cantidades de mis pozas automáticamente</label>
+                    </div>
+                    <p id="racion-sync-info" class="mod-hint mt-1"></p>
                     <aside class="mt-4 rounded-2xl border-2 border-amber-400 bg-amber-50 p-4 text-stone-900" role="note" aria-label="Nota de manejo con gazaperas">
                         <p class="text-lg font-extrabold text-amber-900">💡 Manejo con gazaperas</p>
                         <ul class="mt-2 space-y-2 text-base leading-snug sm:text-lg">
@@ -1714,8 +1720,33 @@
                 </section>
             </div>
 
-        </div>
-    </main>
+            <!-- PROYECCIÓN DE ALMACÉN -->
+            <div id="view-almacen" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">📦 Proyección de almacén</h3>
+                    <p class="mod-hint">Usa el consumo diario de la calculadora de ración (con las cantidades de tus pozas) y lo compara con tu stock.</p>
+                    <div class="mod-grid">
+                        <label class="mod-field">Período a proyectar
+                            <select id="alm-periodo" onchange="calcularAlmacen()" class="mod-input">
+                                <option value="7">7 días</option>
+                                <option value="15">15 días</option>
+                                <option value="30">30 días</option>
+                                <option value="0">Otro (personalizado)</option>
+                            </select>
+                        </label>
+                        <label class="mod-field">Días personalizados
+                            <input type="number" id="alm-dias" min="1" step="1" value="7" inputmode="numeric" oninput="calcularAlmacen()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Stock de forraje (kg)
+                            <input type="number" id="alm-stock-forraje" min="0" step="0.5" inputmode="decimal" oninput="calcularAlmacen()" class="mod-input" placeholder="Ej. 20">
+                        </label>
+                        <label class="mod-field">Stock de concentrado (kg)
+                            <input type="number" id="alm-stock-conc" min="0" step="0.5" inputmode="decimal" oninput="calcularAlmacen()" class="mod-input" placeholder="Ej. 15">
+                        </label>
+                    </div>
+                    <div id="alm-resultado" class="mod-result" aria-live="polite"></div>
+                </section>
+            </div>
 
     <!-- MODAL / TOAST DE NOTIFICACIÓN -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -2238,7 +2269,8 @@
                 guia: 'Guía Técnica INIA',
                 bioseguridad: 'Bioseguridad y Prevención',
                 pesos: 'Control de Pesos y Curva de Crecimiento',
-                racion: 'Ración y Forraje'
+                racion: 'Ración y Forraje',
+                almacen: 'Proyección de Almacén'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
             document.getElementById('main-content-container').scrollTop = 0;
@@ -2247,6 +2279,8 @@
                 if (campoDiagnostico && !campoDiagnostico.value && bajaAnalisisActual) campoDiagnostico.value = bajaAnalisisActual.diagnostico_situacion || '';
             }
             
+            if (viewName === 'racion') sincronizarRacionPozas();
+            if (viewName === 'almacen') { sincronizarRacionPozas(); calcularAlmacen(); }
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
             }
@@ -2445,22 +2479,86 @@
                 ])
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
-            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gAdulto, cAdulto, gRecria, cRecria, forraje }));
+            escribirAlmacenamiento('sisgranja_racion', JSON.stringify({ adultos, recria, gAdulto, cAdulto, gRecria, cRecria, forraje, sync: document.getElementById('racion-sync').checked }));
+            calcularAlmacen();
         }
 
-        function usarStockRacion() {
-            const totalPorEtapa = etapa => obtenerPozasUnicas()
-                .filter(poza => String(poza.etapa || '').toLowerCase() === etapa)
-                .reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
-            document.getElementById('racion-adultos').value = totalPorEtapa('reproductor');
-            document.getElementById('racion-recria').value = totalPorEtapa('recía');
+        // Cantidades de reproductores y recría tomadas del registro general de pozas.
+        function sincronizarRacionPozas() {
+            const check = document.getElementById('racion-sync');
+            const info = document.getElementById('racion-sync-info');
+            const campos = [document.getElementById('racion-adultos'), document.getElementById('racion-recria')];
+            campos.forEach(c => { c.readOnly = check.checked; });
+            if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
+            try {
+                const totalPorEtapa = etapa => obtenerPozasUnicas()
+                    .filter(poza => String(poza.etapa || '').toLowerCase() === etapa)
+                    .reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
+                campos[0].value = totalPorEtapa('reproductor');
+                campos[1].value = totalPorEtapa('recía');
+                info.textContent = 'Cantidades sincronizadas con el registro de pozas (reproductores y recía).';
+            } catch (error) { info.textContent = 'No se pudo leer el registro de pozas; ingresa las cantidades manualmente.'; }
             calcularRacion();
+        }
+
+        function calcularAlmacen() {
+            const salida = document.getElementById('alm-resultado');
+            if (!salida) return;
+            const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
+            const adultos = num('racion-adultos'), recria = num('racion-recria');
+            const forrajeDia = (adultos * num('racion-g-adulto') + recria * num('racion-g-recria')) / 1000;
+            const concDia = (adultos * num('racion-c-adulto') + recria * num('racion-c-recria')) / 1000;
+            const periodo = Number(document.getElementById('alm-periodo').value);
+            const campoDias = document.getElementById('alm-dias');
+            if (periodo) campoDias.value = periodo;
+            campoDias.readOnly = periodo !== 0;
+            const dias = Math.max(1, Math.floor(Number(campoDias.value) || periodo || 7));
+            const stockF = num('alm-stock-forraje'), stockC = num('alm-stock-conc');
+            const crear = (tag, texto, clase) => { const el = document.createElement(tag); el.textContent = texto; if (clase) el.className = clase; return el; };
+            const bloque = (titulo, diario, stock) => {
+                const necesario = diario * dias;
+                const cobertura = diario > 0 ? stock / diario : Infinity;
+                const falta = Math.max(0, necesario - stock);
+                let estado, clase, mensaje;
+                if (diario <= 0) { estado = 'Sin consumo'; clase = 'border-stone-300 bg-stone-50 text-stone-800'; mensaje = 'Registra animales en la calculadora de ración.'; }
+                else if (cobertura < dias) { estado = '🔴 FALTA'; clase = 'border-red-400 bg-red-50 text-red-900'; mensaje = `Compra al menos ${falta.toFixed(2)} kg. Te alcanza para ${Math.floor(cobertura)} días.`; }
+                else if (cobertura < dias + 3) { estado = '🟡 AJUSTADO'; clase = 'border-amber-400 bg-amber-50 text-amber-900'; mensaje = `Alcanza justo (${Math.floor(cobertura)} días). Programa la compra pronto.`; }
+                else { estado = '🟢 SUFICIENTE'; clase = 'border-emerald-400 bg-emerald-50 text-emerald-900'; mensaje = `Cubre ${Math.floor(cobertura)} días. Sobran ${(stock - necesario).toFixed(2)} kg.`; }
+                const caja = crear('div', '', `mb-4 rounded-2xl border-2 p-4 ${clase}`);
+                caja.append(
+                    crear('p', titulo, 'text-lg font-extrabold'),
+                    crear('p', estado, 'text-2xl font-extrabold my-1'),
+                    crear('p', `Consumo diario: ${diario.toFixed(2)} kg`, 'text-base sm:text-lg'),
+                    crear('p', `Necesario para ${dias} días: ${necesario.toFixed(2)} kg`, 'text-base sm:text-lg font-bold'),
+                    crear('p', `Stock actual: ${stock.toFixed(2)} kg`, 'text-base sm:text-lg'),
+                    crear('p', mensaje, 'mt-1 text-base sm:text-lg font-semibold')
+                );
+                return caja;
+            };
+            salida.replaceChildren(
+                bloque('🌿 Forraje verde', forrajeDia, stockF),
+                bloque('🌾 Concentrado', concDia, stockC)
+            );
+            escribirAlmacenamiento('sisgranja_almacen', JSON.stringify({ periodo, dias, stockF, stockC }));
+        }
+
+        function cargarAlmacenGuardado() {
+            try {
+                const g = JSON.parse(leerAlmacenamiento('sisgranja_almacen') || 'null');
+                if (g) {
+                    document.getElementById('alm-periodo').value = [0, 7, 15, 30].includes(g.periodo) ? g.periodo : 7;
+                    document.getElementById('alm-dias').value = g.dias || 7;
+                    document.getElementById('alm-stock-forraje').value = g.stockF || '';
+                    document.getElementById('alm-stock-conc').value = g.stockC || '';
+                }
+            } catch (error) { /* datos corruptos: se ignoran */ }
         }
 
         function cargarRacionGuardada() {
             try {
                 const guardado = JSON.parse(leerAlmacenamiento('sisgranja_racion') || 'null');
                 if (guardado) {
+                    document.getElementById('racion-sync').checked = guardado.sync !== false;
                     document.getElementById('racion-adultos').value = guardado.adultos || '';
                     document.getElementById('racion-recria').value = guardado.recria || '';
                     document.getElementById('racion-g-adulto').value = guardado.gAdulto ?? 300;
@@ -2470,7 +2568,8 @@
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
-            calcularRacion();
+            cargarAlmacenGuardado();
+            sincronizarRacionPozas();
         }
 
         function renderModulosGranja() {
@@ -2478,6 +2577,7 @@
                 const campo = document.getElementById(id);
                 if (campo && !campo.value) campo.value = fechaHoy();
             });
+            sincronizarRacionPozas();
             actualizarPrediccionEmpadre();
             renderReproduccion();
             renderPesos();
