@@ -615,6 +615,13 @@
         .mod-btn-sec { background: #fff; color: #065f46; border: 2px solid #065f46; }
         .mod-result { margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #064e3b; line-height: 1.6; }
         .mod-result:empty { display: none; }
+        .peso-muestreo { margin-top: 14px; padding: 12px 14px; border-left: 5px solid #0f766e; background: #eff8f5; color: #164e42; line-height: 1.5; }
+        .peso-muestreo p { margin: 0; }
+        .peso-muestreo p + p { margin-top: 8px; }
+        .peso-analisis { margin-top: 14px; padding: 14px; border: 2px solid #ca8a04; border-radius: 12px; background: #fffbeb; color: #713f12; }
+        .peso-analisis h4 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 900; }
+        .peso-analisis ul { margin: 0 0 12px; padding-left: 20px; line-height: 1.5; }
+        .peso-analisis li + li { margin-top: 6px; }
         .mod-total { display: block; margin-top: 8px; font-size: 1.6rem; font-weight: 900; color: #065f46; overflow-wrap: anywhere; }
         .mod-sem { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 800; font-size: .85rem; white-space: nowrap; }
         .mod-sem-verde { background: #dcfce7; color: #14532d; border: 1px solid #15803d; }
@@ -1563,6 +1570,20 @@
                     </form>
                     <div id="peso-semaforo" class="mod-banner hidden" role="status"></div>
                     <p class="mod-hint mt-2">Semáforo referencial: <span class="mod-sem mod-sem-verde">Verde ≥ 8 g/día</span> <span class="mod-sem mod-sem-amarillo">Amarillo 5 a 7.9</span> <span class="mod-sem mod-sem-rojo">Rojo &lt; 5</span></p>
+                    <aside class="peso-muestreo" aria-label="Recomendación de muestreo INIA">
+                        <p><strong>💡 Recomendación INIA (Muestreo):</strong> No es necesario pesar todas las pozas cada semana. Pese una muestra representativa del 10% al 20% o utilice pozas centinelas al azar cada 7 días para evaluar la Ganancia Diaria de Peso (GDP).</p>
+                        <p><strong>🔔 Control sugerido:</strong> Cada 7 días (ej. cada lunes) para mantener la precisión en el semáforo.</p>
+                    </aside>
+                    <section id="peso-analisis" class="peso-analisis hidden" role="status" aria-live="polite">
+                        <h4>🔍 Análisis Inteligente: ¿Por qué baja el crecimiento?</h4>
+                        <ul>
+                            <li><strong>Nutrición y concentrado:</strong> Considera incrementar ligeramente la ración de alimento balanceado, revisa el porcentaje de proteína según la etapa y evita que los cuyes se llenen solo de agua por forraje excesivamente tierno.</li>
+                            <li><strong>Manejo del forraje:</strong> Asegura pasto oreado y fibra seca (heno) disponible.</li>
+                            <li><strong>Densidad:</strong> Revisa sobrepoblación o competencia en la poza.</li>
+                            <li><strong>Alerta sanitaria:</strong> Inspecciona para descartar Coccidiosis o parásitos.</li>
+                        </ul>
+                        <button type="button" class="mod-btn mod-btn-sec" onclick="switchView('guia'); activarPestanaGuia('atlas')">Abrir Atlas de Enfermedades</button>
+                    </section>
                 </section>
                 <section class="mod-card">
                     <h4 class="mod-title">Curva de crecimiento</h4>
@@ -2181,6 +2202,13 @@
             return { nivel: 'rojo', icono: '🔴', texto: 'Crecimiento deficiente: actúa ahora' };
         }
 
+        function actualizarAnalisisCrecimiento(gdp) {
+            const panel = document.getElementById('peso-analisis');
+            if (!panel) return;
+            const requiereRevision = gdp !== null && clasificarGDP(gdp).nivel !== 'verde';
+            panel.classList.toggle('hidden', !requiereRevision);
+        }
+
         function calcularGDPPeso(registro) {
             const anteriores = db.pesos.filter(p => p.poza === registro.poza && p.fecha < registro.fecha);
             if (!anteriores.length) return null;
@@ -2206,6 +2234,7 @@
             document.getElementById('peso-gramos').value = '';
             guardarBD('Peso registrado');
             const gdp = calcularGDPPeso(registro);
+            actualizarAnalisisCrecimiento(gdp);
             const banner = document.getElementById('peso-semaforo');
             if (gdp === null) {
                 banner.className = 'mod-banner mod-sem-gris';
@@ -2222,6 +2251,7 @@
             if (!tbody) return;
             const filas = db.pesos.map((p, indice) => ({ p, indice, gdp: calcularGDPPeso(p) }))
                 .sort((a, b) => b.p.fecha.localeCompare(a.p.fecha));
+            actualizarAnalisisCrecimiento(filas.length ? filas[0].gdp : null);
             tbody.innerHTML = filas.map(({ p, indice, gdp }) => {
                 const estado = gdp === null ? null : clasificarGDP(gdp);
                 return `<tr><td>${escaparHTML(p.fecha)}</td><td><strong>${escaparHTML(p.poza)}</strong></td><td>${escaparHTML(p.etapa)}</td><td>${Number(p.gramos)}</td><td>${Number(p.cantidad) || 1}</td><td>${gdp === null ? '—' : gdp.toFixed(1)}</td><td>${estado ? `<span class="mod-sem mod-sem-${estado.nivel}">${estado.icono} ${estado.nivel}</span>` : '<span class="mod-sem mod-sem-gris">Sin dato</span>'}</td><td><button type="button" onclick="eliminarItem('pesos', ${indice})" class="text-rose-600 text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50">Eliminar</button></td></tr>`;
@@ -2403,6 +2433,7 @@
             const entrada = document.createElement('input');
             entrada.type = 'file';
             entrada.accept = 'image/*';
+            entrada.setAttribute('capture', 'environment');
             entrada.className = 'hidden';
             subir.appendChild(entrada);
             const quitar = document.createElement('button');
@@ -2690,7 +2721,7 @@
                 return caja;
             }
             const ul = document.createElement('ul');
-            ['Aislar al enfermo y tratar a toda la poza de forma preventiva con el mismo principio activo (consulta al veterinario por la dosis colectiva).',
+            ['Aislar al enfermo y consultar al veterinario; no mediques preventivamente a toda la poza sin diagnóstico e indicación profesional.',
              'Desinfectar la poza, comederos y bebederos; cama nueva y seca; cal en esquinas húmedas.',
              'Pediluvio en la entrada y manejo de la poza enferma al final del día.',
              'Vitamina C y agua limpia para toda la poza; vigilar 7 días.'].forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
