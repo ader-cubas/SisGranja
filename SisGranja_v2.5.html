@@ -2462,12 +2462,14 @@
             { nombre: 'Hongos / Tiña', icono: '🍄', agente: 'Trichophyton mentagrophytes (hongo).', signos: 'Zonas circulares sin pelo con escamas, sobre todo en cabeza y lomo; contagiosa al humano.', pulmones: 'Sin lesiones internas.', higado: 'Sin lesiones internas.', bazo: 'Sin lesiones internas.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Antifúngico tópico (por ejemplo miconazol o yodo) o griseofulvina según veterinario; desinfectar instalaciones y usar guantes.' },
             { nombre: 'Colibacilosis', icono: '💦', agente: 'Escherichia coli (bacteria).', signos: 'Diarrea acuosa, deshidratación, decaimiento y muerte rápida, sobre todo en crías.', pulmones: 'Normales o congestionados.', higado: 'Congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Intestino delgado congestionado con contenido líquido.', tratamiento: 'Enrofloxacina (zona verde) y rehidratación oral; mejorar higiene y agua limpia.' },
             { nombre: 'Enfermedad de Tyzzer', icono: '⚫', agente: 'Clostridium piliforme (bacteria).', signos: 'Diarrea, decaimiento y muerte súbita, favorecida por estrés.', pulmones: 'Sin lesiones características.', higado: 'Múltiples focos necróticos blanquecinos pequeños.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Inflamación del íleon y ciego, con hemorragias.', tratamiento: 'No hay tratamiento eficaz; apoyo con oxitetraciclina y rehidratación según veterinario. Prevenir reduciendo estrés y mejorando la higiene.' },
-            { nombre: 'Timpanismo', icono: '🎈', agente: 'Trastorno digestivo: fermentación por forraje mojado, recién cortado o muy tierno (no es un germen).', signos: 'Abdomen hinchado y duro tipo tambor, dolor, respiración difícil, no come, decaimiento y muerte si no se atiende.', pulmones: 'Congestión por presión del abdomen sobre el diafragma.', higado: 'Congestionado.', bazo: 'Normal.', intestinos: 'Estómago y ciego distendidos por gas, con contenido espumoso y fermentado.', tratamiento: 'Retirar el forraje mojado, dar masaje abdominal suave y antiespumante; luego solo forraje oreado.' }
+            { nombre: 'Timpanismo', icono: '🎈', agente: 'Trastorno digestivo: fermentación por forraje mojado, recién cortado o muy tierno (no es un germen).', signos: 'Abdomen hinchado y duro tipo tambor, dolor, respiración difícil, no come, decaimiento y muerte si no se atiende.', pulmones: 'Congestión por presión del abdomen sobre el diafragma.', higado: 'Congestionado.', bazo: 'Normal.', intestinos: 'Estómago y ciego distendidos por gas, con contenido espumoso y fermentado.', tratamiento: 'Retirar el forraje mojado, dar masaje abdominal suave y antiespumante; luego solo forraje oreado.' },
+            { nombre: 'Afecciones Genitales', icono: '🩺', agente: 'Heridas por peleas o suciedad en machos; esfuerzos de parto, falta de vitamina C o infecciones en hembras.', signos: 'Inflamación, enrojecimiento, heridas abiertas, exposición de tejidos, dolor al orinar, imposibilidad de servicio', pulmones: 'Sin lesiones características.', higado: 'Sin lesiones características.', bazo: 'Sin lesiones características.', intestinos: 'Sin lesiones características.', tratamiento: 'Aseo con antiséptico tibio, crema cicatrizante o antibiótica local; casos graves bajo criterio veterinario.' }
         ];
 
         const GUIA_CATEGORIAS = [
             { id: 'externa', titulo: '🐾 Enfermedades Externas y Parasitarias', nombres: ['Sarna', 'Hongos / Tiña'] },
-            { id: 'interna', titulo: '🫀 Enfermedades Internas, Infecciosas y Digestivas', nombres: ['Salmonelosis', 'Neumonía', 'Coccidiosis', 'Colibacilosis', 'Enfermedad de Tyzzer', 'Linfadenitis Cervical', 'Timpanismo'] }
+            { id: 'interna', titulo: '🫀 Enfermedades Internas, Infecciosas y Digestivas', nombres: ['Salmonelosis', 'Neumonía', 'Coccidiosis', 'Colibacilosis', 'Enfermedad de Tyzzer', 'Linfadenitis Cervical', 'Timpanismo'] },
+            { id: 'repro', titulo: '🧬 Afecciones Reproductivas y Genitales', nombres: ['Afecciones Genitales'] }
         ];
 
         // Zona Verde: mgkg = dosis por kg de peso vivo; conc = mg por ml del producto. Referencial: validar con veterinario.
@@ -2480,6 +2482,7 @@
             'Enfermedad de Tyzzer': { farmaco: 'Oxitetraciclina 20 % inyectable', conc: 200, mgkg: 20, via: 'Intramuscular (IM)', frec: 'cada 24 h', dias: 3 },
             'Sarna': { farmaco: 'Ivermectina 1 % diluida 1:10 (1 ml + 9 ml de suero fisiológico = 1 mg/ml)', conc: 1, mgkg: 0.2, via: 'Subcutánea (SC)', frec: 'dosis única; repetir a los 14 días', dias: 1 },
             'Hongos / Tiña': { tópico: 'Antifúngico tópico (miconazol o yodo povidona) una vez al día sobre la lesión, con guantes, durante 14 a 21 días. No se dosifica por peso.' },
+            'Afecciones Genitales': { tópico: ['Aseo riguroso con solución antiséptica tibia (agua oxigenada diluida o yodopovidona rebajada).', 'Aplicar localmente crema cicatrizante o antibiótica (con oxitetraciclina o nitrofurazona).', 'Prolapso grave o necrosis: evaluación e intervención quirúrgica por el veterinario.', 'Descanso reproductivo obligatorio bajo criterio veterinario. No se dosifica por peso.'] },
             'Timpanismo': { farmaco: 'Simeticona 4 % gotas (antiespumante, uso oral)', conc: 40, mgkg: 20, via: 'Oral', frec: 'dosis única, repetir a las 6 h si persiste', dias: 1 }
         };
 
@@ -2488,8 +2491,17 @@
         const ATLAS_FOTOS_CREDITOS = { 'Sarna|clinica': 'Trixacarus caviae en cuy · Wikimedia Commons, CC BY 3.0' };
         const ATLAS_PESO_CLAVE = 'sisgranja_atlas_peso';
         // Foto de referencia clínica local (precacheada por el Service Worker para uso sin conexión).
-        const ATLAS_IMG_REF = { 'Sarna': './SisGranja/img/acaros.png.jpg', 'Timpanismo': './SisGranja/img/timpanismo.png.jpg', 'Salmonelosis': './SisGranja/img/salmonella.png.jpg', 'Neumonía': './SisGranja/img/neumonia-hermorragica.png.jpeg', 'Coccidiosis': './SisGranja/img/coccidiosis.png.jpg' };
+        const ATLAS_IMG_REF = { 'Sarna': './SisGranja/img/acaros.png.jpg', 'Timpanismo': './SisGranja/img/timpanismo.png.jpg', 'Salmonelosis': './SisGranja/img/salmonella.png.jpg', 'Neumonía': './SisGranja/img/neumonia-hermorragica.png.jpeg', 'Coccidiosis': './SisGranja/img/coccidiosis.png.jpg', 'Hongos / Tiña': './SisGranja/img/dermatitis.png.jpg', 'Linfadenitis Cervical': './SisGranja/img/linfadenitis.png.jpg', 'Colibacilosis': './SisGranja/img/colibacilosis.jpg.jpg' };
+        const ATLAS_TITULOS = { 'Sarna': 'Sarna (Acariosis)', 'Timpanismo': 'Timpanismo / Hinchazón', 'Salmonelosis': 'Salmonelosis (Fiebre Tifoidea)', 'Neumonía': 'Neumonía (Purulenta / Hemorrágica)', 'Hongos / Tiña': 'Dermatitis / Hongos / Tiña', 'Colibacilosis': 'Colibacilosis / Enteritis', 'Afecciones Genitales': 'Heridas, Prolapso e Infecciones Genitales' };
+        const ATLAS_BIOSEGURIDAD = {
+            'Afecciones Genitales': ['Separa de inmediato a los machos agresivos.', 'Limpieza diaria estricta de camas; evita viruta muy fina o sucia que irrite los genitales.', 'Suplementa vitamina C, sobre todo en gestación y lactancia.', 'Descarta reproductores con lesiones o infecciones recurrentes.']
+        };
         const ATLAS_CAUSAS = {
+            'Afecciones Genitales': ['Machos (heridas en el pene, prolapso, infecciones): peleas entre machos en pozas de recría o reproducción y monta excesiva.', 'Machos: viruta o paja sucia que se incrusta en el prepucio y causa inflamación, infección bacteriana o parafimosis (no puede retraer el pene).', 'Hembras (prolapso uterino, abortos): esfuerzos excesivos en el parto y falta de vitamina C.', 'Hembras: estrés calórico o infecciones como la salmonelosis.'],
+            'Hongos / Tiña': ['Hongo Trichophyton mentagrophytes que se contagia por contacto y cama contaminada.', 'Humedad y poca ventilación.', 'Animales con defensas bajas o hacinados.'],
+            'Linfadenitis Cervical': ['Bacteria Streptococcus zooepidemicus que entra por heridas en boca o piel.', 'Forraje con tallos duros o pajas que lastiman la boca.', 'Contagio por pus de abscesos abiertos y peleas.'],
+            'Colibacilosis': ['Bacteria Escherichia coli por agua, alimento o cama contaminados.', 'Crías con defensas bajas y estrés.', 'Higiene deficiente y hacinamiento.'],
+            'Enfermedad de Tyzzer': ['Bacteria Clostridium piliforme que se transmite por heces.', 'Estrés, hacinamiento y mala higiene.'],
             'Sarna': ['Ácaro Trixacarus caviae, que se contagia por contacto directo entre cuyes.', 'Hacinamiento y cama sucia o húmeda.', 'Animales estresados o mal alimentados, con defensas bajas.', 'Ingreso de animales nuevos sin cuarentena.'],
             'Timpanismo': ['Forraje verde mojado, recién cortado o fermentado.', 'Exceso de alfalfa o pastos muy tiernos sin orear.', 'Cambio brusco de alimento.', 'Ayuno largo seguido de comida abundante.'],
             'Salmonelosis': ['Bacteria Salmonella en agua o alimento contaminado.', 'Heces de roedores, aves u otros animales en el galpón.', 'Comederos y pozas sucios, hacinamiento y estrés.', 'Ingreso de animales portadores sin cuarentena.'],
@@ -2501,7 +2513,7 @@
         function resumenTratamientoAtlas(nombre) {
             const p = GUIA_DOSIS[nombre];
             if (!p) return [];
-            if (p.tópico) return [p.tópico];
+            if (p.tópico) return Array.isArray(p.tópico) ? p.tópico : [p.tópico];
             const ml100 = p.mgkg * 0.1 / p.conc;
             const ejemplo = p.mgkg * 0.8 / p.conc;
             return [`Medicamento: ${p.farmaco}.`, `Dosis: ${ml100.toFixed(3)} ml por cada 100 g de peso (${p.mgkg} mg/kg). Ejemplo: cuy de 800 g = ${ejemplo.toFixed(2)} ml.`, `Vía: ${p.via}; ${p.frec}.`, `Duración: ${p.dias} ${p.dias === 1 ? 'día' : 'días'}.`];
@@ -2642,7 +2654,7 @@
             caja.append(etiqueta, salida);
             const pintar = () => {
                 const g = Number(entrada.value);
-                if (perfil && perfil.tópico) { salida.replaceChildren(el('p', perfil.tópico)); return; }
+                if (perfil && perfil.tópico) { salida.replaceChildren(...[].concat(perfil.tópico).map(t => el('p', t))); return; }
                 const r = calcularDosisCuy(d.nombre, g);
                 if (!r) { salida.replaceChildren(el('p', 'Ingresa un peso entre 50 y 2000 g.')); return; }
                 try { escribirAlmacenamiento(ATLAS_PESO_CLAVE, String(g)); } catch (error) { /* sin espacio */ }
@@ -2671,10 +2683,10 @@
                 return caja;
             }
             const ul = document.createElement('ul');
-            ['Aislar al enfermo y consultar al veterinario; no mediques preventivamente a toda la poza sin diagnóstico e indicación profesional.',
+            (ATLAS_BIOSEGURIDAD[d.nombre] || ['Aislar al enfermo y consultar al veterinario; no mediques preventivamente a toda la poza sin diagnóstico e indicación profesional.',
              'Desinfectar la poza, comederos y bebederos; cama nueva y seca; cal en esquinas húmedas.',
              'Pediluvio en la entrada y manejo de la poza enferma al final del día.',
-             'Vitamina C y agua limpia para toda la poza; vigilar 7 días.'].forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+             'Vitamina C y agua limpia para toda la poza; vigilar 7 días.']).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
             const titulo = document.createElement('strong');
             titulo.textContent = '🧼 Protocolo colectivo por poza';
             caja.append(titulo, ul);
@@ -2688,7 +2700,7 @@
             const fichaDe = d => {
                 const indice = GUIA_ENFERMEDADES.indexOf(d);
                 const ficha = crear('details', undefined, 'guia-card');
-                ficha.appendChild(crear('summary', `${d.icono} ${d.nombre === 'Colibacilosis' ? 'Colibacilosis / Enteritis' : d.nombre}`));
+                ficha.appendChild(crear('summary', `${d.icono} ${ATLAS_TITULOS[d.nombre] || d.nombre}`));
                 const cuerpo = crear('div', undefined, 'guia-body');
                 const fotos = crear('div', undefined, 'atlas-par');
                 const figuraRef = crear('figure', undefined, 'atlas-foto');

@@ -1,6 +1,6 @@
-const CACHE_NAME = 'sisgranja-v2.7.2-20261029j';
+const CACHE_NAME = 'sisgranja-v2.8.0-20261029k';
 const OFFLINE_URL = './SisGranja_v2.5.html';
-const IMAGENES_ATLAS = ['acaros.png.jpg', 'timpanismo.png.jpg', 'salmonella.png.jpg', 'neumonia-hermorragica.png.jpeg', 'coccidiosis.png.jpg'].map(n => './SisGranja/img/' + n);
+const IMAGENES_ATLAS = ['acaros.png.jpg', 'timpanismo.png.jpg', 'salmonella.png.jpg', 'neumonia-hermorragica.png.jpeg', 'coccidiosis.png.jpg', 'dermatitis.png.jpg', 'linfadenitis.png.jpg', 'colibacilosis.jpg.jpg'].map(n => './SisGranja/img/' + n);
 
 self.addEventListener('install', event => {
   self.skipWaiting();
