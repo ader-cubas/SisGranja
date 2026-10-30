@@ -4529,7 +4529,7 @@
 
             $('btn-logout').addEventListener('click', () => {
                 try { localStorage.removeItem(LLAVE); } catch (e) {}
-                mostrarLogin();
+                location.reload();
             });
         })();
     </script>
