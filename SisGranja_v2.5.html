@@ -4638,20 +4638,33 @@
 
             // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
             const ACCIONES = [
-                {   // "registrar parto en poza 15 con 4 gazapos [y 1 muerta]"
-                    patron: /parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
-                    requiere: /registr|anota|agrega|nuevo|hubo|tuvo/,
-                    ejecutar(m) {
-                        const codigo = codigoPoza(m[1]);
-                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
-                        if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
-                        irA('partos');
-                        ponerValor('parto-poza', codigo);
-                        ponerValor('parto-vivas', m[2]);
-                        ponerValor('parto-muertas', m[3] || '0');
-                        guardarParto(evento);
-                        exito('Registrado correctamente');
-                    }
+               {
+        // Registrar bajas o muertes en pozas (Ej: "en la poza 3 murió un gazapo")
+        patron: /(?:muerto|murió|baja|falleció).*?poza\s*(\d+)/i,
+        requiere: /registra|anota|agrega|hubo|murió|baja/i,
+        ejecutar(m) {
+            const codigo = codigoPoza(m[1]);
+            if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+            irA('bajas');
+            ponerValor('baja-poza', codigo);
+            exito('Poza ' + m[1] + ' seleccionada para registrar baja.');
+            return true;
+        }
+    },
+    {
+        // Registrar destetados (Ej: "en la poza 10 hay 20 destetados machos")
+        patron: /poza\s*(\d+).*?(\d+)\s*(?:destetados|machos|hembras)/i,
+        requiere: /registra|anota|agrega|hay|destete|destetados/i,
+        ejecutar(m) {
+            const codigo = codigoPoza(m[1]);
+            if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+            irA('destetes');
+            ponerValor('destete-poza', codigo);
+            ponerValor('destete-cantidad', m[2]);
+            exito('Poza ' + m[1] + ': ' + m[2] + ' destetados listos para guardar.');
+            return true;
+        }
+    },
                 },
                 {   // "venta de hoy 5 cuyes a 35 soles" (precio por unidad)
                     patron: /venta.*?(\d+)\s*(\w+)?.*?(?:a|en|por)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/,
@@ -5025,7 +5038,37 @@
                         ], pie: AVISO_VET, accion: abrirDrCuy
                     });
                     exito('Mostrando orientación clínica');
-                    return true;
+   <script>
+    function hablar(textoLimpio) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
+            const utterance = new SpeechSynthesisUtterance(textoPlano);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    const exitoOriginal = window.exito || function(m) { alert(m); };
+    window.exito = function(mensaje) {
+        exitoOriginal(mensaje);
+        hablar(mensaje);
+    };
+
+    const falloOriginal = window.fallo || function(m) { console.error(m); };
+    window.fallo = function(mensaje) {
+        falloOriginal(mensaje);
+        hablar(mensaje);
+    };
+
+    const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
+    window.mostrarPantallazoVoz = function(titulo, mensaje) {
+        mostrarPantallazoVozOriginal(titulo, mensaje);
+        hablar(`${titulo}. ${mensaje}`);
+    };
+</script>                 return true;
                 }
                 return false;
             }
@@ -5073,10 +5116,95 @@
             window.SisGranjaVoz = { vistas: VISTAS, acciones: ACCIONES, procesar };
         })();
     </script>
+    // =====================================================================
+    // MOTOR DE VOZ TOTAL: LECTURA HABLADA DE TARJETAS, ALERTAS Y CONSULTAS
+    // =====================================================================
+    function hablar(textoLimpio) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
+            const utterance = new SpeechSynthesisUtterance(textoPlano);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
+    window.mostrarPantallazoVoz = function(titulo, mensaje) {
+        mostrarPantallazoVozOriginal(titulo, mensaje);
+        hablar(`${titulo}. ${mensaje}`);
+    };
+
+    const exitoOriginal = window.exito || function(m) { alert(m); };
+    window.exito = function(mensaje) {
+        exitoOriginal(mensaje);
+        hablar(mensaje);
+    };
+
+    const falloOriginal = window.fallo || function(m) { console.error(m); };
+    window.fallo = function(mensaje) {
+        falloOriginal(mensaje);
+        hablar(mensaje);
+    };
+    const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
+    window.mostrarPantallazoVoz = function(titulo, mensaje) {
+        mostrarPantallazoVozOriginal(titulo, mensaje);
+        hablar(`${titulo}. ${mensaje}`);
+    };
+
+    const exitoOriginal = window.exito || function(m) { alert(m); };
+    window.exito = function(mensaje) {
+        exitoOriginal(mensaje);
+        hablar(mensaje);
+    };
+
+    const falloOriginal = window.fallo || function(m) { console.error(m); };
+    window.fallo = function(mensaje) {
+        falloOriginal(mensaje);
+        hablar(mensaje);
+    };
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW no registrado:', e)));
         }
+    </script>
+    
+</body>
+</html>
+<script>
+        // =====================================================================
+        // MOTOR DE VOZ TOTAL: SÍNTESIS Y LECTURA HABLADA
+        // =====================================================================
+        function hablar(textoLimpio) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
+                const utterance = new SpeechSynthesisUtterance(textoPlano);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        const exitoOriginal = window.exito || function(m) { alert(m); };
+        window.exito = function(mensaje) {
+            exitoOriginal(mensaje);
+            hablar(mensaje);
+        };
+
+        const falloOriginal = window.fallo || function(m) { console.error(m); };
+        window.fallo = function(mensaje) {
+            falloOriginal(mensaje);
+            hablar(mensaje);
+        };
+
+        const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
+        window.mostrarPantallazoVoz = function(titulo, mensaje) {
+            mostrarPantallazoVozOriginal(titulo, mensaje);
+            hablar(`${titulo}. ${mensaje}`);
+        };
     </script>
 </body>
 </html>
