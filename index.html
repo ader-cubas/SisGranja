@@ -733,9 +733,11 @@
         #login-error { display: none; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: .875rem; border: 1px solid #fecaca; }
         #app-container { display: none; width: 100%; height: 100dvh; flex-direction: column; overflow: hidden; }
         @media (min-width: 768px) { #app-container { flex-direction: row; } .login-card { padding: 40px 36px; } }
-        #voice-fab { position: fixed; right: 16px; bottom: 16px; z-index: 8000; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #059669; color: #fff; font-size: 1.6rem; box-shadow: 0 8px 20px rgba(0,0,0,.3); cursor: pointer; display: none; }
-        #voice-fab.escuchando { background: #dc2626; animation: voicePulse 1.2s infinite; }
-        @keyframes voicePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.5); } 50% { box-shadow: 0 0 0 14px rgba(220,38,38,0); } }
+        #voice-fab { position: fixed; right: 16px; bottom: 16px; z-index: 8000; display: none; align-items: center; gap: 8px; height: 52px; padding: 0 20px 0 16px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: linear-gradient(135deg, #065f46, #047857); color: #fff; font-size: .95rem; font-weight: 600; box-shadow: 0 8px 24px rgba(4,120,87,.4); cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s; }
+        #voice-fab .voz-icono { font-size: 1.3rem; line-height: 1; }
+        #voice-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(4,120,87,.5); }
+        #voice-fab.escuchando { background: linear-gradient(135deg, #10b981, #34d399); color: #022c22; animation: voicePulse 1.2s infinite; }
+        @keyframes voicePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.6); } 50% { box-shadow: 0 0 0 16px rgba(16,185,129,0); } }
         #voice-banner { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 9500; max-width: min(92vw, 520px); padding: 10px 18px; border-radius: 14px; background: #1c1917; color: #fff; font-size: .9rem; box-shadow: 0 10px 25px rgba(0,0,0,.35); display: none; text-align: center; }
         #voice-banner.ok { background: #047857; }
         #voice-banner.error { background: #b91c1c; }
@@ -758,7 +760,7 @@
         </form>
     </div>
     <div id="voice-banner" role="status" aria-live="polite"></div>
-    <button type="button" id="voice-fab" aria-label="Control por voz" title="Control por voz">🎤</button>
+    <button type="button" id="voice-fab" aria-label="Control por voz" title="Control por voz"><span class="voz-icono" aria-hidden="true">🎤</span><span class="voz-etiqueta">Voz</span></button>
 
     <div id="app-container">
 
@@ -4488,7 +4490,7 @@
             function mostrarApp() {
                 $('login-container').style.display = 'none';
                 $('app-container').style.display = 'flex';
-                $('voice-fab').style.display = 'block';
+                $('voice-fab').style.display = 'flex';
                 window.dispatchEvent(new Event('resize'));
             }
             function mostrarLogin() {
@@ -4534,12 +4536,19 @@
         })();
     </script>
     <script>
-        // Control por voz: navegación y registro de datos con regex.
+        // Motor de voz: para ampliarlo basta añadir entradas a VISTAS (navegación) o ACCIONES (formularios).
         (() => {
             const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
             const fab = document.getElementById('voice-fab');
+            const etiqueta = fab.querySelector('.voz-etiqueta');
             const banner = document.getElementById('voice-banner');
-            let temporizador = null, activo = false, rec = null;
+            let temporizador = null, activo = false, rec = null, ultimoCampo = null;
+
+            // Memoriza el último campo de texto enfocado para dictar notas aunque el botón lo desenfoque.
+            document.addEventListener('focusin', e => {
+                if (e.target.matches('textarea, input[type=text], input[type=search], input:not([type])')) ultimoCampo = e.target;
+            });
+            fab.addEventListener('mousedown', e => e.preventDefault());
 
             function aviso(texto, tipo = '', ms = 0) {
                 banner.textContent = texto;
@@ -4555,142 +4564,193 @@
                 u.lang = 'es-PE';
                 speechSynthesis.speak(u);
             }
-            function exito(texto) { aviso('✔ ' + texto, 'ok', 3500); hablar(texto); }
-            function fallo(texto) { aviso('✖ ' + texto, 'error', 4500); hablar(texto); }
+            const exito = texto => { aviso('✔ ' + texto, 'ok', 3500); hablar(texto); };
+            const fallo = texto => { aviso('✖ ' + texto, 'error', 4500); hablar(texto); };
 
+            // --- Números hablados -> dígitos ("treinta y cinco" -> 35) ---
             const UNIDADES = { cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24, veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29 };
             const DECENAS = { treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90 };
             const CENTENAS = { cien: 100, ciento: 100, doscientos: 200, trescientos: 300, cuatrocientos: 400, quinientos: 500, seiscientos: 600, setecientos: 700, ochocientos: 800, novecientos: 900 };
 
             function normalizar(texto) {
-                let t = texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[,.;:!?¿¡]/g, m => (m === ',' || m === '.') ? m : ' ');
-                t = t.replace(/(\d),(\d)/g, '$1.$2').replace(/[,]/g, ' ');
-                const tokens = t.split(/\s+/).filter(Boolean);
+                const base = texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/(\d),(\d)/g, '$1.$2').replace(/[,;:!?¿¡]/g, ' ');
+                const tokens = base.split(/\s+/).filter(Boolean);
                 const salida = [];
                 for (let i = 0; i < tokens.length; i++) {
-                    const w = tokens[i];
-                    if (w in CENTENAS || w in DECENAS || w in UNIDADES) {
-                        let total = 0, j = i, hubo = false;
-                        if (tokens[j] in CENTENAS) { total += CENTENAS[tokens[j]]; j++; hubo = true; }
-                        if (tokens[j] in DECENAS) {
-                            total += DECENAS[tokens[j]]; j++; hubo = true;
-                            if (tokens[j] === 'y' && tokens[j + 1] in UNIDADES && UNIDADES[tokens[j + 1]] < 10) { total += UNIDADES[tokens[j + 1]]; j += 2; }
-                        } else if (tokens[j] in UNIDADES) { total += UNIDADES[tokens[j]]; j++; hubo = true; }
-                        if (hubo) { salida.push(String(total)); i = j - 1; continue; }
-                    }
-                    salida.push(w);
+                    let j = i, total = 0, hubo = false;
+                    if (tokens[j] in CENTENAS) { total += CENTENAS[tokens[j++]]; hubo = true; }
+                    if (tokens[j] in DECENAS) {
+                        total += DECENAS[tokens[j++]]; hubo = true;
+                        if (tokens[j] === 'y' && tokens[j + 1] in UNIDADES && UNIDADES[tokens[j + 1]] < 10) total += UNIDADES[tokens[(j += 2) - 1]];
+                    } else if (tokens[j] in UNIDADES) { total += UNIDADES[tokens[j++]]; hubo = true; }
+                    if (hubo) { salida.push(String(total)); i = j - 1; } else salida.push(tokens[i]);
                 }
                 return salida.join(' ').replace(/\s+/g, ' ').trim();
             }
 
+            // --- Navegación: [id de vista, palabras clave]. El orden resuelve ambigüedades. ---
             const VISTAS = [
-                ['bioseguridad', /bioseguridad|prevencion/],
-                ['gastos', /gastos?/],
-                ['ventas', /ventas?|ingresos?/],
-                ['salud', /kardex|salud/],
-                ['bajas', /sanidad|bajas?|mortalidad|dr cuy/],
-                ['destetados', /destet\w*/],
-                ['partos', /partos?|reproduccion|empadre/],
-                ['cuyes', /pozas?|cuyes/],
-                ['guia', /guia|tecnica/],
-                ['pesos', /pesos?|pesaje/],
-                ['racion', /racion|forraje/],
-                ['almacen', /almacen|proyeccion/],
-                ['dashboard', /dashboard|inicio|panel|resumen|principal/]
+                ['bioseguridad', /bioseguridad|prevencion/, 'Bioseguridad'],
+                ['gastos', /gastos?/, 'Gastos operativos'],
+                ['ventas', /ventas?|ingresos?/, 'Ventas'],
+                ['salud', /kardex|salud/, 'Kardex sanitario'],
+                ['bajas', /sanidad|bajas?|mortalidad|veterinari\w*|dr cuy|doctor cuy/, 'Sanidad'],
+                ['destetados', /destet\w*/, 'Destetados'],
+                ['partos', /partos?|reproduccion|empadre/, 'Partos'],
+                ['cuyes', /pozas?|cuyes|gestion/, 'Gestión de pozas'],
+                ['guia', /guia|tecnica/, 'Guía técnica'],
+                ['pesos', /pesos?|pesaje/, 'Control de pesos'],
+                ['racion', /racion|forraje/, 'Ración y forraje'],
+                ['almacen', /almacen|proyeccion/, 'Almacén'],
+                ['dashboard', /dashboard|inicio|panel|resumen|principal/, 'Dashboard']
             ];
-            const NOMBRES = { dashboard: 'Dashboard', cuyes: 'Pozas', partos: 'Partos', destetados: 'Destetados', bajas: 'Sanidad', ventas: 'Ventas', gastos: 'Gastos operativos', salud: 'Kardex sanitario', guia: 'Guía técnica', bioseguridad: 'Bioseguridad', pesos: 'Pesos', racion: 'Ración y forraje', almacen: 'Almacén' };
+            const VERBOS_NAV = /\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver)\b/;
 
-            function irA(vista) {
+            const irA = vista => {
                 if (!document.getElementById('view-' + vista)) return false;
                 switchView(vista);
                 return true;
-            }
-            const falsoEvento = { preventDefault() {} };
+            };
+            const evento = { preventDefault() {} };
+            const ponerValor = (id, valor) => {
+                const el = document.getElementById(id);
+                if (el) { el.value = valor; el.dispatchEvent(new Event('input', { bubbles: true })); }
+            };
+            const codigoPoza = n => 'PZ-' + String(n).padStart(3, '0');
+
+            // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
+            const ACCIONES = [
+                {   // "registrar parto en poza 15 con 4 gazapos [y 1 muerta]"
+                    patron: /parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
+                    requiere: /registr|anota|agrega|nuevo|hubo|tuvo/,
+                    ejecutar(m) {
+                        const codigo = codigoPoza(m[1]);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+                        if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
+                        irA('partos');
+                        ponerValor('parto-poza', codigo);
+                        ponerValor('parto-vivas', m[2]);
+                        ponerValor('parto-muertas', m[3] || '0');
+                        guardarParto(evento);
+                        exito('Registrado correctamente');
+                    }
+                },
+                {   // "venta de hoy 5 cuyes a 35 soles" (precio por unidad)
+                    patron: /venta.*?(\d+)\s*(\w+)?.*?(?:a|en|por)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/,
+                    ejecutar(m, t) {
+                        const categoria = /gazap|cria/.test(m[2] || '') ? 'Gazapos (Crías)'
+                            : /reproduc|descarte/.test(t) ? 'Reproductor / Descarte'
+                            : /guano|abono/.test(t) ? 'Subproductos / Abono (Guano)'
+                            : 'Cuy Comercial / Engorde';
+                        irA('ventas');
+                        ponerValor('venta-categoria', categoria);
+                        ponerValor('venta-cantidad', m[1]);
+                        ponerValor('venta-monto', m[3]);
+                        guardarVenta(evento);
+                        exito('Registrado correctamente');
+                    }
+                },
+                {   // "gasto operativo en alimento 150 soles"
+                    patron: /gastos?(?:\s+operativos?)?\s*(?:en|de|por)?\s*(.*?)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/,
+                    ejecutar(m) {
+                        const concepto = (m[1] || '').replace(/^(?:en|de|por)\s+/, '').trim() || 'Gasto por voz';
+                        const categoria = /alimento|balanceado|concentrado/.test(concepto) ? 'Alimentación'
+                            : /forraje|alfalfa|pasto/.test(concepto) ? 'Forraje'
+                            : /medicin/.test(concepto) ? 'Medicinas'
+                            : /sanidad|vacuna|veterin/.test(concepto) ? 'Sanidad / Medicamentos'
+                            : /mantenimiento|reparacion/.test(concepto) ? 'Mantenimiento de Pozas'
+                            : 'Otros Egresos';
+                        irA('gastos');
+                        ponerValor('gasto-concepto', concepto.charAt(0).toUpperCase() + concepto.slice(1));
+                        ponerValor('gasto-monto', m[2]);
+                        ponerValor('gasto-categoria', categoria);
+                        guardarGasto(evento);
+                        exito('Registrado correctamente');
+                    }
+                },
+                {   // "calcular ración para poza 12" / "calcular ración para 40 adultos 60 recría 30 crías"
+                    patron: /(?:calcul\w*|calcula)\s+(?:la\s+)?racion(?:\s+(?:para|de))?\s*(.*)/,
+                    ejecutar(m) {
+                        irA('racion');
+                        const resto = m[1] || '';
+                        const poza = resto.match(/poza\s*(\d+)/);
+                        const check = document.getElementById('racion-sync');
+                        if (poza) {
+                            const codigo = codigoPoza(poza[1]);
+                            const registro = obtenerPozasUnicas().find(p => claveUnicaPoza(p.codigo || p.id) === codigo);
+                            if (!registro) return fallo('La poza ' + poza[1] + ' no existe');
+                            const c = obtenerConteosRacionPoza(registro);
+                            check.checked = false;
+                            sincronizarRacionPozas();
+                            ponerValor('racion-adultos', c.adultos);
+                            ponerValor('racion-recria', c.recria);
+                            ponerValor('racion-crias', c.crias);
+                        } else {
+                            const cant = re => (resto.match(re) || [])[1];
+                            const campos = { 'racion-adultos': cant(/(\d+)\s*(?:adultos?|reproductor\w*)/), 'racion-recria': cant(/(\d+)\s*(?:recria|engorde)/), 'racion-crias': cant(/(\d+)\s*(?:crias?|gazapos?|destetados?)/) };
+                            if (Object.values(campos).some(v => v !== undefined)) {
+                                check.checked = false;
+                                sincronizarRacionPozas();
+                                Object.entries(campos).forEach(([id, v]) => { if (v !== undefined) ponerValor(id, v); });
+                            } else { check.checked = true; sincronizarRacionPozas(); }
+                        }
+                        calcularRacion();
+                        exito('Ración calculada');
+                    }
+                },
+                {   // "nota / observación / escribe ..." -> dicta en el campo de texto activo
+                    patron: /^(?:nota|observacion(?:es)?|escribe|dicta|anota)\s+(.+)/,
+                    usaOriginal: true,
+                    ejecutar(m) {
+                        const campo = (document.activeElement && document.activeElement.matches('textarea, input[type=text], input:not([type])')) ? document.activeElement : ultimoCampo;
+                        if (!campo || !document.contains(campo) || campo.readOnly || campo.disabled) return fallo('Toca primero el campo donde quieres dictar');
+                        campo.value = (campo.value ? campo.value + ' ' : '') + m[1].trim();
+                        campo.dispatchEvent(new Event('input', { bubbles: true }));
+                        exito('Texto agregado');
+                    }
+                }
+            ];
 
             function procesar(original) {
                 const t = normalizar(original);
-                const total = n => Number(String(n).replace(',', '.'));
-
-                // Parto: "registrar parto en poza 15 con 4 gazapos"
-                let m = t.match(/parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/);
-                if (m && /registr|anota|agrega|nuevo|hubo|tuvo/.test(t)) {
-                    const codigo = 'PZ-' + m[1].padStart(3, '0');
-                    if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
-                    if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
-                    irA('partos');
-                    document.getElementById('parto-poza').value = codigo;
-                    document.getElementById('parto-vivas').value = m[2];
-                    document.getElementById('parto-muertas').value = m[3] || '0';
-                    guardarParto(falsoEvento);
-                    return exito('Registrado correctamente');
+                for (const a of ACCIONES) {
+                    if (a.requiere && !a.requiere.test(t)) continue;
+                    const m = (a.usaOriginal ? original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : t).match(a.patron);
+                    if (m) return a.ejecutar(m, t);
                 }
-
-                // Venta: "venta de hoy 5 cuyes a 35 soles" (precio por unidad)
-                m = t.match(/venta.*?(\d+)\s*(\w+)?.*?(?:a|en|por)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/);
-                if (m) {
-                    const tipo = m[2] || '';
-                    const categoria = /gazap|cria/.test(tipo) ? 'Gazapos (Crías)'
-                        : /reproduc|descarte/.test(t) ? 'Reproductor / Descarte'
-                        : /guano|abono/.test(t) ? 'Subproductos / Abono (Guano)'
-                        : 'Cuy Comercial / Engorde';
-                    irA('ventas');
-                    document.getElementById('venta-categoria').value = categoria;
-                    document.getElementById('venta-cantidad').value = m[1];
-                    document.getElementById('venta-monto').value = total(m[3]);
-                    guardarVenta(falsoEvento);
-                    return exito('Registrado correctamente');
-                }
-
-                // Gasto: "gasto operativo en alimento 150 soles"
-                m = t.match(/gasto(?:s)?(?:\s+operativos?)?\s*(?:en|de|por)?\s*(.*?)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/);
-                if (m) {
-                    const concepto = (m[1] || '').replace(/^(?:en|de|por)\s+/, '').trim() || 'Gasto por voz';
-                    const categoria = /alimento|balanceado|concentrado/.test(concepto) ? 'Alimentación'
-                        : /forraje|alfalfa|pasto/.test(concepto) ? 'Forraje'
-                        : /medicin/.test(concepto) ? 'Medicinas'
-                        : /sanidad|vacuna|veterin/.test(concepto) ? 'Sanidad / Medicamentos'
-                        : /mantenimiento|reparacion/.test(concepto) ? 'Mantenimiento de Pozas'
-                        : 'Otros Egresos';
-                    irA('gastos');
-                    document.getElementById('gasto-concepto').value = concepto.charAt(0).toUpperCase() + concepto.slice(1);
-                    document.getElementById('gasto-monto').value = total(m[2]);
-                    document.getElementById('gasto-categoria').value = categoria;
-                    guardarGasto(falsoEvento);
-                    return exito('Registrado correctamente');
-                }
-
-                // Navegación: "abre dashboard", "ir a ventas", "muéstrame pozas"
-                if (/\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver)\b/.test(t) || t.split(' ').length <= 3) {
-                    const coincide = VISTAS.find(([, re]) => re.test(t));
-                    if (coincide && irA(coincide[0])) return exito('Navegando a la sección solicitada: ' + NOMBRES[coincide[0]]);
+                if (VERBOS_NAV.test(t) || t.split(' ').length <= 3) {
+                    const v = VISTAS.find(([, re]) => re.test(t));
+                    if (v && irA(v[0])) return exito('Navegando a la sección solicitada: ' + v[2]);
                 }
                 fallo('No entendí el comando: "' + original + '"');
             }
 
-            function detener() {
-                activo = false;
-                fab.classList.remove('escuchando');
-                if (rec) { try { rec.stop(); } catch (e) {} }
-            }
-
-            fab.addEventListener('click', () => {
+            function iniciar() {
                 if (!Reconocimiento) return fallo('Tu navegador no admite reconocimiento de voz');
-                if (activo) { detener(); banner.style.display = 'none'; return; }
                 rec = new Reconocimiento();
                 rec.lang = 'es-PE';
                 rec.interimResults = true;
                 rec.continuous = false;
-                rec.onstart = () => { activo = true; fab.classList.add('escuchando'); aviso('🎤 Escuchando...'); };
+                rec.onstart = () => { activo = true; fab.classList.add('escuchando'); etiqueta.textContent = 'Escuchando...'; aviso('🎤 Escuchando...'); };
                 rec.onresult = ev => {
                     const r = ev.results[ev.results.length - 1];
                     const texto = r[0].transcript;
                     if (r.isFinal) { aviso('🎤 "' + texto + '"'); procesar(texto); }
                     else aviso('🎤 Escuchando: "' + texto + '"');
                 };
-                rec.onerror = ev => { fallo(ev.error === 'not-allowed' ? 'Permiso de micrófono denegado' : 'Error de voz: ' + ev.error); };
-                rec.onend = () => { activo = false; fab.classList.remove('escuchando'); };
+                rec.onerror = ev => fallo(ev.error === 'not-allowed' ? 'Permiso de micrófono denegado' : ev.error === 'no-speech' ? 'No se escuchó nada' : 'Error de voz: ' + ev.error);
+                rec.onend = () => { activo = false; fab.classList.remove('escuchando'); etiqueta.textContent = 'Voz'; };
                 rec.start();
+            }
+
+            fab.addEventListener('click', () => {
+                if (activo) { rec.stop(); banner.style.display = 'none'; return; }
+                iniciar();
             });
+
+            // Permite ampliar desde fuera: SisGranjaVoz.vistas.push([...]) / SisGranjaVoz.acciones.unshift({...}).
+            window.SisGranjaVoz = { vistas: VISTAS, acciones: ACCIONES, procesar };
         })();
     </script>
     <script>
