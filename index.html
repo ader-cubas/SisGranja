@@ -739,6 +739,23 @@
         #voice-fab:focus-visible { outline: 3px solid #6ee7b7; outline-offset: 3px; }
         #voice-fab.escuchando { background: #10b981; color: #022c22; animation: voicePulse 1.6s ease-out infinite; }
         @keyframes voicePulse { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,.55); } 70%, 100% { box-shadow: 0 0 0 18px rgba(16,185,129,0); } }
+        .voz-card-fondo { position: fixed; inset: 0; z-index: 9600; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(2,44,34,.55); }
+        .voz-card { width: 100%; max-width: 520px; max-height: 88vh; display: flex; flex-direction: column; border-radius: 18px; background: #fff; color: #1c1917; box-shadow: 0 25px 50px rgba(0,0,0,.4); overflow: hidden; animation: vozCardIn .18s ease-out; }
+        @keyframes vozCardIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+        .voz-card-cab { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: linear-gradient(135deg, #047857, #10b981); color: #fff; }
+        .voz-card-cab h3 { flex: 1; margin: 0; font-size: 1.05rem; font-weight: 700; }
+        .voz-card-icono { font-size: 1.4rem; }
+        .voz-card-cerrar { width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-size: 1rem; cursor: pointer; }
+        .voz-card-cerrar:hover { background: rgba(255,255,255,.35); }
+        .voz-card-cuerpo { padding: 14px 16px; overflow-y: auto; }
+        .voz-card-sec { margin-bottom: 12px; }
+        .voz-card-sec strong { display: block; margin-bottom: 3px; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #047857; }
+        .voz-card-sec p, .voz-card-sec li { margin: 0; font-size: .95rem; line-height: 1.45; }
+        .voz-card-sec ul { margin: 0; padding-left: 18px; }
+        .voz-card-pie { padding: 10px 16px 14px; border-top: 1px solid #e7e5e4; background: #fafaf9; }
+        .voz-card-pie p { margin: 0 0 8px; font-size: .75rem; color: #78716c; }
+        .voz-card-accion { width: 100%; padding: 10px; border: 0; border-radius: 10px; background: #047857; color: #fff; font-weight: 600; cursor: pointer; }
+        .voz-card-accion:hover { background: #065f46; }
         #voice-banner { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 9500; max-width: min(92vw, 520px); padding: 10px 18px; border-radius: 14px; background: #1c1917; color: #fff; font-size: .9rem; box-shadow: 0 10px 25px rgba(0,0,0,.35); display: none; text-align: center; }
         #voice-banner.ok { background: #047857; }
         #voice-banner.error { background: #b91c1c; }
@@ -4712,6 +4729,307 @@
                 }
             ];
 
+            // ===== Consultas: tarjeta flotante de respuesta =====
+            const AVISO_VET = 'Orientación técnica referencial (prácticas INIA / UNALM). Las dosis son para un cuy adulto de ~1 kg; confirme el diagnóstico y la dosis con un médico veterinario.';
+
+            function cerrarTarjeta() {
+                const previa = document.getElementById('voz-card');
+                if (previa) previa.remove();
+            }
+
+            function mostrarTarjeta({ titulo, icono = '🐹', secciones, pie, accion }) {
+                cerrarTarjeta();
+                const el = (tag, clase, texto) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
+                const fondo = el('div', 'voz-card-fondo');
+                fondo.id = 'voz-card';
+                const caja = el('div', 'voz-card');
+                caja.setAttribute('role', 'dialog');
+                caja.setAttribute('aria-modal', 'true');
+                caja.setAttribute('aria-label', titulo);
+                const cab = el('div', 'voz-card-cab');
+                cab.append(el('span', 'voz-card-icono', icono), el('h3', '', titulo));
+                const cerrar = el('button', 'voz-card-cerrar', '✕');
+                cerrar.type = 'button';
+                cerrar.setAttribute('aria-label', 'Cerrar');
+                cerrar.addEventListener('click', cerrarTarjeta);
+                cab.append(cerrar);
+                const cuerpo = el('div', 'voz-card-cuerpo');
+                secciones.forEach(([etiqueta, contenido]) => {
+                    const bloque = el('div', 'voz-card-sec');
+                    bloque.append(el('strong', '', etiqueta));
+                    if (Array.isArray(contenido)) {
+                        const ul = el('ul');
+                        contenido.forEach(t => ul.append(el('li', '', t)));
+                        bloque.append(ul);
+                    } else bloque.append(el('p', '', contenido));
+                    cuerpo.append(bloque);
+                });
+                caja.append(cab, cuerpo);
+                const pieEl = el('div', 'voz-card-pie');
+                if (pie) pieEl.append(el('p', '', pie));
+                if (accion) {
+                    const b = el('button', 'voz-card-accion', accion.texto);
+                    b.type = 'button';
+                    b.addEventListener('click', () => { cerrarTarjeta(); accion.ir(); });
+                    pieEl.append(b);
+                }
+                caja.append(pieEl);
+                fondo.append(caja);
+                fondo.addEventListener('click', e => { if (e.target === fondo) cerrarTarjeta(); });
+                document.body.append(fondo);
+                cerrar.focus();
+            }
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarTarjeta(); });
+
+            const abrirDrCuy = { texto: 'Abrir Dr. Cuy IA', ir: () => irA('bajas') };
+            const abrirPesos = { texto: 'Ir a Control de pesos', ir: () => irA('pesos') };
+
+            // --- Conocimiento técnico: añade entradas nuevas a esta lista. Se usa la primera que coincida. ---
+            const CONOCIMIENTO = [
+                {
+                    re: /cuantos partos|hasta cuantos|vida util|descarte|cuanto (?:vive|dura|rinde)|reproductor\w* (?:vieja|viejo|edad)|reemplazo/,
+                    titulo: 'Vida útil de la reproductora', icono: '🐹',
+                    secciones: [
+                        ['Vida productiva', 'Una reproductora óptima rinde hasta 5 a 6 partos o 1.5 a 2 años de edad. Después baja la prolificidad: camadas más pequeñas, más abortos y mayor mortalidad de crías.'],
+                        ['Criterios de descarte', ['Menos de 2 crías por parto o viabilidad menor de 70 % en partos seguidos.', 'Mala conducta materna, mastitis o problemas reproductivos repetidos.', 'Pérdida de condición corporal o edad mayor de 2 años.']],
+                        ['Reposición', 'Reemplace con hembras sanas de buena línea, empadradas desde los 3 meses y al menos 800 g de peso. Mantenga 1 macho por cada 6 hembras.']
+                    ],
+                    pie: 'Referencial según INIA / UNALM.'
+                },
+                {
+                    re: /empadre|gestacion|\bcelo\b|prenez|destete|cuando destet|cuantos dias (?:dura|tarda)/,
+                    titulo: 'Manejo reproductivo', icono: '🐹',
+                    secciones: [
+                        ['Gestación', '63 a 68 días. La hembra tiene celo fértil a las 2 a 3 horas después del parto, por eso se aprovecha el empadre posparto.'],
+                        ['Destete', 'A los 14 a 21 días, separando por sexo para evitar preñeces tempranas.'],
+                        ['Primer empadre', 'Hembras desde los 3 meses y 800 g; machos desde los 4 meses.'],
+                        ['Registro', 'Registre el empadre en "Registro de Partos" para calcular la fecha probable de parto.']
+                    ],
+                    pie: 'Referencial según INIA / UNALM.'
+                },
+                {
+                    re: /no gana peso|no engorda|bajo peso|poco peso|peso bajo|no crece|crecimiento|flaco|delgado|ganancia de peso/,
+                    titulo: '¿Por qué no gana peso?', icono: '⚖️',
+                    secciones: [
+                        ['Revise en este orden', ['Desparasitación: parásitos internos y externos frenan el crecimiento.', 'Calidad del forraje: debe ser tierno, limpio y oreado; con concentrado balanceado (18 a 20 % de proteína) en recría.', 'Vitamina C: el cuy no la fabrica; el forraje viejo o seco la pierde.', 'Genética: líneas de baja velocidad de crecimiento.', 'Hacinamiento, agua sucia o competencia por el comedero.']],
+                        ['Meta referencial', 'Ganancia de 10 a 12 g por día en recría con forraje más concentrado.'],
+                        ['Acción', 'Pese una muestra de la poza y registre el resultado en Control de pesos para ver la curva.']
+                    ],
+                    pie: AVISO_VET, accion: abrirPesos
+                },
+                {
+                    re: /neumon|respirator|estornud|moquillo|\bmocos?\b|\btos\b|jadea|resfri|bordetella|respirar/,
+                    titulo: 'Infección respiratoria / neumonía', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Neumonía por Streptococcus, Bordetella o Klebsiella, favorecida por corrientes de aire, humedad, polvo y hacinamiento.'],
+                        ['Medicación o tratamiento', 'Enrofloxacina bajo indicación veterinaria, con ambiente seco y ventilado sin corrientes. ATENCIÓN: no use penicilinas, amoxicilina, ampicilina, eritromicina ni lincomicina; son tóxicas en cuyes.'],
+                        ['Dosis y vía', 'Enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea, por 5 a 7 días. Vitamina C 30 a 50 mg/día vía oral durante el tratamiento.'],
+                        ['Aislamiento y bioseguridad', 'Separe a los enfermos, desinfecte comederos y bebederos, evite corrientes y revise a los de la misma poza.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /diarrea|deposicion|heces|salmonel|coccidi|enteritis|cola sucia|pelo erizado|caga/,
+                    titulo: 'Diarreas / enteritis', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Salmonelosis (Salmonella), coccidiosis (Eimeria) o alimentación contaminada o con exceso de forraje mojado.'],
+                        ['Medicación o tratamiento', 'Suero de rehidratación, retiro del forraje húmedo y antibiótico (enrofloxacina) si se sospecha bacteria; para coccidiosis, anticoccidial (sulfas o toltrazuril) según etiqueta y peso. No use penicilinas.'],
+                        ['Dosis y vía', 'Enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea, por 5 a 7 días. Vitamina C 30 a 50 mg/día vía oral.'],
+                        ['Aislamiento y bioseguridad', 'Aísle y desinfecte la poza (la salmonelosis puede pasar a personas): use guantes, retire cama contaminada, controle roedores y evite forraje húmedo.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /timpan|hinchad|panza|barriga|abdomen|inflamado el vientre|vientre/,
+                    titulo: 'Timpanismo (hinchazón)', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Fermentación por forraje tierno, mojado o alfalfa recién cortada, o por cambio brusco de dieta.'],
+                        ['Medicación o tratamiento', 'Retire el forraje verde y dé solo forraje oreado o heno, con masaje abdominal suave y antiflatulento (simeticona). Si no mejora en pocas horas, llame al veterinario: puede morir rápido.'],
+                        ['Dosis y vía', 'Simeticona en gotas, 0.3 a 0.5 ml vía oral; verifique la concentración del producto con el veterinario y repita una vez si persiste.'],
+                        ['Aislamiento y bioseguridad', 'No es contagioso; corrija el manejo: oree el forraje 8 a 12 horas y haga los cambios de dieta de forma gradual.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /pododermatitis|podal|\bpatas?\b|cojea|cojera|almohadilla|pezuna/,
+                    titulo: 'Problemas podales', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Pododermatitis por pisos húmedos, sucios o abrasivos, uñas largas, sobrepeso o falta de vitamina C.'],
+                        ['Medicación o tratamiento', 'Limpie con antiséptico (clorhexidina o yodo diluido), recorte las uñas, ponga cama seca y blanda y aplique pomada antibiótica. Con hinchazón o pus, consulte al veterinario.'],
+                        ['Dosis y vía', 'Tópica 1 a 2 veces al día por 7 a 10 días. Casos graves: enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea. Vitamina C 30 a 50 mg/día.'],
+                        ['Aislamiento y bioseguridad', 'Separe al animal afectado, cambie la cama y revise el piso de la poza.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /absces|bulto|nodulo|linfadenitis|\bpus\b|papera|\btumor\b|hinchazon (?:en )?(?:el )?(?:cuello|mandibula)/,
+                    titulo: 'Abscesos / linfadenitis', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Infección por Streptococcus zooepidemicus u otras bacterias, que entran por heridas en la boca o la piel (pasto duro, peleas, clavos).'],
+                        ['Medicación o tratamiento', 'Drene el absceso maduro con técnica estéril, lave con yodo o clorhexidina y cure a diario. Antibiótico según el veterinario. Animales con casos recurrentes: descarte, no los use para reproducir.'],
+                        ['Dosis y vía', 'Enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea, por 7 a 10 días tras el drenaje.'],
+                        ['Aislamiento y bioseguridad', 'Aísle al animal, no deje que otros toquen el pus, desinfecte la poza y use guantes: puede contagiar.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /parasit|acaro|sarna|piojo|pulga|picazon|se rasca|caida de pelo|alopecia|lombriz|gusano|desparasit/,
+                    titulo: 'Parásitos internos y externos', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Ácaros (Trixacarus), piojos y nematodos. Signos: picazón, pérdida de pelo, costras y poco peso.'],
+                        ['Medicación o tratamiento', 'Ivermectina; trate a toda la poza, cambie la cama y desinfecte. Repita según calendario de desparasitación.'],
+                        ['Dosis y vía', 'Ivermectina 0.2 a 0.5 mg/kg subcutánea o tópica, repetir a los 10 a 14 días (2 a 3 aplicaciones). Parásitos internos: fenbendazol 20 mg/kg vía oral por 3 días.'],
+                        ['Aislamiento y bioseguridad', 'Separe a los afectados, lave y desinfecte comederos y quite la cama; algunos ácaros pasan a las personas.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /vitamina c|escorbuto|encias|articulacion|no quiere caminar|dolor al caminar/,
+                    titulo: 'Falta de vitamina C (escorbuto)', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'El cuy no produce vitamina C. Su falta causa cojera, dolor articular, encías inflamadas, pelo áspero y bajo peso.'],
+                        ['Medicación o tratamiento', 'Forraje verde fresco y vitamina C. Mejore la dieta, sobre todo en gestantes y gazapos.'],
+                        ['Dosis y vía', 'Preventivo 10 a 30 mg/día vía oral; terapéutico 50 a 100 mg/día vía oral por 7 a 10 días.'],
+                        ['Aislamiento y bioseguridad', 'No es contagioso; revise a toda la poza porque el problema suele ser de la ración.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                },
+                {
+                    re: /hongo|\btina\b|dermatofit|trichophyton|costras|caspa|lesiones? en la piel|dermatitis/,
+                    titulo: 'Hongos en la piel (dermatofitosis)', icono: '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', 'Hongos (Trichophyton) por humedad y hacinamiento. Signos: zonas sin pelo, costras y caspa en cabeza y lomo.'],
+                        ['Medicación o tratamiento', 'Antifúngico tópico (clotrimazol o miconazol). En casos extensos, el veterinario puede indicar tratamiento oral.'],
+                        ['Dosis y vía', 'Tópica 1 a 2 veces al día por 2 a 4 semanas, y hasta 1 semana después de la curación visible.'],
+                        ['Aislamiento y bioseguridad', 'Aísle, desinfecte la poza y use guantes: el hongo puede pasar a las personas.']
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                }
+            ];
+            const PALABRAS_CLINICAS = /enferm|sintoma|decaido|no come|no quiere comer|mueren|muerte|murio|muerto|triste|temblor|convuls|\bojos?\b|secrecion|abort/;
+
+            // --- Datos de la granja: leen el estado `db` (copia en memoria del localStorage). ---
+            const mesActual = () => fechaHoy().slice(0, 7);
+            const fmtS = n => 'S/ ' + Number(n).toFixed(2);
+            function resumenPoblacion() {
+                const pozas = obtenerPozasUnicas();
+                let adultos = 0, recria = 0, crias = 0, total = 0, activas = 0;
+                pozas.forEach(p => {
+                    const stock = Math.max(0, obtenerStockActualPoza(p));
+                    const c = obtenerConteosRacionPoza(p);
+                    adultos += c.adultos; recria += c.recria; crias += c.crias;
+                    total += stock;
+                    if (stock > 0) activas++;
+                });
+                return { pozas: pozas.length, activas, total, adultos, recria, crias };
+            }
+            function gramosRacion() {
+                const n = id => Number((document.getElementById(id) || {}).value) || 0;
+                return { fa: n('racion-g-adulto'), ca: n('racion-c-adulto'), fr: n('racion-g-recria'), cr: n('racion-c-recria'), fc: n('racion-g-crias'), cc: n('racion-c-crias') };
+            }
+
+            const DATOS = [
+                {
+                    re: /racion|forraje|concentrado|alimento/,
+                    ejecutar(t) {
+                        const g = gramosRacion();
+                        const pedida = (t.match(/poza\s*(\d+)/) || [])[1];
+                        let filas = obtenerPozasUnicas().map(p => {
+                            const c = obtenerConteosRacionPoza(p);
+                            return { codigo: claveUnicaPoza(p.codigo || p.id), forraje: (c.adultos * g.fa + c.recria * g.fr + c.crias * g.fc) / 1000, conc: (c.adultos * g.ca + c.recria * g.cr + c.crias * g.cc) / 1000 };
+                        });
+                        if (pedida) filas = filas.filter(f => f.codigo === codigoPoza(pedida));
+                        if (!filas.length) return fallo(pedida ? 'La poza ' + pedida + ' no existe' : 'No hay pozas registradas');
+                        const tf = filas.reduce((s, f) => s + f.forraje, 0), tc = filas.reduce((s, f) => s + f.conc, 0);
+                        mostrarTarjeta({
+                            titulo: pedida ? 'Ración diaria · poza ' + pedida : 'Ración diaria por poza', icono: '🌿',
+                            secciones: [
+                                ['Total por día', `Forraje verde: ${tf.toFixed(2)} kg · Concentrado: ${tc.toFixed(2)} kg`],
+                                ['Detalle por poza', filas.slice(0, 30).map(f => `${f.codigo}: ${f.forraje.toFixed(2)} kg de forraje y ${f.conc.toFixed(2)} kg de concentrado`)]
+                            ],
+                            pie: 'Calculado con los gramos por animal del módulo Ración y forraje.', accion: { texto: 'Abrir Ración', ir: () => irA('racion') }
+                        });
+                        exito('Mostrando la ración solicitada');
+                    }
+                },
+                {
+                    re: /mortalidad|bajas?|murieron|muertos|muertes/,
+                    ejecutar() {
+                        const r = resumenPoblacion();
+                        const total = db.bajas.reduce((s, b) => s + (Number(b.cantidad) || 0), 0);
+                        const mes = db.bajas.filter(b => String(b.fecha).startsWith(mesActual())).reduce((s, b) => s + (Number(b.cantidad) || 0), 0);
+                        const base = r.total + total;
+                        mostrarTarjeta({
+                            titulo: 'Mortalidad', icono: '📉',
+                            secciones: [['Bajas', [`Este mes: ${mes}`, `Acumuladas: ${total}`, `Mortalidad acumulada: ${base ? (total / base * 100).toFixed(1) : '0.0'} %`]]],
+                            pie: 'Datos del registro de Sanidad y bajas.', accion: abrirDrCuy
+                        });
+                        exito('Mostrando la mortalidad');
+                    }
+                },
+                {
+                    re: /ventas?|vendi|ingresos?/,
+                    ejecutar() {
+                        const delMes = db.ventas.filter(v => String(v.fecha).startsWith(mesActual()));
+                        const cant = delMes.reduce((s, v) => s + (Number(v.cantidad) || 0), 0);
+                        const monto = delMes.reduce((s, v) => s + (Number(v.monto) || 0) * (Number(v.cantidad) || 0), 0);
+                        const gastos = db.gastos.filter(g => String(g.fecha).startsWith(mesActual())).reduce((s, g) => s + (Number(g.monto) || 0), 0);
+                        mostrarTarjeta({
+                            titulo: 'Ventas del mes', icono: '💰',
+                            secciones: [['Resumen', [`Ventas registradas: ${delMes.length}`, `Animales vendidos: ${cant}`, `Ingresos: ${fmtS(monto)}`, `Gastos del mes: ${fmtS(gastos)}`, `Balance: ${fmtS(monto - gastos)}`]]],
+                            accion: { texto: 'Abrir Ventas', ir: () => irA('ventas') }
+                        });
+                        exito('Mostrando las ventas del mes');
+                    }
+                },
+                {
+                    re: /destetados?/,
+                    ejecutar() {
+                        const suma = lista => lista.reduce((s, d) => s + (Number(d.machos) || 0) + (Number(d.hembras) || 0) + (d.machos === undefined && d.hembras === undefined ? Number(d.cantidad) || 0 : 0), 0);
+                        mostrarTarjeta({
+                            titulo: 'Destetados', icono: '🐹',
+                            secciones: [['Resumen', [`Destetados este mes: ${suma(db.destetados.filter(d => String(d.fecha).startsWith(mesActual())))}`, `Destetados en total: ${suma(db.destetados)}`, `Registros de destete: ${db.destetados.length}`]]],
+                            accion: { texto: 'Abrir Destetados', ir: () => irA('destetados') }
+                        });
+                        exito('Mostrando los destetados');
+                    }
+                },
+                {
+                    re: /poblacion|cuyes|animales|pozas?|inventario|total/,
+                    ejecutar() {
+                        const r = resumenPoblacion();
+                        mostrarTarjeta({
+                            titulo: 'Población y pozas', icono: '🐹',
+                            secciones: [
+                                ['Población total', `${r.total} cuyes`],
+                                ['Por etapa', [`Reproductores: ${r.adultos}`, `Recría / engorde: ${r.recria}`, `Crías / destetados: ${r.crias}`]],
+                                ['Pozas', `${r.activas} activas de ${r.pozas} registradas`]
+                            ],
+                            accion: { texto: 'Abrir Pozas', ir: () => irA('cuyes') }
+                        });
+                        exito('Mostrando la población');
+                    }
+                }
+            ];
+            const PREGUNTA = /cuant|cual es|que cantidad|dime|dame|dato|resumen|total|poblacion|mortalidad|del mes|este mes|por poza|por que|porque|\bcomo\b|\bhasta\b|que (?:hago|puedo|tiene|es)|\bpuede\b|\btengo\b|\bhay\b|\bmi\b|\bmis\b|\bestan\b|\besta\b/;
+
+            function consultar(t) {
+                const dato = DATOS.find(d => d.re.test(t));
+                const conocimiento = CONOCIMIENTO.find(c => c.re.test(t));
+                if (conocimiento && !(dato && /cuant|total|del mes|este mes|por poza/.test(t) && !/partos|vida util|gestacion/.test(t))) {
+                    mostrarTarjeta(conocimiento);
+                    exito('Mostrando la información: ' + conocimiento.titulo);
+                    return true;
+                }
+                if (dato) { dato.ejecutar(t); return true; }
+                if (PALABRAS_CLINICAS.test(t)) {
+                    mostrarTarjeta({
+                        titulo: 'Orientación clínica general', icono: '🩺',
+                        secciones: [
+                            ['Posible causa / diagnóstico', 'Los síntomas indicados son inespecíficos. Pueden deberse a infección respiratoria, diarrea, parásitos, mala alimentación o falta de vitamina C.'],
+                            ['Qué hacer ahora', ['Aísle al animal enfermo.', 'Revise agua limpia, forraje fresco y oreado, temperatura y corrientes de aire.', 'Anote síntomas, número de afectados y fecha de inicio.', 'Use Dr. Cuy IA para un diagnóstico guiado.']],
+                            ['Medicación', 'No medique sin orientación. Nunca use penicilinas, amoxicilina ni eritromicina en cuyes: son tóxicas.'],
+                            ['Aislamiento y bioseguridad', 'Use guantes, desinfecte comederos y bebederos, y no mueva animales entre pozas.']
+                        ], pie: AVISO_VET, accion: abrirDrCuy
+                    });
+                    exito('Mostrando orientación clínica');
+                    return true;
+                }
+                return false;
+            }
+
             function procesar(original) {
                 const t = normalizar(original);
                 for (const a of ACCIONES) {
@@ -4719,10 +5037,12 @@
                     const m = (a.usaOriginal ? original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : t).match(a.patron);
                     if (m) return a.ejecutar(m, t);
                 }
-                if (VERBOS_NAV.test(t) || t.split(' ').length <= 3) {
-                    const v = VISTAS.find(([, re]) => re.test(t));
-                    if (v && irA(v[0])) return exito('Navegando a la sección solicitada: ' + v[2]);
+                const vista = VISTAS.find(([, re]) => re.test(t));
+                if (vista && !PREGUNTA.test(t) && (VERBOS_NAV.test(t) || t.split(' ').length <= 3) && irA(vista[0])) {
+                    return exito('Navegando a la sección solicitada: ' + vista[2]);
                 }
+                if (consultar(t)) return;
+                if (vista && irA(vista[0])) return exito('Navegando a la sección solicitada: ' + vista[2]);
                 fallo('No entendí el comando: "' + original + '"');
             }
 
