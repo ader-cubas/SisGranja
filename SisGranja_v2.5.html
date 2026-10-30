@@ -719,6 +719,10 @@
         .login-card input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,.2); }
         .login-card button[type=submit] { width: 100%; margin-top: 22px; padding: 14px; border: 0; border-radius: 12px; background: #059669; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; }
         .login-card button[type=submit]:disabled { opacity: .6; cursor: wait; }
+        .login-pass-wrap { position: relative; }
+        .login-pass-wrap input { padding-right: 48px; }
+        .login-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: 0; border-radius: 10px; background: transparent; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+        .login-eye:hover, .login-eye:focus-visible { background: #ecfdf5; outline: none; }
         #login-error { display: none; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: .875rem; border: 1px solid #fecaca; }
         #app-container { display: none; width: 100%; height: 100dvh; flex-direction: column; overflow: hidden; }
         @media (min-width: 768px) { #app-container { flex-direction: row; } .login-card { padding: 40px 36px; } }
@@ -738,7 +742,10 @@
             <h1>SisGranja</h1>
             <p class="login-sub">Ingresa la clave de acceso</p>
             <label for="login-password">Contraseña</label>
-            <input type="password" id="login-password" autocomplete="current-password" required placeholder="Contraseña" autofocus>
+            <div class="login-pass-wrap">
+                <input type="password" id="login-password" autocomplete="current-password" required placeholder="Contraseña" autofocus>
+                <button type="button" id="login-toggle-pass" class="login-eye" aria-label="Mostrar contraseña" aria-pressed="false">👁️</button>
+            </div>
             <div id="login-error" role="alert"></div>
             <button type="submit" id="login-submit">Ingresar</button>
         </form>
@@ -4481,6 +4488,8 @@
                 $('app-container').style.display = 'none';
                 $('voice-fab').style.display = 'none';
                 $('login-container').style.display = 'flex';
+                $('login-password').type = 'password';
+                $('login-toggle-pass').textContent = '👁️';
                 $('login-password').focus();
             }
 
@@ -4499,6 +4508,16 @@
                     error.style.display = 'block';
                     $('login-password').select();
                 }
+            });
+
+            $('login-toggle-pass').addEventListener('click', e => {
+                const campo = $('login-password');
+                const visible = campo.type === 'password';
+                campo.type = visible ? 'text' : 'password';
+                e.currentTarget.textContent = visible ? '🙈' : '👁️';
+                e.currentTarget.setAttribute('aria-pressed', String(visible));
+                e.currentTarget.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                campo.focus();
             });
 
             $('btn-logout').addEventListener('click', () => {
