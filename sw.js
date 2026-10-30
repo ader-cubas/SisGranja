@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sisgranja-v2.8.15-20261029p';
+const CACHE_NAME = 'sisgranja-v2.8.16-20261030a';
 const OFFLINE_URL = './SisGranja_v2.5.html';
 const IMAGENES_ATLAS = ['acaros.png.jpg', 'timpanismo.png.jpg', 'salmonella.png.jpg', 'neumonia-hermorragica.png.jpeg', 'coccidiosis.png.jpg', 'dermatitis.png.jpg', 'linfadenitis.png.jpg', 'colibacilosis.jpg.jpg'].map(n => './SisGranja/img/' + n);
 
@@ -21,7 +21,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if ((response.ok && new URL(event.request.url).origin === self.location.origin) || (response.type === 'opaque' && event.request.destination === 'image')) {
+        if ((response.ok && ['https://cdn.jsdelivr.net', self.location.origin].includes(new URL(event.request.url).origin)) || (response.type === 'opaque' && event.request.destination === 'image')) {
           const copia = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copia));
         }

@@ -708,8 +708,45 @@
             .btn-volver-menu { top: 0; }
         }
     </style>
+    <style>
+        #login-container { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; background: linear-gradient(135deg, #022c22 0%, #065f46 55%, #10b981 100%); }
+        .login-card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 32px 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.45); }
+        .login-card h1 { font-size: 1.5rem; font-weight: 800; color: #064e3b; text-align: center; margin: 8px 0 4px; }
+        .login-card p.login-sub { text-align: center; color: #78716c; font-size: .875rem; margin-bottom: 24px; }
+        .login-logo { width: 64px; height: 64px; margin: 0 auto; border-radius: 16px; background: #059669; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .login-card label { display: block; font-size: .75rem; font-weight: 700; color: #44403c; margin: 14px 0 6px; }
+        .login-card input { width: 100%; padding: 12px 14px; border: 1px solid #d6d3d1; border-radius: 12px; font-size: 1rem; outline: none; box-sizing: border-box; }
+        .login-card input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,.2); }
+        .login-card button[type=submit] { width: 100%; margin-top: 22px; padding: 14px; border: 0; border-radius: 12px; background: #059669; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; }
+        .login-card button[type=submit]:disabled { opacity: .6; cursor: wait; }
+        #login-error { display: none; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: .875rem; border: 1px solid #fecaca; }
+        #app-container { display: none; width: 100%; height: 100dvh; flex-direction: column; overflow: hidden; }
+        @media (min-width: 768px) { #app-container { flex-direction: row; } .login-card { padding: 40px 36px; } }
+        #voice-fab { position: fixed; right: 16px; bottom: 16px; z-index: 8000; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #059669; color: #fff; font-size: 1.6rem; box-shadow: 0 8px 20px rgba(0,0,0,.3); cursor: pointer; display: none; }
+        #voice-fab.escuchando { background: #dc2626; animation: voicePulse 1.2s infinite; }
+        @keyframes voicePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.5); } 50% { box-shadow: 0 0 0 14px rgba(220,38,38,0); } }
+        #voice-banner { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 9500; max-width: min(92vw, 520px); padding: 10px 18px; border-radius: 14px; background: #1c1917; color: #fff; font-size: .9rem; box-shadow: 0 10px 25px rgba(0,0,0,.35); display: none; text-align: center; }
+        #voice-banner.ok { background: #047857; }
+        #voice-banner.error { background: #b91c1c; }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <div id="login-container" role="main">
+        <form id="login-form" class="login-card" novalidate>
+            <div class="login-logo">🐹</div>
+            <h1>SisGranja</h1>
+            <p class="login-sub">Ingresa la clave de acceso</p>
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" autocomplete="current-password" required placeholder="Contraseña" autofocus>
+            <div id="login-error" role="alert"></div>
+            <button type="submit" id="login-submit">Ingresar</button>
+        </form>
+    </div>
+    <div id="voice-banner" role="status" aria-live="polite"></div>
+    <button type="button" id="voice-fab" aria-label="Control por voz" title="Control por voz">🎤</button>
+
+    <div id="app-container">
 
     <!-- SIDEBAR -->
     <aside class="app-sidebar w-full md:w-64 bg-emerald-950 text-stone-300 flex flex-col justify-between border-r border-emerald-900 shrink-0">
@@ -772,6 +809,7 @@
         </div>
         <div class="p-4 border-t border-emerald-900/50 text-xs text-stone-400">
             <p>Estado: <span class="text-emerald-400 font-semibold">Local Activo</span></p>
+            <button type="button" id="btn-logout" class="mt-3 w-full rounded-xl bg-emerald-900 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Cerrar Sesión</button>
         </div>
     </aside>
 
@@ -1788,6 +1826,8 @@
         <img id="photo-display" class="max-h-[90vh] max-w-full rounded-xl bg-white object-contain" alt="Foto del registro sanitario">
     </div>
 
+    </div><!-- /#app-container -->
+
     <!-- SCRIPT DE GESTIÓN Y GRÁFICOS -->
     <script>
         let db = {
@@ -2509,7 +2549,7 @@
             escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, sync: document.getElementById('racion-sync').checked }));
             calcularAlmacen();
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
-        }
+  }
 
         function obtenerConteosRacionPoza(poza, fuente = db) {
             const campos = {
@@ -4423,6 +4463,209 @@
                 ? 'Instalar en iPhone/iPad:\n1. Abre esta página en Safari.\n2. Toca el botón Compartir.\n3. Elige "Añadir a pantalla de inicio".'
                 : 'Instalar en Android/Brave/Chrome:\n1. Abre el menú (⋮) del navegador.\n2. Elige "Instalar app" o "Añadir a pantalla de inicio".\n\nSi no aparece, abre la página desde su dirección https de GitHub Pages.');
         }
+    </script>
+    <script>
+        (() => {
+            const CLAVE_ACCESO = 'granjaAVO';
+            const LLAVE = 'sisgranja_acceso_ok';
+            const $ = id => document.getElementById(id);
+            const sesionGuardada = () => { try { return localStorage.getItem(LLAVE) === '1'; } catch (e) { return false; } };
+
+            function mostrarApp() {
+                $('login-container').style.display = 'none';
+                $('app-container').style.display = 'flex';
+                $('voice-fab').style.display = 'block';
+                window.dispatchEvent(new Event('resize'));
+            }
+            function mostrarLogin() {
+                $('app-container').style.display = 'none';
+                $('voice-fab').style.display = 'none';
+                $('login-container').style.display = 'flex';
+                $('login-password').focus();
+            }
+
+            if (sesionGuardada()) mostrarApp(); else mostrarLogin();
+
+            $('login-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const error = $('login-error');
+                if ($('login-password').value === CLAVE_ACCESO) {
+                    try { localStorage.setItem(LLAVE, '1'); } catch (err) { /* sesión solo en memoria */ }
+                    $('login-password').value = '';
+                    error.style.display = 'none';
+                    mostrarApp();
+                } else {
+                    error.textContent = 'Contraseña incorrecta.';
+                    error.style.display = 'block';
+                    $('login-password').select();
+                }
+            });
+
+            $('btn-logout').addEventListener('click', () => {
+                try { localStorage.removeItem(LLAVE); } catch (e) {}
+                mostrarLogin();
+            });
+        })();
+    </script>
+    <script>
+        // Control por voz: navegación y registro de datos con regex.
+        (() => {
+            const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const fab = document.getElementById('voice-fab');
+            const banner = document.getElementById('voice-banner');
+            let temporizador = null, activo = false, rec = null;
+
+            function aviso(texto, tipo = '', ms = 0) {
+                banner.textContent = texto;
+                banner.className = tipo;
+                banner.style.display = 'block';
+                clearTimeout(temporizador);
+                if (ms) temporizador = setTimeout(() => { banner.style.display = 'none'; }, ms);
+            }
+            function hablar(texto) {
+                if (!('speechSynthesis' in window)) return;
+                speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(texto);
+                u.lang = 'es-PE';
+                speechSynthesis.speak(u);
+            }
+            function exito(texto) { aviso('✔ ' + texto, 'ok', 3500); hablar(texto); }
+            function fallo(texto) { aviso('✖ ' + texto, 'error', 4500); hablar(texto); }
+
+            const UNIDADES = { cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24, veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29 };
+            const DECENAS = { treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90 };
+            const CENTENAS = { cien: 100, ciento: 100, doscientos: 200, trescientos: 300, cuatrocientos: 400, quinientos: 500, seiscientos: 600, setecientos: 700, ochocientos: 800, novecientos: 900 };
+
+            function normalizar(texto) {
+                let t = texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[,.;:!?¿¡]/g, m => (m === ',' || m === '.') ? m : ' ');
+                t = t.replace(/(\d),(\d)/g, '$1.$2').replace(/[,]/g, ' ');
+                const tokens = t.split(/\s+/).filter(Boolean);
+                const salida = [];
+                for (let i = 0; i < tokens.length; i++) {
+                    const w = tokens[i];
+                    if (w in CENTENAS || w in DECENAS || w in UNIDADES) {
+                        let total = 0, j = i, hubo = false;
+                        if (tokens[j] in CENTENAS) { total += CENTENAS[tokens[j]]; j++; hubo = true; }
+                        if (tokens[j] in DECENAS) {
+                            total += DECENAS[tokens[j]]; j++; hubo = true;
+                            if (tokens[j] === 'y' && tokens[j + 1] in UNIDADES && UNIDADES[tokens[j + 1]] < 10) { total += UNIDADES[tokens[j + 1]]; j += 2; }
+                        } else if (tokens[j] in UNIDADES) { total += UNIDADES[tokens[j]]; j++; hubo = true; }
+                        if (hubo) { salida.push(String(total)); i = j - 1; continue; }
+                    }
+                    salida.push(w);
+                }
+                return salida.join(' ').replace(/\s+/g, ' ').trim();
+            }
+
+            const VISTAS = [
+                ['bioseguridad', /bioseguridad|prevencion/],
+                ['gastos', /gastos?/],
+                ['ventas', /ventas?|ingresos?/],
+                ['salud', /kardex|salud/],
+                ['bajas', /sanidad|bajas?|mortalidad|dr cuy/],
+                ['destetados', /destet\w*/],
+                ['partos', /partos?|reproduccion|empadre/],
+                ['cuyes', /pozas?|cuyes/],
+                ['guia', /guia|tecnica/],
+                ['pesos', /pesos?|pesaje/],
+                ['racion', /racion|forraje/],
+                ['almacen', /almacen|proyeccion/],
+                ['dashboard', /dashboard|inicio|panel|resumen|principal/]
+            ];
+            const NOMBRES = { dashboard: 'Dashboard', cuyes: 'Pozas', partos: 'Partos', destetados: 'Destetados', bajas: 'Sanidad', ventas: 'Ventas', gastos: 'Gastos operativos', salud: 'Kardex sanitario', guia: 'Guía técnica', bioseguridad: 'Bioseguridad', pesos: 'Pesos', racion: 'Ración y forraje', almacen: 'Almacén' };
+
+            function irA(vista) {
+                if (!document.getElementById('view-' + vista)) return false;
+                switchView(vista);
+                return true;
+            }
+            const falsoEvento = { preventDefault() {} };
+
+            function procesar(original) {
+                const t = normalizar(original);
+                const total = n => Number(String(n).replace(',', '.'));
+
+                // Parto: "registrar parto en poza 15 con 4 gazapos"
+                let m = t.match(/parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/);
+                if (m && /registr|anota|agrega|nuevo|hubo|tuvo/.test(t)) {
+                    const codigo = 'PZ-' + m[1].padStart(3, '0');
+                    if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+                    if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
+                    irA('partos');
+                    document.getElementById('parto-poza').value = codigo;
+                    document.getElementById('parto-vivas').value = m[2];
+                    document.getElementById('parto-muertas').value = m[3] || '0';
+                    guardarParto(falsoEvento);
+                    return exito('Registrado correctamente');
+                }
+
+                // Venta: "venta de hoy 5 cuyes a 35 soles" (precio por unidad)
+                m = t.match(/venta.*?(\d+)\s*(\w+)?.*?(?:a|en|por)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/);
+                if (m) {
+                    const tipo = m[2] || '';
+                    const categoria = /gazap|cria/.test(tipo) ? 'Gazapos (Crías)'
+                        : /reproduc|descarte/.test(t) ? 'Reproductor / Descarte'
+                        : /guano|abono/.test(t) ? 'Subproductos / Abono (Guano)'
+                        : 'Cuy Comercial / Engorde';
+                    irA('ventas');
+                    document.getElementById('venta-categoria').value = categoria;
+                    document.getElementById('venta-cantidad').value = m[1];
+                    document.getElementById('venta-monto').value = total(m[3]);
+                    guardarVenta(falsoEvento);
+                    return exito('Registrado correctamente');
+                }
+
+                // Gasto: "gasto operativo en alimento 150 soles"
+                m = t.match(/gasto(?:s)?(?:\s+operativos?)?\s*(?:en|de|por)?\s*(.*?)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/);
+                if (m) {
+                    const concepto = (m[1] || '').replace(/^(?:en|de|por)\s+/, '').trim() || 'Gasto por voz';
+                    const categoria = /alimento|balanceado|concentrado/.test(concepto) ? 'Alimentación'
+                        : /forraje|alfalfa|pasto/.test(concepto) ? 'Forraje'
+                        : /medicin/.test(concepto) ? 'Medicinas'
+                        : /sanidad|vacuna|veterin/.test(concepto) ? 'Sanidad / Medicamentos'
+                        : /mantenimiento|reparacion/.test(concepto) ? 'Mantenimiento de Pozas'
+                        : 'Otros Egresos';
+                    irA('gastos');
+                    document.getElementById('gasto-concepto').value = concepto.charAt(0).toUpperCase() + concepto.slice(1);
+                    document.getElementById('gasto-monto').value = total(m[2]);
+                    document.getElementById('gasto-categoria').value = categoria;
+                    guardarGasto(falsoEvento);
+                    return exito('Registrado correctamente');
+                }
+
+                // Navegación: "abre dashboard", "ir a ventas", "muéstrame pozas"
+                if (/\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver)\b/.test(t) || t.split(' ').length <= 3) {
+                    const coincide = VISTAS.find(([, re]) => re.test(t));
+                    if (coincide && irA(coincide[0])) return exito('Navegando a la sección solicitada: ' + NOMBRES[coincide[0]]);
+                }
+                fallo('No entendí el comando: "' + original + '"');
+            }
+
+            function detener() {
+                activo = false;
+                fab.classList.remove('escuchando');
+                if (rec) { try { rec.stop(); } catch (e) {} }
+            }
+
+            fab.addEventListener('click', () => {
+                if (!Reconocimiento) return fallo('Tu navegador no admite reconocimiento de voz');
+                if (activo) { detener(); banner.style.display = 'none'; return; }
+                rec = new Reconocimiento();
+                rec.lang = 'es-PE';
+                rec.interimResults = true;
+                rec.continuous = false;
+                rec.onstart = () => { activo = true; fab.classList.add('escuchando'); aviso('🎤 Escuchando...'); };
+                rec.onresult = ev => {
+                    const r = ev.results[ev.results.length - 1];
+                    const texto = r[0].transcript;
+                    if (r.isFinal) { aviso('🎤 "' + texto + '"'); procesar(texto); }
+                    else aviso('🎤 Escuchando: "' + texto + '"');
+                };
+                rec.onerror = ev => { fallo(ev.error === 'not-allowed' ? 'Permiso de micrófono denegado' : 'Error de voz: ' + ev.error); };
+                rec.onend = () => { activo = false; fab.classList.remove('escuchando'); };
+                rec.start();
+            });
+        })();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
