@@ -5237,5 +5237,37 @@ const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, 
             hablar(`${titulo}. ${mensaje}`);
         };
     </script>
+<script>
+        // MOTOR DE VOZ TOTAL - SISGRANJA
+        function hablar(textoLimpio) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
+                const utterance = new SpeechSynthesisUtterance(textoPlano);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        const exitoOriginal = window.exito || function(m) { alert(m); };
+        window.exito = function(mensaje) {
+            exitoOriginal(mensaje);
+            hablar(mensaje);
+        };
+
+        const falloOriginal = window.fallo || function(m) { console.error(m); };
+        window.fallo = function(mensaje) {
+            falloOriginal(mensaje);
+            hablar(mensaje);
+        };
+
+        const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
+        window.mostrarPantallazoVoz = function(titulo, mensaje) {
+            mostrarPantallazoVozOriginal(titulo, mensaje);
+            hablar(`${titulo}. ${mensaje}`);
+        };
+    </script>
 </body>
 </html>
