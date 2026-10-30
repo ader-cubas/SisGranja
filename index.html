@@ -602,6 +602,12 @@
         .app-topbar .brand-card { background: linear-gradient(180deg, #ffffff, #f0fdf4); border: 1px solid #d1fae5; border-radius: 14px; padding: 6px 14px 6px 8px; box-shadow: 0 2px 8px rgb(6 78 59 / 8%); min-width: 0; }
         .btn-volver-menu { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; padding: .6rem 1rem; margin-bottom: 1rem; border: 0; border-radius: 12px; background: #065f46; color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(6,95,70,.35); cursor: pointer; }
         .btn-volver-menu:active { background: #064e3b; }
+        /* Legibilidad en campo: navegación lateral, barra superior y menú ejecutivo más grandes */
+        .app-sidebar nav button { font-size: 1rem !important; font-weight: 700 !important; }
+        .app-topbar button, .app-topbar label { font-size: .9rem !important; font-weight: 700 !important; }
+        .app-topbar h2 { font-size: 1.15rem !important; font-weight: 800 !important; }
+        .exec-btn { font-size: 1.05rem !important; font-weight: 800 !important; }
+        .exec-btn small { font-size: .82rem !important; font-weight: 600 !important; }
         @media (min-width: 768px) { .btn-volver-menu { width: auto; } }
 
         /* Módulos de granja: pesos, ración y reproducción */
@@ -4898,7 +4904,33 @@
                     ], pie: AVISO_VET, accion: abrirDrCuy
                 }
             ];
-            const PALABRAS_CLINICAS = /enferm|sintoma|decaido|no come|no quiere comer|mueren|muerte|murio|muerto|triste|temblor|convuls|\bojos?\b|secrecion|abort/;
+            const PALABRAS_CLINICAS = /enferm|sintoma|decaido|no come|no quiere comer|mueren|muerte|murio|muerto|triste|temblor|convuls|\bojos?\b|secrecion|abort|prepucio|medicina|dosis|tratamiento|desinfec|diarrea|salmonel|sarna|piojo|infecc|patolog/;
+            const SANIDAD = /sarna|piojo|abort|prepucio|decaido|enferm|diarrea|salmonel|medicina|dosis|tratamiento|desinfec|infecc|patolog|sintoma/;
+            // Cortesía o acción que no cambia el objetivo de la consulta.
+            const RUIDO = /\b(?:muestrame|muestra|mostrar|a ver|ver|dime|dame|cual es|cuales son|por favor|oye|necesito|quiero saber|quiero ver|quisiera)\b/g;
+            const NAV_EXPLICITO = /\b(?:abre|abrir|abri|ir a|ve a|vamos a|navega|llevame)\b/;
+
+            // Ficha con el mismo formato de tarjeta para cualquier enfermedad de la Guía Técnica.
+            const ALIAS_GUIA = { 'Hongos / Tiña': /hongo|\btina\b/, 'Afecciones Genitales': /genital|prolapso|prepucio|\bpene\b/, 'Colibacilosis': /colibac|\be coli\b|escherichia/, 'Enfermedad de Tyzzer': /tyzzer/, 'Linfadenitis Cervical': /linfadenitis|absceso/, 'Neumonía': /neumon/ };
+            function fichaGuia(t) {
+                if (typeof GUIA_ENFERMEDADES === 'undefined') return null;
+                const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const d = GUIA_ENFERMEDADES.find(e => (ALIAS_GUIA[e.nombre] || new RegExp(norm(e.nombre.split(' ')[0]).replace(/\W/g, ''))).test(t));
+                if (!d) return null;
+                const p = GUIA_DOSIS[d.nombre];
+                let dosis = 'Sin dosis por peso; siga la pauta del veterinario.';
+                if (p && p.farmaco) dosis = `${p.farmaco}: ${p.mgkg} mg/kg, vía ${p.via}, ${p.frec}, por ${p.dias} día(s).`;
+                else if (p && p['tópico']) dosis = p['tópico'];
+                return {
+                    titulo: d.nombre, icono: d.icono || '🩺',
+                    secciones: [
+                        ['Posible causa / diagnóstico', `${d.agente} Signos: ${d.signos}`],
+                        ['Medicación o tratamiento', d.tratamiento + ' ATENCIÓN: no use penicilinas, amoxicilina, ampicilina ni eritromicina; son tóxicas en cuyes.'],
+                        ['Dosis y vía', dosis],
+                        ['Aislamiento y bioseguridad', ATLAS_BIOSEGURIDAD[d.nombre] || ['Aísle al animal afectado, use guantes y desinfecte comederos, bebederos y la poza.', 'No mueva animales entre pozas hasta controlar el problema.']]
+                    ], pie: AVISO_VET, accion: abrirDrCuy
+                };
+            }
 
             // --- Datos de la granja: leen el estado `db` (copia en memoria del localStorage). ---
             const mesActual = () => fechaHoy().slice(0, 7);
@@ -4922,7 +4954,7 @@
 
             const DATOS = [
                 {
-                    re: /racion|forraje|concentrado|alimento/,
+                    re: /racion|forraje|concentrado|alimento|alfalfa|comida|kilos?/,
                     ejecutar(t) {
                         const g = gramosRacion();
                         const pedida = (t.match(/poza\s*(\d+)/) || [])[1];
@@ -4960,7 +4992,7 @@
                     }
                 },
                 {
-                    re: /ventas?|vendi|ingresos?/,
+                    re: /ventas?|vendi|ingresos?|plata|dinero|soles/,
                     ejecutar() {
                         const delMes = db.ventas.filter(v => String(v.fecha).startsWith(mesActual()));
                         const cant = delMes.reduce((s, v) => s + (Number(v.cantidad) || 0), 0);
@@ -4975,7 +5007,7 @@
                     }
                 },
                 {
-                    re: /destetados?/,
+                    re: /destetados?|crias separadas/,
                     ejecutar() {
                         const suma = lista => lista.reduce((s, d) => s + (Number(d.machos) || 0) + (Number(d.hembras) || 0) + (d.machos === undefined && d.hembras === undefined ? Number(d.cantidad) || 0 : 0), 0);
                         mostrarTarjeta({
@@ -4987,7 +5019,32 @@
                     }
                 },
                 {
-                    re: /poblacion|cuyes|animales|pozas?|inventario|total/,
+                    re: /reproductor\w*|machos?|hembras?|adultos?|crias?|gazapos?|recria|engorde|lactante/,
+                    ejecutar(t) {
+                        const sexoPedido = /macho/.test(t) ? 'macho' : /hembra/.test(t) ? 'hembra' : null;
+                        const etapaPedida = /reproductor|adulto/.test(t) ? 'adultos' : /recria|engorde/.test(t) ? 'recria' : /cria|gazapo|lactante/.test(t) ? 'crias' : null;
+                        const etapas = { adultos: 'Reproductores', recria: 'Recría / engorde', crias: 'Crías' };
+                        const m = { adultos: { macho: 0, hembra: 0, mixto: 0 }, recria: { macho: 0, hembra: 0, mixto: 0 }, crias: { macho: 0, hembra: 0, mixto: 0 } };
+                        obtenerPozasUnicas().forEach(p => {
+                            const g = String(p.genero || '').toLowerCase();
+                            const sexo = g.includes('macho') ? 'macho' : g.includes('hembra') ? 'hembra' : 'mixto';
+                            const c = obtenerConteosRacionPoza(p);
+                            Object.keys(m).forEach(e => { m[e][sexo] += c[e]; });
+                        });
+                        const claves = etapaPedida ? [etapaPedida] : Object.keys(m);
+                        const cuenta = e => sexoPedido ? m[e][sexoPedido] : m[e].macho + m[e].hembra + m[e].mixto;
+                        const total = claves.reduce((s, e) => s + cuenta(e), 0);
+                        const mixtas = claves.reduce((s, e) => s + m[e].mixto, 0);
+                        const nombre = (etapaPedida ? etapas[etapaPedida].toLowerCase() : 'cuyes') + (sexoPedido ? (sexoPedido === 'macho' ? ' machos' : ' hembras') : '');
+                        const secciones = [['Resultado', `${total} ${nombre}`]];
+                        secciones.push(['Desglose exacto', claves.map(e => `${etapas[e]}: ${cuenta(e)}` + (sexoPedido ? '' : ` (machos ${m[e].macho}, hembras ${m[e].hembra}, mixtas ${m[e].mixto})`))]);
+                        if (sexoPedido && mixtas) secciones.push(['Nota', `Hay ${mixtas} cuyes en pozas mixtas que no se pueden separar por sexo.`]);
+                        mostrarTarjeta({ titulo: 'Población por categoría', icono: '🐹', secciones, pie: 'Calculado con el stock actual de cada poza (etapa y género registrados).', accion: { texto: 'Abrir Pozas', ir: () => irA('cuyes') } });
+                        exito('Mostrando ' + nombre);
+                    }
+                },
+                {
+                    re: /poblacion|cuyes|animales|pozas?|inventario|total|cuant\w*|\bhay\b|\btengo\b/,
                     ejecutar() {
                         const r = resumenPoblacion();
                         mostrarTarjeta({
@@ -5007,13 +5064,15 @@
 
             function consultar(t) {
                 const dato = DATOS.find(d => d.re.test(t));
-                const conocimiento = CONOCIMIENTO.find(c => c.re.test(t));
-                if (conocimiento && !(dato && /cuant|total|del mes|este mes|por poza/.test(t) && !/partos|vida util|gestacion/.test(t))) {
+                const guia = fichaGuia(t);
+                const conocimiento = CONOCIMIENTO.find(c => c.re.test(t)) || guia;
+                const sanidad = SANIDAD.test(t) || !!guia;
+                if (conocimiento && (sanidad || !(dato && /cuant|total|del mes|este mes|por poza/.test(t) && !/partos|vida util|gestacion/.test(t)))) {
                     mostrarTarjeta(conocimiento);
                     exito('Mostrando la información: ' + conocimiento.titulo);
                     return true;
                 }
-                if (dato) { dato.ejecutar(t); return true; }
+                if (dato && !sanidad) { dato.ejecutar(t); return true; }
                 if (PALABRAS_CLINICAS.test(t)) {
                     mostrarTarjeta({
                         titulo: 'Orientación clínica general', icono: '🩺',
@@ -5038,12 +5097,20 @@
                     if (m) return a.ejecutar(m, t);
                 }
                 const vista = VISTAS.find(([, re]) => re.test(t));
-                if (vista && !PREGUNTA.test(t) && (VERBOS_NAV.test(t) || t.split(' ').length <= 3) && irA(vista[0])) {
+                if (vista && NAV_EXPLICITO.test(t) && !PREGUNTA.test(t) && irA(vista[0])) {
                     return exito('Navegando a la sección solicitada: ' + vista[2]);
                 }
-                if (consultar(t)) return;
+                const q = t.replace(RUIDO, ' ').replace(/\s+/g, ' ').trim();
+                if (consultar(q)) return;
                 if (vista && irA(vista[0])) return exito('Navegando a la sección solicitada: ' + vista[2]);
-                fallo('No entendí el comando: "' + original + '"');
+                mostrarTarjeta({
+                    titulo: 'Puedo ayudarte con esto', icono: '🐹',
+                    secciones: [
+                        ['Prueba preguntar', ['"¿Cuántos cuyes tengo?" (población)', '"¿Cuántas hembras reproductoras hay?" (por categoría)', '"¿Cuánto vendí este mes?" (ventas)', '"Calcular ración para poza 12" (alimento)', '"Mis cuyes tienen sarna" o "tienen diarrea" (dudas veterinarias)', '"Abre ventas" (navegación)']]
+                    ],
+                    pie: 'No identifiqué: "' + original + '". Intenta con otras palabras.'
+                });
+                hablar('Puedes preguntarme por población, ventas, raciones o dudas veterinarias');
             }
 
             function iniciar() {
