@@ -4474,8 +4474,7 @@
                 if (!document.getElementById('view-dashboard').classList.contains('hidden')) actualizarGraficos();
             }, 150);
         });
-    </script>
-    <script>
+
         let eventoInstalacion = null;
         window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); eventoInstalacion = e; });
         window.addEventListener('appinstalled', () => { eventoInstalacion = null; });
@@ -4497,8 +4496,7 @@
                 ? 'Instalar en iPhone/iPad:\n1. Abre esta página en Safari.\n2. Toca el botón Compartir.\n3. Elige "Añadir a pantalla de inicio".'
                 : 'Instalar en Android/Brave/Chrome:\n1. Abre el menú (⋮) del navegador.\n2. Elige "Instalar app" o "Añadir a pantalla de inicio".\n\nSi no aparece, abre la página desde su dirección https de GitHub Pages.');
         }
-    </script>
-    <script>
+
         (() => {
             const CLAVE_ACCESO = 'granjaAVO';
             const LLAVE = 'sisgranja_acceso_ok';
@@ -4552,8 +4550,37 @@
                 location.reload();
             });
         })();
-    </script>
-   
+
+        // Motor de voz: para ampliarlo basta añadir entradas a VISTAS (navegación) o ACCIONES (formularios).
+        (() => {
+            const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const fab = document.getElementById('voice-fab');
+            const banner = document.getElementById('voice-banner');
+            let temporizador = null, activo = false, rec = null, ultimoCampo = null;
+
+            // Memoriza el último campo de texto enfocado para dictar notas aunque el botón lo desenfoque.
+            document.addEventListener('focusin', e => {
+                if (e.target.matches('textarea, input[type=text], input[type=search], input:not([type])')) ultimoCampo = e.target;
+            });
+            fab.addEventListener('mousedown', e => e.preventDefault());
+
+            function aviso(texto, tipo = '', ms = 0) {
+                banner.textContent = texto;
+                banner.className = tipo;
+                banner.style.display = 'block';
+                clearTimeout(temporizador);
+                if (ms) temporizador = setTimeout(() => { banner.style.display = 'none'; }, ms);
+            }
+            function hablar(texto) {
+                if (!('speechSynthesis' in window)) return;
+                speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(texto);
+                u.lang = 'es-PE';
+                speechSynthesis.speak(u);
+            }
+            const exito = texto => { aviso('✔ ' + texto, 'ok', 3500); hablar(texto); };
+            const fallo = texto => { aviso('✖ ' + texto, 'error', 4500); hablar(texto); };
+
             // --- Números hablados -> dígitos ("treinta y cinco" -> 35) ---
             const UNIDADES = { cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24, veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29 };
             const DECENAS = { treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90 };
@@ -4608,33 +4635,20 @@
 
             // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
             const ACCIONES = [
-               {
-        // Registrar bajas o muertes en pozas (Ej: "en la poza 3 murió un gazapo")
-        patron: /(?:muerto|murió|baja|falleció).*?poza\s*(\d+)/i,
-        requiere: /registra|anota|agrega|hubo|murió|baja/i,
-        ejecutar(m) {
-            const codigo = codigoPoza(m[1]);
-            if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
-            irA('bajas');
-            ponerValor('baja-poza', codigo);
-            exito('Poza ' + m[1] + ' seleccionada para registrar baja.');
-            return true;
-        }
-    },
-    {
-        // Registrar destetados (Ej: "en la poza 10 hay 20 destetados machos")
-        patron: /poza\s*(\d+).*?(\d+)\s*(?:destetados|machos|hembras)/i,
-        requiere: /registra|anota|agrega|hay|destete|destetados/i,
-        ejecutar(m) {
-            const codigo = codigoPoza(m[1]);
-            if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
-            irA('destetes');
-            ponerValor('destete-poza', codigo);
-            ponerValor('destete-cantidad', m[2]);
-            exito('Poza ' + m[1] + ': ' + m[2] + ' destetados listos para guardar.');
-            return true;
-        }
-    },
+                {   // "registrar parto en poza 15 con 4 gazapos [y 1 muerta]"
+                    patron: /parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
+                    requiere: /registr|anota|agrega|nuevo|hubo|tuvo/,
+                    ejecutar(m) {
+                        const codigo = codigoPoza(m[1]);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+                        if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
+                        irA('partos');
+                        ponerValor('parto-poza', codigo);
+                        ponerValor('parto-vivas', m[2]);
+                        ponerValor('parto-muertas', m[3] || '0');
+                        guardarParto(evento);
+                        exito('Registrado correctamente');
+                    }
                 },
                 {   // "venta de hoy 5 cuyes a 35 soles" (precio por unidad)
                     patron: /venta.*?(\d+)\s*(\w+)?.*?(?:a|en|por)\s*(\d+(?:\.\d+)?)\s*(?:soles|sol)/,
@@ -5008,37 +5022,7 @@
                         ], pie: AVISO_VET, accion: abrirDrCuy
                     });
                     exito('Mostrando orientación clínica');
-   <script>
-    function hablar(textoLimpio) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
-            const utterance = new SpeechSynthesisUtterance(textoPlano);
-            utterance.lang = 'es-ES';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    const exitoOriginal = window.exito || function(m) { alert(m); };
-    window.exito = function(mensaje) {
-        exitoOriginal(mensaje);
-        hablar(mensaje);
-    };
-
-    const falloOriginal = window.fallo || function(m) { console.error(m); };
-    window.fallo = function(mensaje) {
-        falloOriginal(mensaje);
-        hablar(mensaje);
-    };
-
-    const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-    window.mostrarPantallazoVoz = function(titulo, mensaje) {
-        mostrarPantallazoVozOriginal(titulo, mensaje);
-        hablar(`${titulo}. ${mensaje}`);
-    };
-</script>                 return true;
+                    return true;
                 }
                 return false;
             }
@@ -5085,159 +5069,10 @@
             // Permite ampliar desde fuera: SisGranjaVoz.vistas.push([...]) / SisGranjaVoz.acciones.unshift({...}).
             window.SisGranjaVoz = { vistas: VISTAS, acciones: ACCIONES, procesar };
         })();
-    </script>
-    // =====================================================================
-    // MOTOR DE VOZ TOTAL: LECTURA HABLADA DE TARJETAS, ALERTAS Y CONSULTAS
-    // =====================================================================
-    function hablar(textoLimpio) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
-            const utterance = new SpeechSynthesisUtterance(textoPlano);
-            utterance.lang = 'es-ES';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-    window.mostrarPantallazoVoz = function(titulo, mensaje) {
-        mostrarPantallazoVozOriginal(titulo, mensaje);
-        hablar(`${titulo}. ${mensaje}`);
-    };
 
-    const exitoOriginal = window.exito || function(m) { alert(m); };
-    window.exito = function(mensaje) {
-        exitoOriginal(mensaje);
-        hablar(mensaje);
-    };
-
-    const falloOriginal = window.fallo || function(m) { console.error(m); };
-    window.fallo = function(mensaje) {
-        falloOriginal(mensaje);
-        hablar(mensaje);
-    };
-    const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-    window.mostrarPantallazoVoz = function(titulo, mensaje) {
-        mostrarPantallazoVozOriginal(titulo, mensaje);
-        hablar(`${titulo}. ${mensaje}`);
-    };
-
-    const exitoOriginal = window.exito || function(m) { alert(m); };
-    window.exito = function(mensaje) {
-        exitoOriginal(mensaje);
-        hablar(mensaje);
-    };
-
-    const falloOriginal = window.fallo || function(m) { console.error(m); };
-    window.fallo = function(mensaje) {
-        falloOriginal(mensaje);
-        hablar(mensaje);
-    };
-    <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW no registrado:', e)));
         }
-    </script>
-    
-</body>
-</html>
-<script>
-        // =====================================================================
-        // MOTOR DE VOZ TOTAL: SÍNTESIS Y LECTURA HABLADA
-        // =====================================================================
-        function hablar(textoLimpio) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
-                const utterance = new SpeechSynthesisUtterance(textoPlano);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        const exitoOriginal = window.exito || function(m) { alert(m); };
-        window.exito = function(mensaje) {
-            exitoOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const falloOriginal = window.fallo || function(m) { console.error(m); };
-        window.fallo = function(mensaje) {
-            falloOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-        window.mostrarPantallazoVoz = function(titulo, mensaje) {
-            mostrarPantallazoVozOriginal(titulo, mensaje);
-            hablar(`${titulo}. ${mensaje}`);
-        };
-    </script>
-<script>
-        function hablar(textoLimpio) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
-                const utterance = new SpeechSynthesisUtterance(textoPlano);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        const exitoOriginal = window.exito || function(m) { alert(m); };
-        window.exito = function(mensaje) {
-            exitoOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const falloOriginal = window.fallo || function(m) { console.error(m); };
-        window.fallo = function(mensaje) {
-            falloOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-        window.mostrarPantallazoVoz = function(titulo, mensaje) {
-            mostrarPantallazoVozOriginal(titulo, mensaje);
-            hablar(`${titulo}. ${mensaje}`);
-        };
-    </script>
-<script>
-        // MOTOR DE VOZ TOTAL - SISGRANJA
-        function hablar(textoLimpio) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const textoPlano = textoLimpio.replace(/<[^>]*>?/gm, '');
-                const utterance = new SpeechSynthesisUtterance(textoPlano);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        const exitoOriginal = window.exito || function(m) { alert(m); };
-        window.exito = function(mensaje) {
-            exitoOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const falloOriginal = window.fallo || function(m) { console.error(m); };
-        window.fallo = function(mensaje) {
-            falloOriginal(mensaje);
-            hablar(mensaje);
-        };
-
-        const mostrarPantallazoVozOriginal = window.mostrarPantallazoVoz || function(t, m) { console.log(t, m); };
-        window.mostrarPantallazoVoz = function(titulo, mensaje) {
-            mostrarPantallazoVozOriginal(titulo, mensaje);
-            hablar(`${titulo}. ${mensaje}`);
-        };
     </script>
 </body>
 </html>
