@@ -1821,13 +1821,25 @@
             <div id="view-almacen" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">📦 Proyección de almacén</h3>
-                    <p class="mod-hint">Usa el consumo diario de la calculadora de ración (con las cantidades de tus pozas) y lo compara con tu stock.</p>
+                    <p id="alm-animales" class="text-xl font-extrabold text-emerald-900" aria-live="polite"></p>
+                    <p class="mod-hint">Base INIA por cuy activo al día: ~300 g de forraje y ~25–30 g de concentrado (editable).</p>
                     <div class="mod-grid">
+                        <label class="mod-field">Tipo de forraje
+                            <select id="alm-tipo" onchange="calcularAlmacen()" class="mod-input">
+                                <option value="Alfalfa">Alfalfa</option>
+                                <option value="Ryegrass">Ryegrass</option>
+                            </select>
+                        </label>
+                        <label class="mod-field">Forraje (g/cuy/día)
+                            <input type="number" id="alm-g-forraje" min="0" step="5" value="300" inputmode="decimal" oninput="calcularAlmacen()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Concentrado (g/cuy/día)
+                            <input type="number" id="alm-g-conc" min="0" step="0.5" value="27.5" inputmode="decimal" oninput="calcularAlmacen()" class="mod-input">
+                        </label>
                         <label class="mod-field">Período a proyectar
                             <select id="alm-periodo" onchange="calcularAlmacen()" class="mod-input">
                                 <option value="7">7 días</option>
                                 <option value="15">15 días</option>
-                                <option value="30">30 días</option>
                                 <option value="0">Otro (personalizado)</option>
                             </select>
                         </label>
@@ -1841,7 +1853,8 @@
                             <input type="number" id="alm-stock-conc" min="0" step="0.5" inputmode="decimal" oninput="calcularAlmacen()" class="mod-input" placeholder="Ej. 15">
                         </label>
                     </div>
-                    <div id="alm-resultado" class="mod-result" aria-live="polite"></div>
+                    <div id="alm-resultado" class="mod-result grid gap-4 md:grid-cols-2" aria-live="polite"></div>
+                    <p class="mt-4 rounded-2xl border-4 border-sky-500 bg-sky-50 p-4 text-lg sm:text-xl font-extrabold leading-snug text-sky-950" role="alert">⚠️ IMPORTANTE: A pesar de consumir forraje verde, todas las pozas y cuyes deben contar obligatoriamente con agua limpia y fresca permanentemente.</p>
                 </section>
             </div>
 
@@ -2689,9 +2702,12 @@
             const salida = document.getElementById('alm-resultado');
             if (!salida) return;
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
-            const adultos = num('racion-adultos'), recria = num('racion-recria'), crias = num('racion-crias');
-            const forrajeDia = (adultos * num('racion-g-adulto') + recria * num('racion-g-recria') + crias * num('racion-g-crias')) / 1000;
-            const concDia = (adultos * num('racion-c-adulto') + recria * num('racion-c-recria') + crias * num('racion-c-crias')) / 1000;
+            const animales = num('racion-adultos') + num('racion-recria') + num('racion-crias');
+            const tipo = document.getElementById('alm-tipo').value;
+            const gF = num('alm-g-forraje'), gC = num('alm-g-conc');
+            const forrajeDia = animales * gF / 1000;
+            const concDia = animales * gC / 1000;
+            document.getElementById('alm-animales').textContent = `🐹 ${animales} cuyes activos en pozas`;
             const periodo = Number(document.getElementById('alm-periodo').value);
             const campoDias = document.getElementById('alm-dias');
             if (periodo) campoDias.value = periodo;
@@ -2699,39 +2715,42 @@
             const dias = Math.max(1, Math.floor(Number(campoDias.value) || periodo || 7));
             const stockF = num('alm-stock-forraje'), stockC = num('alm-stock-conc');
             const crear = (tag, texto, clase) => { const el = document.createElement(tag); el.textContent = texto; if (clase) el.className = clase; return el; };
-            const bloque = (titulo, diario, stock) => {
+            const bloque = (titulo, diario, stock, rango) => {
                 const necesario = diario * dias;
                 const cobertura = diario > 0 ? stock / diario : Infinity;
                 const falta = Math.max(0, necesario - stock);
                 let estado, clase, mensaje;
-                if (diario <= 0) { estado = 'Sin consumo'; clase = 'border-stone-300 bg-stone-50 text-stone-800'; mensaje = 'Registra animales en la calculadora de ración.'; }
+                if (diario <= 0) { estado = 'Sin consumo'; clase = 'border-stone-300 bg-stone-50 text-stone-800'; mensaje = 'Sin animales activos en las pozas.'; }
                 else if (cobertura < dias) { estado = '🔴 FALTA'; clase = 'border-red-400 bg-red-50 text-red-900'; mensaje = `Compra al menos ${falta.toFixed(2)} kg. Te alcanza para ${Math.floor(cobertura)} días.`; }
                 else if (cobertura < dias + 3) { estado = '🟡 AJUSTADO'; clase = 'border-amber-400 bg-amber-50 text-amber-900'; mensaje = `Alcanza justo (${Math.floor(cobertura)} días). Programa la compra pronto.`; }
                 else { estado = '🟢 SUFICIENTE'; clase = 'border-emerald-400 bg-emerald-50 text-emerald-900'; mensaje = `Cubre ${Math.floor(cobertura)} días. Sobran ${(stock - necesario).toFixed(2)} kg.`; }
-                const caja = crear('div', '', `mb-4 rounded-2xl border-2 p-4 ${clase}`);
+                const caja = crear('div', '', `rounded-2xl border-2 p-4 ${clase}`);
                 caja.append(
                     crear('p', titulo, 'text-lg font-extrabold'),
-                    crear('p', estado, 'text-2xl font-extrabold my-1'),
-                    crear('p', `Consumo diario: ${diario.toFixed(2)} kg`, 'text-base sm:text-lg'),
-                    crear('p', `Necesario para ${dias} días: ${necesario.toFixed(2)} kg`, 'text-base sm:text-lg font-bold'),
-                    crear('p', `Stock actual: ${stock.toFixed(2)} kg`, 'text-base sm:text-lg'),
-                    crear('p', mensaje, 'mt-1 text-base sm:text-lg font-semibold')
+                    crear('p', `${necesario.toFixed(1)} kg`, 'text-4xl font-extrabold leading-tight'),
+                    crear('p', `necesarios en ${dias} días · ${diario.toFixed(2)} kg/día${rango ? ' · ' + rango : ''}`, 'text-sm sm:text-base'),
+                    crear('p', `Falta comprar: ${falta.toFixed(1)} kg`, 'mt-2 text-xl font-extrabold'),
+                    crear('p', `${estado} · stock ${stock.toFixed(1)} kg`, 'text-base sm:text-lg font-bold'),
+                    crear('p', mensaje, 'mt-1 text-sm sm:text-base font-semibold')
                 );
                 return caja;
             };
             salida.replaceChildren(
-                bloque('🌿 Forraje verde', forrajeDia, stockF),
-                bloque('🌾 Concentrado', concDia, stockC)
+                bloque(`🌿 Forraje (${tipo})`, forrajeDia, stockF),
+                bloque('🌾 Concentrado', concDia, stockC, `rango 25–30 g: ${(animales * 25 * dias / 1000).toFixed(1)}–${(animales * 30 * dias / 1000).toFixed(1)} kg`)
             );
-            escribirAlmacenamiento('sisgranja_almacen', JSON.stringify({ periodo, dias, stockF, stockC }));
+            escribirAlmacenamiento('sisgranja_almacen', JSON.stringify({ periodo, dias, stockF, stockC, tipo, gF, gC }));
         }
 
         function cargarAlmacenGuardado() {
             try {
                 const g = JSON.parse(leerAlmacenamiento('sisgranja_almacen') || 'null');
                 if (g) {
-                    document.getElementById('alm-periodo').value = [0, 7, 15, 30].includes(g.periodo) ? g.periodo : 7;
+                    document.getElementById('alm-periodo').value = [0, 7, 15].includes(g.periodo) ? g.periodo : 7;
                     document.getElementById('alm-dias').value = g.dias || 7;
+                    if (g.tipo) document.getElementById('alm-tipo').value = g.tipo;
+                    if (g.gF) document.getElementById('alm-g-forraje').value = g.gF;
+                    if (g.gC) document.getElementById('alm-g-conc').value = g.gC;
                     document.getElementById('alm-stock-forraje').value = g.stockF || '';
                     document.getElementById('alm-stock-conc').value = g.stockC || '';
                 }
