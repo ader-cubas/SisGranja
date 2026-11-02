@@ -1119,22 +1119,18 @@
                         </div>
                         <div class="sm:col-span-2 grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Machos</label>
-                                <input type="number" id="cuy-machos" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Hembras</label>
+                                <input type="number" id="cuy-hembras" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Hembras</label>
-                                <input type="number" id="cuy-hembras" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                                <label class="block text-xs font-bold text-stone-600 mb-1">Machos</label>
+                                <input type="number" id="cuy-machos" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Galpón / Ubicación</label>
                             <input type="text" id="cuy-poza" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Galpón A">
                         </div>
-                        <div class="sm:col-span-4">
-                            <label class="flex items-center gap-2 text-sm font-bold text-stone-700"><input type="checkbox" id="cuy-reemplazo" class="h-5 w-5"> Poza de reemplazo (reproductores de reemplazo)</label>
-                        </div>
-                        <p class="sm:col-span-4 text-xs text-stone-500">El total de la poza es machos + hembras (ej. 1 + 6 = 7). La etapa define si cuentan como reproductores, reemplazo, destetados, recría o crías.</p>
                         <div class="sm:col-span-4">
                             <button type="submit" class="action-giant action-destete w-full"><i class="ph ph-users-three" aria-hidden="true"></i><span>GUARDAR POZA</span></button>
                         </div>
@@ -3464,10 +3460,9 @@
             db.cuyes.push({
                 codigo, etapa, poza, machos, hembras,
                 stockInicial: machos + hembras,
-                reemplazo: document.getElementById('cuy-reemplazo').checked || etapa === 'Reemplazo'
+                reemplazo: etapa === 'Reemplazo'
             });
             db.pozas = db.cuyes;
-            document.getElementById('cuy-reemplazo').checked = false;
             document.getElementById('cuy-codigo').value = '';
             document.getElementById('cuy-hembras').value = '0';
             document.getElementById('cuy-machos').value = '0';
