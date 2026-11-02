@@ -1100,42 +1100,25 @@
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                         <h3 class="text-lg font-bold text-stone-800">Registrar Nuevo Animal / Poza</h3>
                     </div>
-                    <form onsubmit="guardarCuy(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <form id="form-cuy" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl shadow-sm mb-6">
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Código / Poza</label>
-                            <input type="text" id="cuy-codigo" required maxlength="20" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. PZ-012">
+                            <input type="text" id="cuy-codigo" required placeholder="Ej. PZ-012" class="w-full px-3 py-2 border rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Etapa Zootécnica</label>
-                            <select id="cuy-etapa" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
-                                <option value="Reproductor">Reproductor (1M:6H)</option>
-                                <option value="Recría">Recría</option>
-                                <option value="Engorde">Engorde (Para Venta)</option>
-                                <option value="Cría">Cría Lactante</option>
-                                <option value="Cuarentena">Cuarentena Sanitaria</option>
-                            </select>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Machos</label>
+                            <input type="number" id="cuy-machos" required min="0" value="0" class="w-full px-3 py-2 border rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Género Principal</label>
-                            <select id="cuy-genero" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
-                                <option value="Hembra">Hembra</option>
-                                <option value="Macho">Macho</option>
-                                <option value="Mixto">Mixto</option>
-                            </select>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Hembras</label>
+                            <input type="number" id="cuy-hembras" required min="0" value="0" class="w-full px-3 py-2 border rounded-xl text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Galpón / Ubicación</label>
-                            <input type="text" id="cuy-poza" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Galpón A">
+                            <input type="text" id="cuy-poza" required placeholder="Ej. Galpón A" class="w-full px-3 py-2 border rounded-xl text-sm">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
-                            <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="0">
-                        </div>
-                        <div class="sm:col-span-2 flex items-end">
-                            <label class="flex items-center gap-2 text-sm font-bold text-stone-700"><input type="checkbox" id="cuy-reemplazo" class="h-5 w-5"> Poza de reemplazo (reproductores de reemplazo)</label>
-                        </div>
-                        <div class="sm:col-span-4 flex justify-end">
-                            <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
+                        <div class="md:col-span-4 flex justify-end">
+                            <button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow hover:bg-emerald-700 transition">Guardar Registro</button>
                         </div>
                     </form>
                 </div>
@@ -1144,7 +1127,8 @@
                     <div class="flex items-center justify-between">
                         <h4 class="font-bold text-stone-800 text-base">Inventario Activo</h4>
                         <div class="flex flex-wrap gap-2">
-                            <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
+                            <button type="button" onclick="reiniciarTodasLasPozas()" class="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-100">🗑️ Reiniciar / Limpiar todas las pozas</button>
+                            <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Reemplazo</option><option>Destetado</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
                             <input type="text" id="search-cuyes" onkeyup="filtrarTabla('cuyes')" placeholder="Buscar en pozas..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
                         </div>
                     </div>
@@ -1154,7 +1138,8 @@
                                 <tr>
                                     <th class="p-4">Código</th>
                                     <th class="p-4">Etapa</th>
-                                    <th class="p-4">Género</th>
+                                    <th class="p-4">Machos</th>
+                                    <th class="p-4">Hembras</th>
                                     <th class="p-4">Galpón / Ubicación</th>
                                     <th class="p-4">Stock Actual</th>
                                     <th class="p-4">Acción</th>
@@ -1890,13 +1875,18 @@
             <div id="view-escala" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">🌱 Calculadora de escala y siembra de forraje</h3>
-                    <p class="mod-hint">Indica cuántas reproductoras tendrás: se estima la población total, el alimento y el terreno con bloques de siembra escalonada.</p>
-                    <label class="mod-field" for="esc-repro">Reproductoras adultas (hembras)</label>
+                    <p class="mod-hint">Demanda estándar de 300 g de forraje por animal al día, más 15 % de margen de seguridad en terreno y producción de cada bloque.</p>
+                    <div class="flex flex-wrap gap-2 mt-2" role="group" aria-label="Modo de población">
+                        <button type="button" id="esc-modo-actual" onclick="fijarModoEscala('actual')" class="rounded-xl border-2 border-emerald-600 bg-emerald-700 px-4 py-2 text-sm font-bold text-white">📥 Modo Actual (población real)</button>
+                        <button type="button" id="esc-modo-proy" onclick="fijarModoEscala('proyeccion')" class="rounded-xl border-2 border-teal-600 bg-white px-4 py-2 text-sm font-bold text-teal-900">📈 Modo Proyección</button>
+                    </div>
+                    <div id="esc-panel-proy" class="mt-3">
+                    <label class="mod-field" for="esc-repro">Reproductoras a simular (50 a 2,000)</label>
                     <div class="flex flex-wrap items-center gap-3 mt-1">
-                        <input type="number" id="esc-repro" min="1" step="1" value="200" inputmode="numeric" oninput="calcularEscala()" class="mod-input" style="max-width:180px;font-size:1.4rem;font-weight:800">
+                        <input type="number" id="esc-repro" min="1" max="2000" step="1" value="200" inputmode="numeric" oninput="calcularEscala()" class="mod-input" style="max-width:180px;font-size:1.4rem;font-weight:800">
                         <button type="button" onclick="usarReproductorasActuales()" class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-900">Usar mis pozas actuales</button>
                     </div>
-                    <input type="range" id="esc-slider" min="10" max="2000" step="10" value="200" oninput="document.getElementById('esc-repro').value = this.value; calcularEscala()" class="w-full mt-3" aria-label="Deslizar cantidad de reproductoras">
+                    <input type="range" id="esc-slider" min="50" max="2000" step="10" value="200" oninput="document.getElementById('esc-repro').value = this.value; calcularEscala()" class="w-full mt-3" aria-label="Deslizar cantidad de reproductoras">
                     <div class="flex flex-wrap gap-2 mt-2">
                         <button type="button" onclick="fijarEscala(50)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">50</button>
                         <button type="button" onclick="fijarEscala(200)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">200</button>
@@ -1904,6 +1894,8 @@
                         <button type="button" onclick="fijarEscala(1000)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">1,000</button>
                         <button type="button" onclick="fijarEscala(2000)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">2,000</button>
                     </div>
+                    </div>
+                    <p id="esc-info-actual" class="hidden mt-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900"></p>
                     <div class="mod-grid mt-4">
                         <label class="mod-field">Tipo de forraje
                             <select id="esc-tipo" onchange="aplicarTipoEscala()" class="mod-input"><option value="Alfalfa">Alfalfa</option><option value="Ryegrass">Ryegrass</option></select>
@@ -2246,6 +2238,12 @@
             db.pozas = db.cuyes;
             db.cuyes.forEach(poza => {
                 if (poza.stockInicial === undefined) poza.stockInicial = 0;
+                // Migra registros por sexo anteriores y elimina el género mixto.
+                if (poza.hembras === undefined && (poza.hembrasIni !== undefined || poza.machosIni !== undefined)) {
+                    poza.hembras = Number(poza.hembrasIni) || 0;
+                    poza.machos = Number(poza.machosIni) || 0;
+                    delete poza.hembrasIni; delete poza.machosIni; delete poza.genero;
+                }
             });
         }
 
@@ -2690,10 +2688,10 @@
             const totalDestete = d => d.machos !== undefined || d.hembras !== undefined ? Number(d.machos || 0) + Number(d.hembras || 0) : Number(d.cantidad || 0);
 
             // Base: stock inicial según la etapa de la poza.
-            const base = Math.max(0, Number(poza.stockInicial) || 0);
+            const base = Math.max(0, Number(poza.stockInicial ?? poza.cantidad) || 0);
             const c = { adultos: 0, recria: 0, crias: 0, reemplazo: 0 };
             if (poza.reemplazo) c.reemplazo = base;
-            else if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
+            else if (etapa.includes('recria') || etapa.includes('engorde') || etapa.includes('destetado')) c.recria = base;
             else if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) c.crias = base;
             else c.adultos = base;
 
@@ -2757,10 +2755,33 @@
             return total;
         }
 
-        // Población viva real de la granja: misma cifra para Dashboard, reportes y ración.
+        // Fuente única de población: Dashboard, Ración, Almacén y Escala leen esta función. Los adultos se dividen en hembras/machos según el sexo de cada poza.
         function obtenerPoblacionGranja() {
-            const c = obtenerConteosGranja(obtenerPozasUnicas());
-            return { ...c, total: c.adultos + c.recria + c.crias + c.reemplazo };
+            const pozas = obtenerPozasUnicas();
+            const c = obtenerConteosGranja(pozas);
+            const campoRatio = document.getElementById('esc-ratio');
+            const ratio = Math.max(1, Number(campoRatio && campoRatio.value) || 6);
+            // Fracción de hembras de una poza: conteo explícito, luego género/sexo, luego proporción por defecto.
+            const fracHembras = (p, defecto) => {
+                const h = Number(p.hembras ?? p.hembrasIni) || 0, m = Number(p.machos ?? p.machosIni) || 0;
+                if (h + m > 0) return h / (h + m);
+                const sexo = String(p.sexo || p.genero || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                if (/^(hembra|reproductora)/.test(sexo)) return 1;
+                if (/^macho/.test(sexo)) return 0;
+                return defecto;
+            };
+            let hA = 0, mA = 0, hR = 0, mR = 0;
+            pozas.forEach(p => {
+                const k = obtenerConteosRacionPoza(p);
+                const fa = fracHembras(p, ratio / (ratio + 1)), fr = fracHembras(p, 0.5);
+                hA += k.adultos * fa; mA += k.adultos * (1 - fa);
+                hR += k.reemplazo * fr; mR += k.reemplazo * (1 - fr);
+            });
+            // Los totales por sexo se ajustan al total vivo (descontadas bajas y ventas sin poza).
+            const repartir = (total, h, m, defecto) => { const r = total > 0 ? Math.round(total * (h + m > 0 ? h / (h + m) : defecto)) : 0; return [r, total - r]; };
+            const [hembras, machos] = repartir(c.adultos, hA, mA, ratio / (ratio + 1));
+            const [reemplazoHembras, reemplazoMachos] = repartir(c.reemplazo, hR, mR, 0.5);
+            return { ...c, hembras, machos, reemplazoHembras, reemplazoMachos, total: c.adultos + c.recria + c.crias + c.reemplazo };
         }
 
         function renderDesgloseRacion(q) {
@@ -2830,7 +2851,7 @@
             campos.forEach(c => { c.readOnly = check.checked; });
             if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
             try {
-                const totales = obtenerConteosGranja(obtenerPozasUnicas());
+                const totales = obtenerPoblacionGranja();
                 campos[0].value = totales.adultos;
                 campos[1].value = totales.recria + totales.reemplazo;
                 campos[2].value = totales.crias;
@@ -2893,10 +2914,23 @@
             calcularEscala();
         }
 
+        let modoEscala = 'actual';
+        const GRAMOS_ESCALA = 300;
+
         function usarReproductorasActuales() {
-            const adultos = obtenerPoblacionGranja().adultos;
-            if (!adultos) { mostrarToast('Aún no hay reproductores registrados en tus pozas.', 'error'); return; }
-            fijarEscala(Math.max(1, Math.round(adultos * 6 / 7)));
+            const { hembras, adultos } = obtenerPoblacionGranja();
+            if (hembras <= 0) { mostrarToast('Aún no hay reproductoras registradas en tus pozas activas.', 'error'); return; }
+            const valorFinal = Math.min(2000, hembras);
+            modoEscala = 'proyeccion';
+            document.getElementById('esc-repro').value = valorFinal;
+            document.getElementById('esc-slider').value = Math.max(50, valorFinal);
+            calcularEscala();
+            mostrarToast(`${valorFinal} reproductoras de ${adultos} adultos en pozas activas.`, 'success');
+        }
+
+        function fijarModoEscala(modo) {
+            modoEscala = modo;
+            calcularEscala();
         }
 
         function aplicarTipoEscala() {
@@ -2912,25 +2946,41 @@
             const salida = document.getElementById('esc-resultado');
             if (!salida) return;
             const num = id => { const v = Number(document.getElementById(id).value); return Number.isFinite(v) ? Math.max(0, v) : 0; };
-            const hembras = Math.floor(num('esc-repro'));
-            document.getElementById('esc-slider').value = Math.min(Math.max(hembras, 10), 2000);
-            if (!document.getElementById('esc-inicio').value) document.getElementById('esc-inicio').value = fechaHoy();
+            const actual = modoEscala === 'actual';
+            const estiloModo = (id, activo, borde) => { document.getElementById(id).className = `rounded-xl border-2 ${borde} px-4 py-2 text-sm font-bold ${activo ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-900'}`; };
+            estiloModo('esc-modo-actual', actual, 'border-emerald-600');
+            estiloModo('esc-modo-proy', !actual, 'border-teal-600');
+            document.getElementById('esc-panel-proy').classList.toggle('hidden', actual);
+            const info = document.getElementById('esc-info-actual');
+            info.classList.toggle('hidden', !actual);
             const crear = (tag, texto, clase) => { const n = document.createElement(tag); n.textContent = texto; if (clase) n.className = clase; return n; };
-            if (!hembras) { salida.replaceChildren(crear('p', 'Ingresa la cantidad de reproductoras para calcular.', 'mod-hint')); return; }
+            if (!document.getElementById('esc-inicio').value) document.getElementById('esc-inicio').value = fechaHoy();
 
             const nf = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 1 });
             const ent = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
-            const machos = Math.ceil(hembras / Math.max(1, num('esc-ratio')));
-            const diasLact = Math.max(1, num('esc-dias-lact'));
-            const diasVenta = Math.max(diasLact, num('esc-dias-venta'));
-            const nacimientosDia = hembras * num('esc-partos') * num('esc-crias-parto') / 365;
-            const lactantes = Math.round(nacimientosDia * diasLact);
-            const recria = Math.round(nacimientosDia * (1 - Math.min(100, num('esc-mort')) / 100) * (diasVenta - diasLact));
-            const adultos = hembras + machos;
-            const total = adultos + lactantes + recria;
+            let hembras, machos, adultos, lactantes, recria, total;
+            if (actual) {
+                const p = obtenerPoblacionGranja();
+                adultos = p.adultos; lactantes = p.crias; recria = p.recria + (p.reemplazo || 0); total = p.total;
+                machos = p.machos; hembras = p.hembras;
+                info.textContent = `Población real de tus pozas activas: ${ent.format(hembras)} reproductoras + ${ent.format(machos)} machos, ${ent.format(recria)} en recría, ${ent.format(lactantes)} crías. Total ${ent.format(total)} cuyes.`;
+                if (!total) { salida.replaceChildren(crear('p', 'Aún no hay animales registrados en tus pozas. Usa el Modo Proyección.', 'mod-hint')); return; }
+            } else {
+                hembras = Math.min(2000, Math.max(1, Math.floor(num('esc-repro'))));
+                document.getElementById('esc-slider').value = Math.max(50, hembras);
+                if (Number(document.getElementById('esc-repro').value) !== hembras && document.activeElement !== document.getElementById('esc-repro')) document.getElementById('esc-repro').value = hembras;
+                machos = Math.ceil(hembras / Math.max(1, num('esc-ratio')));
+                const diasLact = Math.max(1, num('esc-dias-lact'));
+                const diasVenta = Math.max(diasLact, num('esc-dias-venta'));
+                const nacimientosDia = hembras * num('esc-partos') * num('esc-crias-parto') / 365;
+                lactantes = Math.round(nacimientosDia * diasLact);
+                recria = Math.round(nacimientosDia * (1 - Math.min(100, num('esc-mort')) / 100) * (diasVenta - diasLact));
+                adultos = hembras + machos;
+                total = adultos + lactantes + recria;
+            }
 
             const g = (id, def) => num(id) || def;
-            const forrajeDia = (adultos * g('racion-g-adulto', 315) + recria * g('racion-g-recria', 175) + lactantes * g('racion-g-crias', 100)) / 1000;
+            const forrajeDia = total * GRAMOS_ESCALA / 1000;
             const concDia = (adultos * g('racion-c-adulto', 30) + recria * g('racion-c-recria', 15) + lactantes * g('racion-c-crias', 12.5)) / 1000;
             const tipo = document.getElementById('esc-tipo').value;
 
@@ -2956,11 +3006,13 @@
 
             const resumen = fila(
                 tarjeta('🐹 Población total estimada', `${ent.format(total)} cuyes`, [
-                    `Reproductoras: ${ent.format(hembras)} · Machos: ${ent.format(machos)}`,
+                    actual ? `Reproductores: ${ent.format(adultos)}` : `Reproductoras: ${ent.format(hembras)} · Machos: ${ent.format(machos)}`,
                     `Crías lactantes: ${ent.format(lactantes)}`,
                     `Recría / engorde / destetados: ${ent.format(recria)}`
                 ], 'border-emerald-400 bg-emerald-50 text-emerald-950'),
                 tarjeta(`🌿 Forraje (${tipo})`, `${nf.format(forrajeDia)} kg/día`, [
+                    `Estándar: ${GRAMOS_ESCALA} g por animal al día × ${ent.format(total)}`,
+                    `Con margen de seguridad: ${nf.format(forrajeDia * margen)} kg/día`,
                     `Mensual: ${nf.format(forrajeDia * 30)} kg (${nf.format(forrajeDia * 30 / 1000)} t)`,
                     `Anual con margen: ${nf.format(forrajeDia * 365 * margen / 1000)} t`
                 ], 'border-teal-400 bg-teal-50 text-teal-950'),
@@ -2980,17 +3032,20 @@
                 crear('p', `Cada bloque se corta cada ${ent.format(ciclo)} días (rebrote). Cada corte rinde ≈ ${nf.format(kgPorCorte)} kg para ${nf.format(intervalo)} días de consumo.`, 'text-sm text-stone-700 mb-3')
             );
             const rejilla = crear('div', '', 'grid gap-3 sm:grid-cols-2 xl:grid-cols-4');
+            const colores = ['border-emerald-300 bg-emerald-50 text-emerald-950', 'border-teal-300 bg-teal-50 text-teal-950', 'border-amber-300 bg-amber-50 text-amber-950'];
+            const fmtFecha = f => new Date(`${f}T00:00:00`).toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
             for (let i = 0; i < bloques; i++) {
                 const desplazamiento = Math.round(i * intervalo);
                 const siembra = sumarDias(inicio, desplazamiento);
                 const primerCorte = sumarDias(siembra, estab);
-                const b = crear('div', '', 'rounded-xl border border-emerald-200 bg-emerald-50/60 p-3');
+                const b = crear('div', '', `rounded-xl border-2 p-3 ${colores[i % 3]}`);
                 b.append(
-                    crear('p', `Bloque ${i + 1}`, 'font-extrabold text-emerald-900'),
+                    crear('p', `Bloque ${i + 1}`, 'font-extrabold'),
                     crear('p', `${ent.format(m2Bloque)} m²`, 'text-xl font-extrabold'),
-                    crear('p', `Sembrar: ${siembra}`, 'text-sm'),
-                    crear('p', `1.er corte: ${primerCorte}`, 'text-sm font-bold'),
-                    crear('p', `Luego cada ${ent.format(ciclo)} días (2.º: ${sumarDias(primerCorte, Math.round(ciclo))})`, 'text-xs text-stone-600')
+                    crear('p', `${nf.format(kgPorCorte)} kg por corte`, 'text-xs font-semibold'),
+                    crear('p', `🌱 Siembra: ${fmtFecha(siembra)}`, 'text-sm mt-1'),
+                    crear('p', `✂️ 1.er corte: ${fmtFecha(primerCorte)}`, 'text-sm font-bold'),
+                    crear('p', `🔁 Rebrote cada ${ent.format(ciclo)} d: ${[1, 2, 3].map(k => sumarDias(primerCorte, Math.round(ciclo * k)).slice(5)).join(' · ')}…`, 'text-xs')
                 );
                 rejilla.append(b);
             }
@@ -3376,25 +3431,45 @@
         });
 
         // Formularios
+        document.getElementById('form-cuy').addEventListener('submit', guardarCuy);
         function guardarCuy(e) {
             e.preventDefault();
             const codigo = claveUnicaPoza(document.getElementById('cuy-codigo').value);
-            const datos = {
-                etapa: document.getElementById('cuy-etapa').value,
-                genero: document.getElementById('cuy-genero').value,
-                poza: document.getElementById('cuy-poza').value
-            };
-            const stockTexto = document.getElementById('cuy-stock').value.trim();
+            const hembras = Math.max(0, parseInt(document.getElementById('cuy-hembras').value, 10) || 0);
+            const machos = Math.max(0, parseInt(document.getElementById('cuy-machos').value, 10) || 0);
+            const poza = document.getElementById('cuy-poza').value.trim() || codigo;
+            const etapa = 'Reproductor';
             if (db.cuyes.some(item => claveUnicaPoza(item.codigo || item.id) === codigo)) {
                 mostrarToast(`La poza ${codigo} ya está registrada. Usa un código nuevo.`, 'error');
                 return;
             }
-            db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0), reemplazo: document.getElementById('cuy-reemplazo').checked });
+            if (machos + hembras <= 0) { mostrarToast('Indica al menos un macho o una hembra.', 'error'); return; }
+            db.cuyes.push({
+                codigo, etapa, poza, machos, hembras,
+                stockInicial: machos + hembras,
+                reemplazo: etapa === 'Reemplazo'
+            });
             db.pozas = db.cuyes;
-            document.getElementById('cuy-reemplazo').checked = false;
             document.getElementById('cuy-codigo').value = '';
-            document.getElementById('cuy-stock').value = '';
+            document.getElementById('cuy-poza').value = '';
+            document.getElementById('cuy-hembras').value = '0';
+            document.getElementById('cuy-machos').value = '0';
             guardarBD();
+        }
+
+        // Reinicio total: borra pozas y todos los registros que alimentan el inventario (partos, destetes, bajas, ventas...).
+        function reiniciarTodasLasPozas() {
+            if (!confirm('⚠️ Se borrarán TODAS las pozas y registros (partos, destetes, bajas, ventas, gastos, salud, pesos). Esta acción no se puede deshacer.\n\nRecomendado: descarga un backup antes. ¿Continuar?')) return;
+            if ((prompt('Para confirmar escribe BORRAR en mayúsculas:') || '').trim() !== 'BORRAR') { mostrarToast('Reinicio cancelado.', 'error'); return; }
+            db = { cuyes: [], pozas: [], partos: [], destetados: [], bajas: [], ventas: [], gastos: [], gestaciones: [], tratamientos: [], pesos: [], temperatura: null };
+            ['sisgranja_cuy_db', 'sisgranja_racion_inia', 'sisgranja_almacen', 'sisgranja_poza_activa'].forEach(clave => {
+                try { window.localStorage.removeItem(clave); } catch (error) { /* sin acceso a localStorage */ }
+                almacenamientoTemporal.delete(clave);
+            });
+            ['cuy-hembras', 'cuy-machos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = '0'; });
+            const codigoCuy = document.getElementById('cuy-codigo'); if (codigoCuy) codigoCuy.value = '';
+            actualizarSelectoresPozas();
+            guardarBD('Inventario reiniciado. Ya puedes registrar tus pozas desde cero.');
         }
 
         function guardarParto(e) {
@@ -4336,7 +4411,9 @@
             document.getElementById('kpi-crias').innerText = pob.crias;
 
 
-            let poblacionTotal = obtenerPoblacionGranja().total;
+            // Total = suma exacta de las mismas cifras que muestran las tarjetas.
+            const parteRecria = pob.recria + pob.reemplazo;
+            let poblacionTotal = pob.adultos + pob.crias + parteRecria;
 
             let totalVentas = calcularTotalVentas();
             let totalCuyesVendidos = db.ventas.reduce((acc, v) => acc + Number(v.cantidad || 0), 0);
@@ -4371,8 +4448,7 @@
 
             const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
             if (elKpiPoblacionSub) {
-                const p = obtenerPoblacionGranja();
-                elKpiPoblacionSub.innerText = `Adultos ${p.adultos} · Crías ${p.crias} · Recría ${p.recria} · Reemplazo ${p.reemplazo}`;
+                elKpiPoblacionSub.innerText = `Adultos ${pob.adultos} + Crías ${pob.crias} + Destetados/Recría ${pob.recria} + Reemplazos ${pob.reemplazo} = ${poblacionTotal}`;
             }
 
             const elKpiIngresos = document.getElementById('kpi-ingresos');
@@ -4409,7 +4485,7 @@
             document.getElementById('kpi-utilidad-sub').innerText = `Balance: S/ ${totalVentas.toFixed(2)} ingresos - S/ ${totalGastos.toFixed(2)} gastos`;
 
             // Renderizar Tablas principales
-            renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'genero', 'poza', 'stockActual'], 'cuyes');
+            renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'machos', 'hembras', 'poza', 'stockActual'], 'cuyes');
             renderPozasEnVivo();
             renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas', 'viabilidad'], 'partos');
             renderTabla('tabla-destetados', db.destetados, ['fecha', 'poza', 'machos', 'hembras', 'pozaMachosDestino', 'pozaHembrasDestino'], 'destetados');
@@ -4468,7 +4544,7 @@
             if (!cont) return;
             const pozas = obtenerPozasUnicas().sort((a, b) => claveUnicaPoza(a.codigo || a.id).localeCompare(claveUnicaPoza(b.codigo || b.id), 'es', { numeric: true }));
             const g = obtenerPoblacionGranja();
-            document.getElementById('pozas-vivo-resumen').textContent = `Granja: ${g.total.toLocaleString('es-PE')} cuyes vivos \u00b7 ${g.adultos} adultos \u00b7 ${g.crias} cr\u00edas \u00b7 ${g.recria} recr\u00eda/engorde \u00b7 ${g.reemplazo} reemplazo`;
+            document.getElementById('pozas-vivo-resumen').textContent = `Granja: ${g.total.toLocaleString('es-PE')} cuyes vivos \u00b7 ${g.adultos} adultos (${g.hembras} H + ${g.machos} M) \u00b7 ${g.crias} cr\u00edas \u00b7 ${g.recria} destetados/recr\u00eda/engorde \u00b7 ${g.reemplazo} reemplazo (${g.reemplazoHembras} H + ${g.reemplazoMachos} M)`;
             const crear = (tag, texto, clase) => { const n = document.createElement(tag); n.textContent = texto; if (clase) n.className = clase; return n; };
             const reemplazoDisponible = pozas.filter(p => p.reemplazo && obtenerStockActualPoza(p) > 0).map(p => `${claveUnicaPoza(p.codigo || p.id)} (${obtenerStockActualPoza(p)})`);
             const tarjetas = pozas.map(poza => {
@@ -4483,7 +4559,7 @@
                 caja.append(
                     crear('p', `${codigo}${poza.reemplazo ? ' \u00b7 Reemplazo' : ''}`, 'text-lg font-extrabold text-stone-900'),
                     crear('p', `${total} vivos`, 'text-3xl font-extrabold text-emerald-800'),
-                    crear('p', `Reproductores adultos: ${c.adultos}`, 'text-sm'),
+                    crear('p', `Reproductores adultos: ${c.adultos}${poza.hembras !== undefined ? ` (${poza.hembras} H + ${poza.machos} M al registrar)` : ''}`, 'text-sm'),
                     crear('p', `Cr\u00edas lactantes: ${c.crias}`, 'text-sm'),
                     crear('p', `Destetados / recr\u00eda: ${c.recria}`, 'text-sm'),
                     ...(c.reemplazo || poza.reemplazo ? [crear('p', `Reemplazo: ${c.reemplazo}`, 'text-sm font-bold')] : []),
@@ -4733,7 +4809,7 @@
 
         function obtenerSeccionesReporte() {
             return [
-                { titulo: 'Población y etapas', columnas: ['Código', 'Etapa', 'Género', 'Galpón / ubicación', 'Stock actual'], filas: db.cuyes.map(poza => [poza.codigo || poza.id, poza.etapa, poza.genero, poza.poza, obtenerStockActualPoza(poza)]) },
+                { titulo: 'Población y etapas', columnas: ['Código', 'Etapa', 'Machos', 'Hembras', 'Galpón / ubicación', 'Stock actual'], filas: db.cuyes.map(poza => [poza.codigo || poza.id, poza.etapa, poza.machos ?? '', poza.hembras ?? '', poza.poza, obtenerStockActualPoza(poza)]) },
                 { titulo: 'Nacimientos', columnas: ['Fecha', 'Poza', 'Crías vivas', 'Crías muertas'], filas: db.partos.map(parto => [parto.fecha, parto.poza, parto.vivas, parto.muertas]) },
                 { titulo: 'Destetes', columnas: ['Fecha', 'Poza', 'Recría machos', 'Recría hembras'], filas: db.destetados.map(destete => [destete.fecha, destete.poza, destete.machos ?? (destete.sexo === 'Macho' ? destete.cantidad : 0), destete.hembras ?? (destete.sexo === 'Hembra' ? destete.cantidad : 0)]) },
                 { titulo: 'Bajas y mortalidad', columnas: ['Fecha', 'Identificador', 'Cantidad', 'Motivo'], filas: db.bajas.map(baja => [baja.fecha, baja.identificador, baja.cantidad, baja.motivo]) },
