@@ -1118,6 +1118,9 @@
                             <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
                             <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="0">
                         </div>
+                        <div class="sm:col-span-2 flex items-end">
+                            <label class="flex items-center gap-2 text-sm font-bold text-stone-700"><input type="checkbox" id="cuy-reemplazo" class="h-5 w-5"> Poza de reemplazo (reproductores de reemplazo)</label>
+                        </div>
                         <div class="sm:col-span-4 flex justify-end">
                             <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
                         </div>
@@ -1148,6 +1151,12 @@
                         </table>
                     </div>
                 </div>
+
+                <section class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4" aria-label="Composición en vivo por poza">
+                    <h4 class="font-bold text-stone-800 text-base">Composición en vivo por poza</h4>
+                    <p id="pozas-vivo-resumen" class="text-sm font-bold text-emerald-900"></p>
+                    <div id="pozas-vivo" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></div>
+                </section>
             </div>
 
             <!-- 3. REGISTRO DE PARTOS -->
@@ -1252,6 +1261,10 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Reproductores de reemplazo (del total destetado, se separan de engorde/venta)</label>
+                            <input type="number" id="destete-reemplazo" min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
+                        </div>
                         <button type="submit" class="action-giant action-destete md:col-span-4"><i class="ph ph-users-three" aria-hidden="true"></i><span>GUARDAR DESTETE</span></button>
                     </form>
                 </div>
@@ -1319,6 +1332,14 @@
                                 </label>
                                 <label class="text-sm font-bold text-stone-700">Cantidad de animales
                                     <input type="number" id="baja-cantidad" required min="1" value="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
+                                </label>
+                                <label class="text-sm font-bold text-stone-700 sm:col-span-2">Categoría del animal
+                                    <select id="baja-categoria" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3 text-base">
+                                        <option value="adultos">Reproductor adulto</option>
+                                        <option value="crias">Cría lactante</option>
+                                        <option value="recria">Destetado / recría / engorde</option>
+                                        <option value="reemplazo">Reproductor de reemplazo</option>
+                                    </select>
                                 </label>
                             </div>
                             <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -2003,32 +2024,8 @@
         }
 
         function obtenerStockActualPoza(poza, fuente = db) {
-            const codigo = claveUnicaPoza(poza.codigo || poza.id);
-            const stockInicial = Number(poza.stockInicial) || 0;
-            const coincidePoza = valor => claveUnicaPoza(valor) === codigo;
-            const registros = clave => Array.isArray(fuente[clave]) ? fuente[clave] : [];
-            const nacimientos = registros('partos')
-                .filter(parto => coincidePoza(parto.poza))
-                .reduce((total, parto) => total + Number(parto.vivas || 0), 0);
-            const destetadosOrigen = registros('destetados')
-                .filter(destete => coincidePoza(destete.poza))
-                .reduce((total, destete) => {
-                    if (destete.machos !== undefined || destete.hembras !== undefined) {
-                        return total + Number(destete.machos || 0) + Number(destete.hembras || 0);
-                    }
-                    const sexo = String(destete.sexo || '').toLowerCase();
-                    return total + (sexo.includes('macho') || sexo.includes('hembra') || sexo === 'm' || sexo === 'h' ? Number(destete.cantidad || 0) : 0);
-                }, 0);
-            const destetadosDestino = registros('destetados').reduce((total, destete) => {
-                const machos = coincidePoza(destete.pozaMachosDestino) ? Number(destete.machos || 0) : 0;
-                const hembras = coincidePoza(destete.pozaHembrasDestino) ? Number(destete.hembras || 0) : 0;
-                return total + machos + hembras;
-            }, 0);
-            const bajas = registros('bajas')
-                .filter(baja => coincidePoza(baja.identificador))
-                .reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
-
-            return stockInicial + nacimientos - destetadosOrigen + destetadosDestino - bajas;
+            const c = obtenerConteosRacionPoza(poza, fuente);
+            return Math.max(0, c.adultos) + Math.max(0, c.recria) + Math.max(0, c.crias) + Math.max(0, c.reemplazo);
         }
 
         function actualizarSugerenciasClientes() {
@@ -2594,6 +2591,19 @@
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
   }
 
+        const ORDEN_BAJAS = {
+            adultos: ['adultos', 'reemplazo', 'recria', 'crias'],
+            crias: ['crias', 'recria', 'reemplazo', 'adultos'],
+            recria: ['recria', 'crias', 'reemplazo', 'adultos'],
+            reemplazo: ['reemplazo', 'recria', 'adultos', 'crias']
+        };
+
+        function descontarConteos(c, cantidad, orden) {
+            let resto = Math.max(0, Number(cantidad) || 0);
+            orden.forEach(k => { const q = Math.min(c[k], resto); c[k] -= q; resto -= q; });
+            return resto;
+        }
+
         function obtenerConteosRacionPoza(poza, fuente = db) {
             const campos = {
                 adultos: ['adultos', 'cantidadAdultos', 'cantidad_adultos', 'numAdultos'],
@@ -2606,7 +2616,7 @@
                     const valor = opciones.map(campo => poza[campo]).find(cantidad => cantidad !== undefined);
                     return Math.max(0, Number(valor) || 0);
                 };
-                return { adultos: leer(campos.adultos), recria: leer(campos.recria), crias: leer(campos.crias) };
+                return { adultos: leer(campos.adultos), recria: leer(campos.recria), crias: leer(campos.crias), reemplazo: 0 };
             }
 
             const codigo = claveUnicaPoza(poza.codigo || poza.id);
@@ -2617,24 +2627,26 @@
 
             // Base: stock inicial según la etapa de la poza.
             const base = Math.max(0, Number(poza.stockInicial) || 0);
-            const c = { adultos: 0, recria: 0, crias: 0 };
-            if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
+            const c = { adultos: 0, recria: 0, crias: 0, reemplazo: 0 };
+            if (poza.reemplazo) c.reemplazo = base;
+            else if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
             else if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) c.crias = base;
             else c.adultos = base;
 
-            // Crías nacidas vivas en esta poza que aún no se destetaron.
+            // Crías lactantes: nacidas vivas menos las ya destetadas; si se destetó más de lo nacido, el resto sale del stock inicial.
             const nacidas = registros('partos').filter(p => coincide(p.poza)).reduce((s, p) => s + Number(p.vivas || 0), 0);
             const destetadasDeEstaPoza = registros('destetados').filter(d => coincide(d.poza)).reduce((s, d) => s + totalDestete(d), 0);
-            c.crias += Math.max(0, nacidas - destetadasDeEstaPoza);
+            c.crias += nacidas;
+            descontarConteos(c, destetadasDeEstaPoza, ['crias', 'adultos', 'recria', 'reemplazo']);
 
-            // Destetados vigentes: llegan a su poza de destino (o se quedan en la de origen si no hay destino) como recría/engorde.
+            // Destetados vigentes: llegan a su poza de destino (o se quedan en la de origen si no hay destino); en pozas de reemplazo cuentan como reemplazo.
             registros('destetados').forEach(d => {
-                partesDestete(d).forEach(([destino, n]) => { if (coincide(destino)) c.recria += n; });
+                partesDestete(d).forEach(([destino, n]) => { if (coincide(destino)) c[poza.reemplazo ? 'reemplazo' : 'recria'] += n; });
             });
 
-            // Las bajas de la poza se descuentan de adultos, luego recría y luego crías.
-            let bajas = registros('bajas').filter(b => coincide(b.identificador)).reduce((s, b) => s + Number(b.cantidad || 0), 0);
-            ['adultos', 'recria', 'crias'].forEach(k => { const q = Math.min(c[k], bajas); c[k] -= q; bajas -= q; });
+            // Bajas de la poza: primero de la categoría indicada en el registro; sin categoría, de adultos hacia abajo.
+            registros('bajas').filter(b => coincide(b.identificador))
+                .forEach(b => descontarConteos(c, b.cantidad, ORDEN_BAJAS[b.categoria] || ORDEN_BAJAS.adultos));
             return c;
         }
 
@@ -2648,30 +2660,43 @@
 
         // Población viva por categoría: suma de pozas menos bajas sin poza y ventas (la venta no indica poza, se descuenta por categoría).
         function obtenerConteosGranja(pozas, fuente = db) {
-            const total = { adultos: 0, recria: 0, crias: 0 };
+            const total = { adultos: 0, recria: 0, crias: 0, reemplazo: 0 };
             pozas.forEach(poza => {
                 const c = obtenerConteosRacionPoza(poza, fuente);
-                total.adultos += c.adultos; total.recria += c.recria; total.crias += c.crias;
+                Object.keys(total).forEach(k => { total[k] += c[k] || 0; });
             });
             const claves = new Set(pozas.map(p => claveUnicaPoza(p.codigo || p.id)));
+            const clavesReemplazo = new Set(pozas.filter(p => p.reemplazo).map(p => claveUnicaPoza(p.codigo || p.id)));
+            let reemplazoDeDestetes = 0;
             // Destetados cuyo destino no coincide con ninguna poza registrada también son recría vigente.
             (Array.isArray(fuente.destetados) ? fuente.destetados : []).forEach(d => {
-                partesDestete(d).forEach(([destino, n]) => { if (!claves.has(claveUnicaPoza(destino))) total.recria += n; });
+                let sinPozaReemplazo = 0;
+                partesDestete(d).forEach(([destino, n]) => {
+                    const k = claveUnicaPoza(destino);
+                    if (!claves.has(k)) total.recria += n;
+                    if (!clavesReemplazo.has(k)) sinPozaReemplazo += n;
+                });
+                // Porcentaje de destetados apartado como reproductores de reemplazo.
+                reemplazoDeDestetes += Math.min(Math.max(0, Number(d.reemplazo) || 0), sinPozaReemplazo);
             });
-            const descontar = (cantidad, orden) => {
-                let resto = Math.max(0, Number(cantidad) || 0);
-                orden.forEach(k => { const q = Math.min(total[k], resto); total[k] -= q; resto -= q; });
-            };
+            const movidos = Math.min(total.recria, reemplazoDeDestetes);
+            total.recria -= movidos; total.reemplazo += movidos;
             (Array.isArray(fuente.bajas) ? fuente.bajas : []).filter(b => !claves.has(claveUnicaPoza(b.identificador)))
-                .forEach(b => descontar(b.cantidad, ['adultos', 'recria', 'crias']));
+                .forEach(b => descontarConteos(total, b.cantidad, ORDEN_BAJAS[b.categoria] || ORDEN_BAJAS.adultos));
             (Array.isArray(fuente.ventas) ? fuente.ventas : []).forEach(v => {
                 const cat = String(v.categoria || '').toLowerCase();
-                const orden = cat.includes('gazapo') ? ['crias', 'recria', 'adultos']
-                    : cat.includes('reproductor') || cat.includes('abono') || cat.includes('subproducto') ? ['adultos', 'recria', 'crias']
-                    : ['recria', 'adultos', 'crias'];
-                descontar(v.cantidad, orden);
+                const orden = cat.includes('gazapo') ? ['crias', 'recria', 'adultos', 'reemplazo']
+                    : cat.includes('reproductor') || cat.includes('abono') || cat.includes('subproducto') ? ['adultos', 'reemplazo', 'recria', 'crias']
+                    : ['recria', 'adultos', 'crias', 'reemplazo'];
+                descontarConteos(total, v.cantidad, orden);
             });
             return total;
+        }
+
+        // Población viva real de la granja: misma cifra para Dashboard, reportes y ración.
+        function obtenerPoblacionGranja() {
+            const c = obtenerConteosGranja(obtenerPozasUnicas());
+            return { ...c, total: c.adultos + c.recria + c.crias + c.reemplazo };
         }
 
         function renderDesgloseRacion(q) {
@@ -2697,8 +2722,8 @@
                 });
                 [...unicas.values()].forEach(poza => {
                     const conteos = obtenerConteosRacionPoza(poza, fuente);
-                    if (!conteos.adultos && !conteos.recria && !conteos.crias) return;
-                    const n = { a: conteos.adultos, r: conteos.recria, c: conteos.crias };
+                    if (!conteos.adultos && !conteos.recria && !conteos.crias && !conteos.reemplazo) return;
+                    const n = { a: conteos.adultos, r: conteos.recria + conteos.reemplazo, c: conteos.crias };
                     filas.push({
                         codigo: claveUnicaPoza(poza.codigo || poza.id), ...n,
                         forraje: n.a * q.gAdulto + n.r * q.gRecria + n.c * q.gCrias,
@@ -2707,8 +2732,8 @@
                 });
                 const g = obtenerConteosGranja([...unicas.values()], fuente);
                 const suma = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c }), { a: 0, r: 0, c: 0 });
-                const d = { a: g.adultos - suma.a, r: g.recria - suma.r, c: g.crias - suma.c };
-                if (d.a || d.r || d.c) ajuste = { codigo: 'Ventas y bajas sin poza', ...d, forraje: d.a * q.gAdulto + d.r * q.gRecria + d.c * q.gCrias, conc: d.a * q.cAdulto + d.r * q.cRecria + d.c * q.cCrias };
+                const d = { a: g.adultos - suma.a, r: g.recria + g.reemplazo - suma.r, c: g.crias - suma.c };
+                if (d.a || d.r || d.c) ajuste = { codigo: 'Ajustes: ventas, bajas sin poza y reemplazo', ...d, forraje: d.a * q.gAdulto + d.r * q.gRecria + d.c * q.gCrias, conc: d.a * q.cAdulto + d.r * q.cRecria + d.c * q.cCrias };
             } catch (error) { errorInventario = true; }
             filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
             const fila = (celdas, clase) => {
@@ -2743,9 +2768,9 @@
             try {
                 const totales = obtenerConteosGranja(obtenerPozasUnicas());
                 campos[0].value = totales.adultos;
-                campos[1].value = totales.recria;
+                campos[1].value = totales.recria + totales.reemplazo;
                 campos[2].value = totales.crias;
-                info.textContent = 'Cantidades sincronizadas con el registro de pozas (reproductores, recría/engorde y crías).';
+                info.textContent = `Sincronizado con partos, destetes y bajas: ${totales.adultos} adultos, ${totales.recria} recría/engorde${totales.reemplazo ? ` + ${totales.reemplazo} de reemplazo (alimentados como recría)` : ''}, ${totales.crias} crías lactantes.`;
             } catch (error) { info.textContent = 'No se pudo leer el registro de pozas; ingresa las cantidades manualmente.'; }
             calcularRacion();
         }
@@ -2756,7 +2781,7 @@
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
             const cats = [
                 ['Adultos', Math.floor(num('racion-adultos')), num('racion-g-adulto'), num('racion-c-adulto')],
-                ['Recía / engorde', Math.floor(num('racion-recria')), num('racion-g-recria'), num('racion-c-recria')],
+                ['Recría / engorde', Math.floor(num('racion-recria')), num('racion-g-recria'), num('racion-c-recria')],
                 ['Destetados / crías', Math.floor(num('racion-crias')), num('racion-g-crias'), num('racion-c-crias')]
             ];
             const animales = cats.reduce((s, c) => s + c[1], 0);
@@ -3189,8 +3214,9 @@
                 mostrarToast(`La poza ${codigo} ya está registrada. Usa un código nuevo.`, 'error');
                 return;
             }
-            db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0) });
+            db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0), reemplazo: document.getElementById('cuy-reemplazo').checked });
             db.pozas = db.cuyes;
+            document.getElementById('cuy-reemplazo').checked = false;
             document.getElementById('cuy-codigo').value = '';
             document.getElementById('cuy-stock').value = '';
             guardarBD();
@@ -3245,6 +3271,7 @@
                 poza,
                 machos,
                 hembras,
+                reemplazo: Math.min(totalDestetados, Math.max(0, Number.parseInt(document.getElementById('destete-reemplazo').value, 10) || 0)),
                 pozaMachosDestino,
                 pozaHembrasDestino
             });
@@ -3253,6 +3280,7 @@
             document.getElementById('destete-poza').value = '';
             document.getElementById('destete-machos').value = '0';
             document.getElementById('destete-hembras').value = '0';
+            document.getElementById('destete-reemplazo').value = '0';
             guardarBD('Destete registrado correctamente');
         }
 
@@ -3319,6 +3347,7 @@
                     fecha: fechaHoy(),
                     identificador: document.getElementById('baja-identificador').value,
                     cantidad: parseInt(document.getElementById('baja-cantidad').value, 10),
+                    categoria: document.getElementById('baja-categoria').value,
                     motivo: resultado.diagnostico_situacion,
                     categoriaClinica: resultado.categoria_clinica,
                     tratamiento: resultado.tratamiento_manejo,
@@ -4154,7 +4183,7 @@
             if (elDestetadosSub) elDestetadosSub.innerText = `${hembrasDestetadas} hembras, ${machosDestetados} machos`;
 
 
-            let poblacionTotal = pozasUnicas.reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
+            let poblacionTotal = obtenerPoblacionGranja().total;
 
             let totalVentas = calcularTotalVentas();
             let totalCuyesVendidos = db.ventas.reduce((acc, v) => acc + Number(v.cantidad || 0), 0);
@@ -4188,7 +4217,10 @@
             if (elKpiPoblacion) elKpiPoblacion.innerText = poblacionTotal;
 
             const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
-            if (elKpiPoblacionSub) elKpiPoblacionSub.innerText = 'Stock calculado con partos, destetes y bajas registrados';
+            if (elKpiPoblacionSub) {
+                const p = obtenerPoblacionGranja();
+                elKpiPoblacionSub.innerText = `Adultos ${p.adultos} · Crías ${p.crias} · Recría ${p.recria} · Reemplazo ${p.reemplazo}`;
+            }
 
             const elKpiIngresos = document.getElementById('kpi-ingresos');
             if (elKpiIngresos) elKpiIngresos.innerText = `S/ ${totalVentas.toFixed(2)}`;
@@ -4225,6 +4257,7 @@
 
             // Renderizar Tablas principales
             renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'genero', 'poza', 'stockActual'], 'cuyes');
+            renderPozasEnVivo();
             renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas', 'viabilidad'], 'partos');
             renderTabla('tabla-destetados', db.destetados, ['fecha', 'poza', 'machos', 'hembras', 'pozaMachosDestino', 'pozaHembrasDestino'], 'destetados');
             renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
@@ -4257,6 +4290,66 @@
             actualizarGraficos(totalVentas, totalGastos);
         }
 
+        // Un parto por madre se estima con la proporci\u00f3n 1 macho : 6 hembras del pie de cr\u00eda.
+        function estadoCicloPoza(poza, c) {
+            const codigo = claveUnicaPoza(poza.codigo || poza.id);
+            const desde = poza.cicloDesde || '';
+            const partos = db.partos.filter(p => claveUnicaPoza(p.poza) === codigo && String(p.fecha) >= desde);
+            const hembras = c.adultos > 0 ? Math.max(1, Math.round(c.adultos * 6 / 7)) : 0;
+            const porMadre = hembras ? partos.length / hembras : 0;
+            let nivel = 'ok', texto = hembras ? 'Ciclo \u00fatil normal' : 'Sin reproductoras adultas';
+            if (hembras && porMadre >= 5) { nivel = 'rojo'; texto = '\ud83d\udd34 Descartar y recambiar: 5 partos por reproductora'; }
+            else if (hembras && porMadre >= 4) { nivel = 'ambar'; texto = '\ud83d\udfe1 Pr\u00f3xima al descarte: 4 partos por reproductora'; }
+            return { partos: partos.length, hembras, porMadre, nivel, texto };
+        }
+
+        function registrarRecambioPoza(codigo) {
+            const poza = obtenerPozasUnicas().find(p => claveUnicaPoza(p.codigo || p.id) === codigo);
+            if (!poza || !confirm(`\u00bfConfirmas el recambio de reproductoras en ${codigo}? El contador de partos del ciclo vuelve a 0.`)) return;
+            poza.cicloDesde = fechaHoy();
+            guardarBD(`Recambio registrado en ${codigo}`);
+        }
+
+        function renderPozasEnVivo() {
+            const cont = document.getElementById('pozas-vivo');
+            if (!cont) return;
+            const pozas = obtenerPozasUnicas().sort((a, b) => claveUnicaPoza(a.codigo || a.id).localeCompare(claveUnicaPoza(b.codigo || b.id), 'es', { numeric: true }));
+            const g = obtenerPoblacionGranja();
+            document.getElementById('pozas-vivo-resumen').textContent = `Granja: ${g.total.toLocaleString('es-PE')} cuyes vivos \u00b7 ${g.adultos} adultos \u00b7 ${g.crias} cr\u00edas \u00b7 ${g.recria} recr\u00eda/engorde \u00b7 ${g.reemplazo} reemplazo`;
+            const crear = (tag, texto, clase) => { const n = document.createElement(tag); n.textContent = texto; if (clase) n.className = clase; return n; };
+            const reemplazoDisponible = pozas.filter(p => p.reemplazo && obtenerStockActualPoza(p) > 0).map(p => `${claveUnicaPoza(p.codigo || p.id)} (${obtenerStockActualPoza(p)})`);
+            const tarjetas = pozas.map(poza => {
+                const codigo = claveUnicaPoza(poza.codigo || poza.id);
+                const c = obtenerConteosRacionPoza(poza);
+                const total = obtenerStockActualPoza(poza);
+                const nacidas = db.partos.filter(p => claveUnicaPoza(p.poza) === codigo).reduce((s, p) => s + Number(p.vivas || 0), 0);
+                const bajas = db.bajas.filter(b => claveUnicaPoza(b.identificador) === codigo).reduce((s, b) => s + Number(b.cantidad || 0), 0);
+                const ciclo = estadoCicloPoza(poza, c);
+                const colores = { ok: 'border-stone-200', ambar: 'border-amber-400 bg-amber-50', rojo: 'border-red-500 bg-red-50' };
+                const caja = crear('article', '', `rounded-2xl border-2 p-4 ${colores[ciclo.nivel]}`);
+                caja.append(
+                    crear('p', `${codigo}${poza.reemplazo ? ' \u00b7 Reemplazo' : ''}`, 'text-lg font-extrabold text-stone-900'),
+                    crear('p', `${total} vivos`, 'text-3xl font-extrabold text-emerald-800'),
+                    crear('p', `Reproductores adultos: ${c.adultos}`, 'text-sm'),
+                    crear('p', `Cr\u00edas lactantes: ${c.crias}`, 'text-sm'),
+                    crear('p', `Destetados / recr\u00eda: ${c.recria}`, 'text-sm'),
+                    ...(c.reemplazo || poza.reemplazo ? [crear('p', `Reemplazo: ${c.reemplazo}`, 'text-sm font-bold')] : []),
+                    crear('p', `Nacidas vivas acumuladas: ${nacidas} \u00b7 Bajas: ${bajas}`, 'mt-1 text-xs text-stone-600'),
+                    crear('p', `Partos del ciclo: ${ciclo.partos}${ciclo.hembras ? ` (\u2248 ${ciclo.porMadre.toFixed(1)} por reproductora)` : ''}`, 'text-sm font-bold'),
+                    crear('p', ciclo.texto, 'mt-1 text-sm font-bold')
+                );
+                if (ciclo.nivel !== 'ok') {
+                    caja.append(crear('p', reemplazoDisponible.length ? `Reemplazar con animales de: ${reemplazoDisponible.join(', ')}` : 'Aparta destetados como reemplazo o crea una poza de reemplazo.', 'text-sm'));
+                    const b = crear('button', 'Registrar recambio hecho', 'mt-2 rounded-lg border border-stone-400 bg-white px-3 py-2 text-sm font-bold');
+                    b.type = 'button';
+                    b.addEventListener('click', () => registrarRecambioPoza(codigo));
+                    caja.append(b);
+                }
+                return caja;
+            });
+            cont.replaceChildren(...(tarjetas.length ? tarjetas : [crear('p', 'Registra una poza para ver su composici\u00f3n.', 'text-sm text-stone-500')]));
+        }
+
         function renderTabla(elementId, items, keys, tipo) {
             const tbody = document.getElementById(elementId);
             if (!items.length) {
@@ -4269,6 +4362,7 @@
                         let val = item[k] !== undefined ? item[k] : (k === 'codigo' ? item['id'] : '');
                         if (k === 'ubicacion') val = item.ubicacion || 'General';
                         if (k === 'stockActual' && tipo === 'cuyes') val = obtenerStockActualPoza(item);
+                        if (k === 'etapa' && tipo === 'cuyes' && item.reemplazo) val = `${val} · Reemplazo`;
                         if (k === 'diasProtocolo') val = item.diasProtocolo ?? 'No consignado';
                         if (k === 'viabilidad') {
                             const totalNacidas = (Number(item.vivas) || 0) + (Number(item.muertas) || 0);
@@ -4443,7 +4537,7 @@
                 const mes = meses.find(item => item.clave === String(baja.fecha || '').slice(0, 7));
                 if (mes) mes.bajas += Number(baja.cantidad || 0);
             });
-            const poblacionBase = Math.max(1, db.cuyes.reduce((total, poza) => total + obtenerStockActualPoza(poza), 0));
+            const poblacionBase = Math.max(1, obtenerPoblacionGranja().total);
             dibujarGraficoLinea(document.getElementById('chartMortalidad'), meses.map(mes => mes.etiqueta), meses.map(mes => Number(((mes.bajas / (poblacionBase + mes.bajas)) * 100).toFixed(2))));
         }
 
@@ -4505,7 +4599,7 @@
             const ingresos = calcularTotalVentas();
             const gastos = db.gastos.reduce((total, gasto) => total + Number(gasto.monto || 0), 0);
             const bajas = db.bajas.reduce((total, baja) => total + Number(baja.cantidad || 0), 0);
-            const poblacion = db.cuyes.reduce((total, poza) => total + Math.max(0, obtenerStockActualPoza(poza)), 0);
+            const poblacion = obtenerPoblacionGranja().total;
             const secciones = [{ titulo: 'Resumen general', columnas: ['Indicador', 'Valor'], filas: [['Pozas registradas', db.cuyes.length], ['Población estimada', poblacion], ['Partos registrados', db.partos.length], ['Bajas', bajas], ['Ingresos (S/)', ingresos.toFixed(2)], ['Gastos (S/)', gastos.toFixed(2)], ['Balance neto (S/)', (ingresos - gastos).toFixed(2)]] }, ...obtenerSeccionesReporte()];
             const tablas = secciones.map(seccion => {
                 const encabezados = seccion.columnas.map(columna => `<th>${escaparHTML(columna)}</th>`).join('');
