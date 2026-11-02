@@ -2326,6 +2326,7 @@
 
             const persistido = escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
             programarSubidaNube();
+            if (document.getElementById('racion-sync')?.checked) { try { sincronizarRacionPozas(); } catch (e) { /* la ración no bloquea el guardado */ } }
             renderizarTodo();
             if (mensaje) mostrarToast(persistido ? mensaje : 'Cambios en memoria: el navegador bloquea el almacenamiento. Descarga un backup para conservarlos.', persistido ? tipo : 'error');
         }
@@ -2608,12 +2609,36 @@
                 return { adultos: leer(campos.adultos), recria: leer(campos.recria), crias: leer(campos.crias) };
             }
 
-            const cantidad = Math.max(0, obtenerStockActualPoza(poza, fuente));
+            const codigo = claveUnicaPoza(poza.codigo || poza.id);
+            const coincide = valor => claveUnicaPoza(valor) === codigo;
+            const registros = clave => Array.isArray(fuente[clave]) ? fuente[clave] : [];
             const etapa = String(poza.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            if (etapa.includes('reproductor') || etapa.includes('adulto')) return { adultos: cantidad, recria: 0, crias: 0 };
-            if (etapa.includes('recria') || etapa.includes('engorde')) return { adultos: 0, recria: cantidad, crias: 0 };
-            if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) return { adultos: 0, recria: 0, crias: cantidad };
-            return { adultos: 0, recria: 0, crias: 0 };
+            const hoy = new Date(`${fechaHoy()}T00:00:00`);
+            const esReciente = fecha => { const t = new Date(`${String(fecha).slice(0, 10)}T00:00:00`); return !isNaN(t) && (hoy - t) / 86400000 <= 30; };
+            const totalDestete = d => d.machos !== undefined || d.hembras !== undefined ? Number(d.machos || 0) + Number(d.hembras || 0) : Number(d.cantidad || 0);
+
+            // Base: stock inicial según la etapa de la poza.
+            const base = Math.max(0, Number(poza.stockInicial) || 0);
+            const c = { adultos: 0, recria: 0, crias: 0 };
+            if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
+            else if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) c.crias = base;
+            else c.adultos = base;
+
+            // Crías nacidas vivas en esta poza que aún no se destetaron.
+            const nacidas = registros('partos').filter(p => coincide(p.poza)).reduce((s, p) => s + Number(p.vivas || 0), 0);
+            const destetadasDeEstaPoza = registros('destetados').filter(d => coincide(d.poza)).reduce((s, d) => s + totalDestete(d), 0);
+            c.crias += Math.max(0, nacidas - destetadasDeEstaPoza);
+
+            // Destetados que llegaron a esta poza: hasta 30 días = destetados/crías; después = recría/engorde.
+            registros('destetados').forEach(d => {
+                const llegados = (coincide(d.pozaMachosDestino) ? Number(d.machos || 0) : 0) + (coincide(d.pozaHembrasDestino) ? Number(d.hembras || 0) : 0);
+                if (llegados > 0) c[esReciente(d.fecha) ? 'crias' : 'recria'] += llegados;
+            });
+
+            // Las bajas de la poza se descuentan de adultos, luego recría y luego crías.
+            let bajas = registros('bajas').filter(b => coincide(b.identificador)).reduce((s, b) => s + Number(b.cantidad || 0), 0);
+            ['adultos', 'recria', 'crias'].forEach(k => { const q = Math.min(c[k], bajas); c[k] -= q; bajas -= q; });
+            return c;
         }
 
         function renderDesgloseRacion(q) {
