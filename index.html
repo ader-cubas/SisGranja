@@ -926,9 +926,19 @@
                         <p id="kpi-bajas-sub" class="text-xs text-stone-500 mt-1">Tasa: 0.0%</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-green">
-                        <p class="text-xs font-bold text-stone-500 uppercase">Cuyes Destetados</p>
+                        <p class="text-xs font-bold text-stone-500 uppercase">Destetados / Recría</p>
                         <h3 id="kpi-destetados" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p id="kpi-destetados-sub" class="text-xs text-stone-500 mt-1">0 hembras, 0 machos</p>
+                        <p id="kpi-destetados-sub" class="text-xs text-stone-500 mt-1">Engorde y reemplazo vigentes</p>
+                    </div>
+                    <div class="kpi-card kpi-card-secondary kpi-accent-teal">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Reproductores</p>
+                        <h3 id="kpi-reproductores" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
+                        <p class="text-xs text-stone-500 mt-1">Adultos vivos en pozas</p>
+                    </div>
+                    <div class="kpi-card kpi-card-secondary kpi-accent-amber">
+                        <p class="text-xs font-bold text-stone-500 uppercase">Crías lactantes</p>
+                        <h3 id="kpi-crias" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
+                        <p class="text-xs text-stone-500 mt-1">Nacidas vivas sin destetar</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-rose">
                         <p class="text-xs font-bold text-stone-500 uppercase">Gastos Operativos</p>
@@ -4149,38 +4159,16 @@
 
             // KPIs
             let totalBajasCount = db.bajas.reduce((acc, b) => acc + (b.cantidad || 0), 0);
-            
-            // --- 1. CÁLCULO DE CUYES DESTETADOS (Hembras y Machos) ---
-            const listaDestetados = db.destetados || [];
-            let totalDestetados = 0;
-            let hembrasDestetadas = 0;
-            let machosDestetados = 0;
-
-            listaDestetados.forEach(item => {
-                // Compatible con formato lote { machos, hembras } y formato individual { cantidad, sexo }
-                if (item.machos !== undefined || item.hembras !== undefined) {
-                    let m = parseInt(item.machos || 0);
-                    let h = parseInt(item.hembras || 0);
-                    machosDestetados += m;
-                    hembrasDestetadas += h;
-                    totalDestetados += (m + h);
-                } else {
-                    let cant = parseInt(item.cantidad || 0);
-                    totalDestetados += cant;
-                    let sexo = (item.sexo || '').toLowerCase();
-                    if (sexo.includes('hembra') || sexo === 'h') {
-                        hembrasDestetadas += cant;
-                    } else if (sexo.includes('macho') || sexo === 'm') {
-                        machosDestetados += cant;
-                    }
-                }
-            });
 
             // Inyectar en las tarjetas del DOM
             const elDestetados = document.getElementById('kpi-destetados');
             const elDestetadosSub = document.getElementById('kpi-destetados-sub');
-            if (elDestetados) elDestetados.innerText = totalDestetados;
-            if (elDestetadosSub) elDestetadosSub.innerText = `${hembrasDestetadas} hembras, ${machosDestetados} machos`;
+            const pob = obtenerPoblacionGranja();
+            // Mismas cifras que los casilleros de la Calculadora de Ración (recría incluye reemplazo).
+            if (elDestetados) elDestetados.innerText = pob.recria + pob.reemplazo;
+            if (elDestetadosSub) elDestetadosSub.innerText = `${pob.recria} engorde/venta · ${pob.reemplazo} reemplazo`;
+            document.getElementById('kpi-reproductores').innerText = pob.adultos;
+            document.getElementById('kpi-crias').innerText = pob.crias;
 
 
             let poblacionTotal = obtenerPoblacionGranja().total;
