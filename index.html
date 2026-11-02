@@ -840,6 +840,9 @@
                 <button onclick="switchView('almacen')" id="nav-almacen" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-package text-lg"></i><span>Proyección de Almacén</span>
                 </button>
+                <button onclick="switchView('escala')" id="nav-escala" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-plant text-lg"></i><span>Escala y Siembra</span>
+                </button>
             </nav>
         </div>
         <div class="p-4 border-t border-emerald-900/50 text-xs text-stone-400">
@@ -1883,6 +1886,55 @@
                 </section>
             </div>
 
+            <!-- ESCALA Y SIEMBRA DE FORRAJE POR BLOQUES -->
+            <div id="view-escala" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">🌱 Calculadora de escala y siembra de forraje</h3>
+                    <p class="mod-hint">Indica cuántas reproductoras tendrás: se estima la población total, el alimento y el terreno con bloques de siembra escalonada.</p>
+                    <label class="mod-field" for="esc-repro">Reproductoras adultas (hembras)</label>
+                    <div class="flex flex-wrap items-center gap-3 mt-1">
+                        <input type="number" id="esc-repro" min="1" step="1" value="200" inputmode="numeric" oninput="calcularEscala()" class="mod-input" style="max-width:180px;font-size:1.4rem;font-weight:800">
+                        <button type="button" onclick="usarReproductorasActuales()" class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-900">Usar mis pozas actuales</button>
+                    </div>
+                    <input type="range" id="esc-slider" min="10" max="2000" step="10" value="200" oninput="document.getElementById('esc-repro').value = this.value; calcularEscala()" class="w-full mt-3" aria-label="Deslizar cantidad de reproductoras">
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button type="button" onclick="fijarEscala(50)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">50</button>
+                        <button type="button" onclick="fijarEscala(200)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">200</button>
+                        <button type="button" onclick="fijarEscala(500)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">500</button>
+                        <button type="button" onclick="fijarEscala(1000)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">1,000</button>
+                        <button type="button" onclick="fijarEscala(2000)" class="rounded-full border border-emerald-300 bg-white px-4 py-1.5 text-sm font-bold text-emerald-900">2,000</button>
+                    </div>
+                    <div class="mod-grid mt-4">
+                        <label class="mod-field">Tipo de forraje
+                            <select id="esc-tipo" onchange="aplicarTipoEscala()" class="mod-input"><option value="Alfalfa">Alfalfa</option><option value="Ryegrass">Ryegrass</option></select>
+                        </label>
+                        <label class="mod-field">Número de bloques
+                            <select id="esc-bloques" onchange="calcularEscala()" class="mod-input"><option>6</option><option>7</option><option selected>8</option></select>
+                        </label>
+                        <label class="mod-field">Fecha de inicio de siembra
+                            <input type="date" id="esc-inicio" onchange="calcularEscala()" class="mod-input">
+                        </label>
+                    </div>
+                    <details class="mt-4">
+                        <summary class="cursor-pointer text-sm font-bold text-emerald-900">Parámetros zootécnicos (editables)</summary>
+                        <div class="mod-grid mt-3">
+                            <label class="mod-field">Partos por hembra al año<input type="number" id="esc-partos" min="0" step="0.1" value="3.5" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Crías vivas por parto<input type="number" id="esc-crias-parto" min="0" step="0.1" value="2.5" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Mortalidad en lactancia (%)<input type="number" id="esc-mort" min="0" max="100" step="1" value="10" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Hembras por macho<input type="number" id="esc-ratio" min="1" step="1" value="6" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Días de lactancia<input type="number" id="esc-dias-lact" min="1" step="1" value="21" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Días de vida hasta la venta<input type="number" id="esc-dias-venta" min="1" step="1" value="90" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Rendimiento (t forraje verde/ha/año)<input type="number" id="esc-rend" min="1" step="1" value="60" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Margen de seguridad (%)<input type="number" id="esc-margen" min="0" step="1" value="15" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Días de rebrote entre cortes<input type="number" id="esc-ciclo" min="7" step="1" value="42" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Días de siembra al 1.er corte<input type="number" id="esc-estab" min="0" step="1" value="90" oninput="calcularEscala()" class="mod-input"></label>
+                        </div>
+                        <p class="mod-hint mt-2">Los gramos diarios por categoría se toman de la Calculadora de Ración. Valores referenciales: ajusta con tu zona y riego.</p>
+                    </details>
+                </section>
+                <div id="esc-resultado" class="space-y-4" aria-live="polite"></div>
+            </div>
+
     <!-- MODAL / TOAST DE NOTIFICACIÓN -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -2385,7 +2437,8 @@
                 bioseguridad: 'Bioseguridad y Prevención',
                 pesos: 'Control de Pesos y Curva de Crecimiento',
                 racion: 'Ración y Forraje',
-                almacen: 'Proyección de Almacén'
+                almacen: 'Proyección de Almacén',
+                escala: 'Escala y Siembra de Forraje por Bloques'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
             document.getElementById('main-content-container').scrollTop = 0;
@@ -2396,6 +2449,7 @@
             
             if (viewName === 'racion') sincronizarRacionPozas();
             if (viewName === 'almacen') { sincronizarRacionPozas(); calcularAlmacen(); }
+            if (viewName === 'escala') calcularEscala();
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
             }
@@ -2832,6 +2886,117 @@
                 bloque('🌾 Concentrado', concDia, stockC, 3)
             );
             escribirAlmacenamiento('sisgranja_almacen', JSON.stringify({ periodo, dias, stockF, stockC, tipo }));
+        }
+
+        function fijarEscala(n) {
+            document.getElementById('esc-repro').value = n;
+            calcularEscala();
+        }
+
+        function usarReproductorasActuales() {
+            const adultos = obtenerPoblacionGranja().adultos;
+            if (!adultos) { mostrarToast('Aún no hay reproductores registrados en tus pozas.', 'error'); return; }
+            fijarEscala(Math.max(1, Math.round(adultos * 6 / 7)));
+        }
+
+        function aplicarTipoEscala() {
+            const alfalfa = document.getElementById('esc-tipo').value === 'Alfalfa';
+            document.getElementById('esc-rend').value = alfalfa ? 60 : 45;
+            document.getElementById('esc-ciclo').value = alfalfa ? 42 : 45;
+            document.getElementById('esc-estab').value = alfalfa ? 90 : 75;
+            calcularEscala();
+        }
+
+        // Población en equilibrio: animales de cada etapa = nacimientos por día × días que dura la etapa, sin contar a nadie dos veces.
+        function calcularEscala() {
+            const salida = document.getElementById('esc-resultado');
+            if (!salida) return;
+            const num = id => { const v = Number(document.getElementById(id).value); return Number.isFinite(v) ? Math.max(0, v) : 0; };
+            const hembras = Math.floor(num('esc-repro'));
+            document.getElementById('esc-slider').value = Math.min(Math.max(hembras, 10), 2000);
+            if (!document.getElementById('esc-inicio').value) document.getElementById('esc-inicio').value = fechaHoy();
+            const crear = (tag, texto, clase) => { const n = document.createElement(tag); n.textContent = texto; if (clase) n.className = clase; return n; };
+            if (!hembras) { salida.replaceChildren(crear('p', 'Ingresa la cantidad de reproductoras para calcular.', 'mod-hint')); return; }
+
+            const nf = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 1 });
+            const ent = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
+            const machos = Math.ceil(hembras / Math.max(1, num('esc-ratio')));
+            const diasLact = Math.max(1, num('esc-dias-lact'));
+            const diasVenta = Math.max(diasLact, num('esc-dias-venta'));
+            const nacimientosDia = hembras * num('esc-partos') * num('esc-crias-parto') / 365;
+            const lactantes = Math.round(nacimientosDia * diasLact);
+            const recria = Math.round(nacimientosDia * (1 - Math.min(100, num('esc-mort')) / 100) * (diasVenta - diasLact));
+            const adultos = hembras + machos;
+            const total = adultos + lactantes + recria;
+
+            const g = (id, def) => num(id) || def;
+            const forrajeDia = (adultos * g('racion-g-adulto', 315) + recria * g('racion-g-recria', 175) + lactantes * g('racion-g-crias', 100)) / 1000;
+            const concDia = (adultos * g('racion-c-adulto', 30) + recria * g('racion-c-recria', 15) + lactantes * g('racion-c-crias', 12.5)) / 1000;
+            const tipo = document.getElementById('esc-tipo').value;
+
+            const margen = 1 + num('esc-margen') / 100;
+            const rendimiento = Math.max(1, num('esc-rend'));
+            const hectareas = forrajeDia * 365 * margen / 1000 / rendimiento;
+            const m2Total = hectareas * 10000;
+            const bloques = Number(document.getElementById('esc-bloques').value) || 8;
+            const ciclo = Math.max(7, num('esc-ciclo'));
+            const estab = num('esc-estab');
+            const intervalo = ciclo / bloques;
+            const m2Bloque = m2Total / bloques;
+            const kgPorCorte = forrajeDia * intervalo * margen;
+            const inicio = document.getElementById('esc-inicio').value;
+
+            const tarjeta = (titulo, grande, lineas, clase) => {
+                const c = crear('div', '', `rounded-2xl border-2 p-4 ${clase}`);
+                c.append(crear('p', titulo, 'text-sm font-extrabold uppercase tracking-wide'), crear('p', grande, 'text-3xl font-extrabold leading-tight my-1'));
+                lineas.forEach(l => c.append(crear('p', l, 'text-sm sm:text-base')));
+                return c;
+            };
+            const fila = (...tarjetas) => { const f = crear('div', '', 'grid gap-4 md:grid-cols-3'); f.append(...tarjetas); return f; };
+
+            const resumen = fila(
+                tarjeta('🐹 Población total estimada', `${ent.format(total)} cuyes`, [
+                    `Reproductoras: ${ent.format(hembras)} · Machos: ${ent.format(machos)}`,
+                    `Crías lactantes: ${ent.format(lactantes)}`,
+                    `Recría / engorde / destetados: ${ent.format(recria)}`
+                ], 'border-emerald-400 bg-emerald-50 text-emerald-950'),
+                tarjeta(`🌿 Forraje (${tipo})`, `${nf.format(forrajeDia)} kg/día`, [
+                    `Mensual: ${nf.format(forrajeDia * 30)} kg (${nf.format(forrajeDia * 30 / 1000)} t)`,
+                    `Anual con margen: ${nf.format(forrajeDia * 365 * margen / 1000)} t`
+                ], 'border-teal-400 bg-teal-50 text-teal-950'),
+                tarjeta('🌾 Concentrado', `${nf.format(concDia)} kg/día`, [
+                    `Mensual: ${nf.format(concDia * 30)} kg`,
+                    `≈ ${nf.format(concDia * 30 / 40)} sacos de 40 kg al mes`
+                ], 'border-amber-400 bg-amber-50 text-amber-950')
+            );
+            const terreno = tarjeta('📏 Terreno bajo riego necesario todo el año', `${nf.format(hectareas)} ha`, [
+                `${ent.format(m2Total)} m² en total, repartidos en ${bloques} bloques de ${ent.format(m2Bloque)} m² cada uno.`,
+                `Rendimiento usado: ${nf.format(rendimiento)} t/ha/año con ${nf.format((margen - 1) * 100)} % de margen.`
+            ], 'border-emerald-600 bg-white text-emerald-950');
+
+            const plan = crear('div', '', 'rounded-2xl border border-stone-200 bg-white p-4');
+            plan.append(
+                crear('p', `🗓️ Plan de rotación: ${bloques} bloques, un corte cada ${nf.format(intervalo)} días`, 'text-lg font-extrabold text-emerald-900'),
+                crear('p', `Cada bloque se corta cada ${ent.format(ciclo)} días (rebrote). Cada corte rinde ≈ ${nf.format(kgPorCorte)} kg para ${nf.format(intervalo)} días de consumo.`, 'text-sm text-stone-700 mb-3')
+            );
+            const rejilla = crear('div', '', 'grid gap-3 sm:grid-cols-2 xl:grid-cols-4');
+            for (let i = 0; i < bloques; i++) {
+                const desplazamiento = Math.round(i * intervalo);
+                const siembra = sumarDias(inicio, desplazamiento);
+                const primerCorte = sumarDias(siembra, estab);
+                const b = crear('div', '', 'rounded-xl border border-emerald-200 bg-emerald-50/60 p-3');
+                b.append(
+                    crear('p', `Bloque ${i + 1}`, 'font-extrabold text-emerald-900'),
+                    crear('p', `${ent.format(m2Bloque)} m²`, 'text-xl font-extrabold'),
+                    crear('p', `Sembrar: ${siembra}`, 'text-sm'),
+                    crear('p', `1.er corte: ${primerCorte}`, 'text-sm font-bold'),
+                    crear('p', `Luego cada ${ent.format(ciclo)} días (2.º: ${sumarDias(primerCorte, Math.round(ciclo))})`, 'text-xs text-stone-600')
+                );
+                rejilla.append(b);
+            }
+            plan.append(rejilla);
+            const aviso = crear('p', `⚠️ Entre la siembra del bloque 1 y su primer corte pasan ${ent.format(estab)} días: cubre ese lapso con forraje comprado o con un lote ya establecido. Después del primer corte de cada bloque, la rotación entrega forraje verde fresco sin interrupciones. Orea el forraje antes de darlo.`, 'rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900');
+            salida.replaceChildren(resumen, terreno, plan, aviso);
         }
 
         function cargarAlmacenGuardado() {
@@ -4781,6 +4946,7 @@
                 ['pesos', /pesos?|pesaje/, 'Control de pesos'],
                 ['racion', /racion|forraje/, 'Ración y forraje'],
                 ['almacen', /almacen|proyeccion/, 'Almacén'],
+                ['escala', /escala|siembra|hectarea|bloques/, 'Escala y siembra'],
                 ['dashboard', /dashboard|inicio|panel|resumen|principal/, 'Dashboard']
             ];
             const VERBOS_NAV = /\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver)\b/;
