@@ -760,27 +760,6 @@
         #voice-banner { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 9500; max-width: min(92vw, 520px); padding: 10px 18px; border-radius: 14px; background: #1c1917; color: #fff; font-size: .9rem; box-shadow: 0 10px 25px rgba(0,0,0,.35); display: none; text-align: center; }
         #voice-banner.ok { background: #047857; }
         #voice-banner.error { background: #b91c1c; }
-        #chat-fab { position: fixed; right: 18px; bottom: 84px; z-index: 8000; display: none; align-items: center; justify-content: center; width: 56px; height: 56px; padding: 0; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: #0f766e; color: #fff; font-size: 24px; box-shadow: 0 6px 18px rgba(6,78,59,.35); cursor: pointer; }
-        #chat-fab:focus-visible { outline: 3px solid #6ee7b7; outline-offset: 3px; }
-        #chat-panel { position: fixed; right: 12px; bottom: 150px; z-index: 8100; display: none; flex-direction: column; width: min(94vw, 400px); height: min(66vh, 540px); border-radius: 18px; background: #fff; color: #1c1917; box-shadow: 0 20px 45px rgba(0,0,0,.35); overflow: hidden; }
-        #chat-panel.abierto { display: flex; }
-        .chat-cab { display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: #064e3b; color: #fff; }
-        .chat-cab strong { flex: 1; font-size: .95rem; }
-        .chat-cab button { border: 0; background: transparent; color: #fff; font-size: 1.1rem; cursor: pointer; padding: 4px 8px; }
-        #chat-mensajes { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; }
-        .chat-msg { max-width: 88%; padding: 9px 12px; border-radius: 14px; font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
-        .chat-msg.yo { align-self: flex-end; background: #0f766e; color: #fff; border-bottom-right-radius: 4px; }
-        .chat-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
-        .chat-msg.error { border-color: #fca5a5; background: #fef2f2; }
-        .chat-msg h4 { margin: 0 0 6px; font-size: .95rem; }
-        .chat-msg b { display: block; margin-top: 6px; }
-        .chat-msg p { margin: 2px 0 0; }
-        .chat-msg ul { margin: 2px 0 0 18px; padding: 0; }
-        .chat-msg small { display: block; margin-top: 8px; color: #64748b; }
-        .chat-msg button { margin-top: 8px; border: 1px solid #0f766e; background: #fff; color: #0f766e; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
-        #chat-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e2e8f0; background: #fff; }
-        #chat-entrada { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 999px; }
-        #chat-form button { border: 0; border-radius: 999px; background: #0f766e; color: #fff; padding: 0 16px; cursor: pointer; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased">
@@ -802,19 +781,6 @@
     <div id="voice-banner" role="status" aria-live="polite"></div>
     <button type="button" id="voice-fab" aria-label="Control por voz" title="Control por voz"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg></button>
 
-    <button type="button" id="chat-fab" aria-label="Abrir chat Dr. Cuy IA" title="Dr. Cuy IA">💬</button>
-    <section id="chat-panel" role="dialog" aria-label="Asistente Dr. Cuy IA">
-        <div class="chat-cab">
-            <strong>🐹 Dr. Cuy IA</strong>
-            <button type="button" id="chat-voz" aria-pressed="true" aria-label="Respuestas en voz alta" title="Respuestas en voz alta">🔊</button>
-            <button type="button" id="chat-cerrar" aria-label="Cerrar chat">✕</button>
-        </div>
-        <div id="chat-mensajes" aria-live="polite"></div>
-        <form id="chat-form" autocomplete="off">
-            <input id="chat-entrada" type="text" maxlength="300" placeholder="Pregunta por población, partos, ventas, sanidad…" aria-label="Escribe tu consulta">
-            <button type="submit">Enviar</button>
-        </form>
-    </section>
     <div id="app-container">
 
     <!-- SIDEBAR -->
@@ -3700,6 +3666,7 @@
                 return linea;
             }));
             document.getElementById('baja-results').classList.remove('hidden');
+            window.SisGranjaVoz?.hablar(`Enfermedad: ${resultado.enfermedad}. Fármaco y dosis: ${resultado.farmaco_dosis}. Días: ${resultado.dias}. Acción: ${resultado.accion}. Prevención: ${resultado.prevencion}.`);
         }
 
         // Guía local de respaldo; dosis de referencia que debe validar un veterinario.
@@ -3793,6 +3760,8 @@
             actualizarRedDrCuy();
         }
 
+        const PROMPT_SISTEMA_DR_CUY = 'Eres el Dr. Cuy IA, veterinario experto en cuyes. Responde siempre en español, de forma estrictamente breve, concisa y directa, sin rodeos ni introducciones. Ante cualquier consulta de enfermedad, medicamento, dosis en mililitros o días de tratamiento, da solo: enfermedad, fármaco y dosis en ml, días y acción inmediata, en frases cortas.';
+
         async function consultarDrCuy(imagenBase64) {
             const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
             const publicKey = window.SISGRANJA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
@@ -3801,7 +3770,7 @@
             const respuesta = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', apikey: publicKey },
-                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido' }),
+                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido', system_prompt: PROMPT_SISTEMA_DR_CUY }),
                 signal: AbortSignal.timeout(75000)
             });
             const payload = await respuesta.json().catch(() => ({}));
@@ -4542,14 +4511,11 @@
                 $('login-container').style.display = 'none';
                 $('app-container').style.display = 'flex';
                 $('voice-fab').style.display = 'flex';
-                $('chat-fab').style.display = 'flex';
                 window.dispatchEvent(new Event('resize'));
             }
             function mostrarLogin() {
                 $('app-container').style.display = 'none';
                 $('voice-fab').style.display = 'none';
-                $('chat-fab').style.display = 'none';
-                $('chat-panel').classList.remove('abierto');
                 $('login-container').style.display = 'flex';
                 $('login-password').type = 'password';
                 $('login-toggle-pass').textContent = '👁️';
@@ -4614,6 +4580,8 @@
                 speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(texto);
                 u.lang = 'es-PE';
+                const vozEs = speechSynthesis.getVoices().find(v => /^es/i.test(v.lang));
+                if (vozEs) u.voice = vozEs;
                 speechSynthesis.speak(u);
             }
             // Mientras el chat procesa una consulta, las respuestas se capturan en lugar de mostrarse como banner/tarjeta.
@@ -4774,8 +4742,16 @@
                 if (previa) { previa.remove(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
             }
 
+            const breve = (t, max = 180) => {
+                t = String(t).trim();
+                if (t.length <= max) return t;
+                const corte = t.slice(0, max), punto = corte.lastIndexOf('. ');
+                return punto > 40 ? corte.slice(0, punto + 1) : corte.replace(/\s+\S*$/, '') + '…';
+            };
+
             function mostrarTarjeta({ titulo, icono = '🐹', secciones, pie, accion }) {
                 if (capturaChat) { capturaChat.tarjetas.push({ titulo, icono, secciones, pie, accion }); return; }
+                secciones = secciones.map(([e, c]) => [e, Array.isArray(c) ? c.slice(0, 3).map(x => breve(x)) : breve(c)]);
                 cerrarTarjeta();
                 const el = (tag, clase, texto) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
                 const fondo = el('div', 'voz-card-fondo');
@@ -4806,6 +4782,7 @@
                 const pieEl = el('div', 'voz-card-pie');
                 if (pie) pieEl.append(el('p', '', pie));
                 const textoLeible = [titulo, ...secciones.map(([e, c]) => e + '. ' + (Array.isArray(c) ? c.join('. ') : c))].join('. ');
+                hablar(textoLeible);
                 const escuchar = el('button', 'voz-card-accion', '🔊 Escuchar diagnóstico en voz alta');
                 escuchar.type = 'button';
                 escuchar.addEventListener('click', () => hablar(textoLeible));
@@ -5136,80 +5113,6 @@
             }
 
             window.SisGranjaVoz = { vistas: VISTAS, acciones: ACCIONES, procesar, consultaChat, hablar };
-        })();
-
-        // ===== Chat Dr. Cuy IA: consultas de texto con respuesta leída en voz alta =====
-        (() => {
-            const $ = id => document.getElementById(id);
-            const panel = $('chat-panel'), lista = $('chat-mensajes'), form = $('chat-form'), entrada = $('chat-entrada'), btnVoz = $('chat-voz');
-            let leer = true;
-            const el = (tag, clase, texto) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
-            const hablar = texto => {
-                if (!leer || !('speechSynthesis' in window)) return;
-                window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(texto);
-                u.lang = 'es-PE';
-                window.speechSynthesis.speak(u);
-            };
-            const agregar = (nodo, clase) => { const m = el('div', 'chat-msg ' + clase); m.append(nodo); lista.append(m); lista.scrollTop = lista.scrollHeight; return m; };
-
-            function pintarTarjeta(t) {
-                const caja = el('div');
-                caja.append(el('h4', '', (t.icono || '') + ' ' + t.titulo));
-                t.secciones.forEach(([etiqueta, contenido]) => {
-                    caja.append(el('b', '', etiqueta));
-                    if (Array.isArray(contenido)) { const ul = el('ul'); contenido.forEach(x => ul.append(el('li', '', x))); caja.append(ul); }
-                    else caja.append(el('p', '', contenido));
-                });
-                if (t.pie) caja.append(el('small', '', t.pie));
-                if (t.accion) {
-                    const b = el('button', '', t.accion.texto);
-                    b.type = 'button';
-                    b.addEventListener('click', () => { panel.classList.remove('abierto'); t.accion.ir(); });
-                    caja.append(b);
-                }
-                return caja;
-            }
-            const textoDeTarjeta = t => [t.titulo, ...t.secciones.map(([e, c]) => e + '. ' + (Array.isArray(c) ? c.join('. ') : c))].join('. ');
-
-            function responder(pregunta) {
-                const voz = window.SisGranjaVoz;
-                const r = voz ? voz.consultaChat(pregunta) : { tarjetas: [], mensajes: [] };
-                const hablado = [];
-                r.tarjetas.forEach(t => { agregar(pintarTarjeta(t), 'bot'); hablado.push(textoDeTarjeta(t)); });
-                const sinEntender = !r.tarjetas.length && r.mensajes.some(m => m.error && /^No entend/.test(m.texto));
-                if (sinEntender) {
-                    const ayuda = 'No encontré una respuesta exacta. Puedes preguntarme por población, pozas, partos, destetados, ventas, mortalidad, ración, desparasitación o enfermedades como diarrea, sarna, timpanismo o neumonía.';
-                    agregar(el('p', '', ayuda), 'bot error');
-                    hablado.push(ayuda);
-                } else {
-                    r.mensajes.forEach(m => { agregar(el('p', '', m.texto), 'bot' + (m.error ? ' error' : '')); hablado.push(m.texto); });
-                }
-                if (!hablado.length) { const v = 'Listo.'; agregar(el('p', '', v), 'bot'); hablado.push(v); }
-                hablar(hablado.join('. '));
-            }
-
-            function abrir() {
-                panel.classList.add('abierto');
-                if (!lista.children.length) agregar(el('p', '', 'Hola, soy el Dr. Cuy IA. Pregúntame por la población, pozas, partos, ventas, sanidad, desparasitación o enfermedades.'), 'bot');
-                entrada.focus();
-            }
-            $('chat-fab').addEventListener('click', () => panel.classList.contains('abierto') ? panel.classList.remove('abierto') : abrir());
-            $('chat-cerrar').addEventListener('click', () => { panel.classList.remove('abierto'); if ('speechSynthesis' in window) window.speechSynthesis.cancel(); });
-            btnVoz.addEventListener('click', () => {
-                leer = !leer;
-                btnVoz.textContent = leer ? '🔊' : '🔇';
-                btnVoz.setAttribute('aria-pressed', String(leer));
-                if (!leer && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-            });
-            form.addEventListener('submit', e => {
-                e.preventDefault();
-                const pregunta = entrada.value.trim();
-                if (!pregunta) return;
-                agregar(el('p', '', pregunta), 'yo');
-                entrada.value = '';
-                responder(pregunta);
-            });
         })();
 
         if ('serviceWorker' in navigator) {
