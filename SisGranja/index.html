@@ -2697,7 +2697,7 @@
             const totalDestete = d => d.machos !== undefined || d.hembras !== undefined ? Number(d.machos || 0) + Number(d.hembras || 0) : Number(d.cantidad || 0);
 
             // Base: stock inicial según la etapa de la poza.
-            const base = Math.max(0, Number(poza.stockInicial) || 0);
+            const base = Math.max(0, Number(poza.stockInicial ?? poza.cantidad) || 0);
             const c = { adultos: 0, recria: 0, crias: 0, reemplazo: 0 };
             if (poza.reemplazo) c.reemplazo = base;
             else if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
@@ -2764,10 +2764,24 @@
             return total;
         }
 
-        // Población viva real de la granja: misma cifra para Dashboard, reportes y ración.
+        // Fuente única de población: Dashboard, Ración, Almacén y Escala leen esta función. Los adultos se dividen en hembras/machos según el sexo de cada poza.
         function obtenerPoblacionGranja() {
-            const c = obtenerConteosGranja(obtenerPozasUnicas());
-            return { ...c, total: c.adultos + c.recria + c.crias + c.reemplazo };
+            const pozas = obtenerPozasUnicas();
+            const c = obtenerConteosGranja(pozas);
+            const campoRatio = document.getElementById('esc-ratio');
+            const ratio = Math.max(1, Number(campoRatio && campoRatio.value) || 6);
+            let h = 0, m = 0, sinSexo = 0;
+            pozas.forEach(p => {
+                const a = obtenerConteosRacionPoza(p).adultos;
+                const sexo = String(p.sexo || p.genero || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                if (/^(hembra|reproductora)/.test(sexo)) h += a;
+                else if (/^(macho|reproductor$)/.test(sexo)) m += a;
+                else sinSexo += a;
+            });
+            h += sinSexo * ratio / (ratio + 1);
+            m += sinSexo / (ratio + 1);
+            const hembras = c.adultos > 0 ? Math.round(c.adultos * (h + m > 0 ? h / (h + m) : ratio / (ratio + 1))) : 0;
+            return { ...c, hembras, machos: c.adultos - hembras, total: c.adultos + c.recria + c.crias + c.reemplazo };
         }
 
         function renderDesgloseRacion(q) {
@@ -2904,26 +2918,14 @@
         const GRAMOS_ESCALA = 300;
 
         function usarReproductorasActuales() {
-            let totalHembras = 0, mixtos = 0;
-            obtenerPozasUnicas().forEach(p => {
-                const etapa = String(p.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                if (/recria|engorde|cria/.test(etapa)) return;
-                const genero = String(p.genero || '').toLowerCase();
-                const stock = Math.max(0, Number(p.stockInicial) || 0);
-                if (genero === 'hembra' || genero === 'reproductora') totalHembras += stock;
-                else if (genero === 'mixto') mixtos += stock;
-            });
-            // Las pozas mixtas no distinguen sexo: se reparten con la proporción macho:hembra.
-            const ratio = Math.max(1, Number(document.getElementById('esc-ratio').value) || 6);
-            totalHembras += Math.round(mixtos * ratio / (ratio + 1));
-            if (totalHembras <= 0) { mostrarToast('No hay pozas de hembras reproductoras con stock registrado.', 'error'); return; }
-
-            const valorFinal = Math.min(2000, totalHembras);
+            const { hembras, adultos } = obtenerPoblacionGranja();
+            if (hembras <= 0) { mostrarToast('Aún no hay reproductoras registradas en tus pozas activas.', 'error'); return; }
+            const valorFinal = Math.min(2000, hembras);
             modoEscala = 'proyeccion';
             document.getElementById('esc-repro').value = valorFinal;
             document.getElementById('esc-slider').value = Math.max(50, valorFinal);
             calcularEscala();
-            mostrarToast(`${valorFinal} reproductoras leídas de tus pozas.`, 'success');
+            mostrarToast(`${valorFinal} reproductoras de ${adultos} adultos en pozas activas.`, 'success');
         }
 
         function fijarModoEscala(modo) {
@@ -2960,8 +2962,8 @@
             if (actual) {
                 const p = obtenerPoblacionGranja();
                 adultos = p.adultos; lactantes = p.crias; recria = p.recria + (p.reemplazo || 0); total = p.total;
-                machos = 0; hembras = adultos;
-                info.textContent = `Población real tomada de tus pozas activas: ${ent.format(adultos)} reproductores, ${ent.format(recria)} en recría, ${ent.format(lactantes)} crías. Total ${ent.format(total)} cuyes.`;
+                machos = p.machos; hembras = p.hembras;
+                info.textContent = `Población real de tus pozas activas: ${ent.format(hembras)} reproductoras + ${ent.format(machos)} machos, ${ent.format(recria)} en recría, ${ent.format(lactantes)} crías. Total ${ent.format(total)} cuyes.`;
                 if (!total) { salida.replaceChildren(crear('p', 'Aún no hay animales registrados en tus pozas. Usa el Modo Proyección.', 'mod-hint')); return; }
             } else {
                 hembras = Math.min(2000, Math.max(1, Math.floor(num('esc-repro'))));
