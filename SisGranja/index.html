@@ -1155,6 +1155,7 @@
                     <div class="flex items-center justify-between">
                         <h4 class="font-bold text-stone-800 text-base">Inventario Activo</h4>
                         <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="reiniciarTodasLasPozas()" class="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-100">🗑️ Reiniciar / Limpiar todas las pozas</button>
                             <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Reemplazo</option><option>Destetado</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
                             <input type="text" id="search-cuyes" onkeyup="filtrarTabla('cuyes')" placeholder="Buscar en pozas..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
                         </div>
@@ -3480,6 +3481,20 @@
             document.getElementById('cuy-hembras').value = '';
             document.getElementById('cuy-machos').value = '';
             guardarBD();
+        }
+
+        // Reinicio total: borra pozas y todos los registros que alimentan el inventario (partos, destetes, bajas, ventas...).
+        function reiniciarTodasLasPozas() {
+            if (!confirm('⚠️ Se borrarán TODAS las pozas y registros (partos, destetes, bajas, ventas, gastos, salud, pesos). Esta acción no se puede deshacer.\n\nRecomendado: descarga un backup antes. ¿Continuar?')) return;
+            if ((prompt('Para confirmar escribe BORRAR en mayúsculas:') || '').trim() !== 'BORRAR') { mostrarToast('Reinicio cancelado.', 'error'); return; }
+            db = { cuyes: [], pozas: [], partos: [], destetados: [], bajas: [], ventas: [], gastos: [], gestaciones: [], tratamientos: [], pesos: [], temperatura: null };
+            ['sisgranja_cuy_db', 'sisgranja_racion_inia', 'sisgranja_almacen', 'sisgranja_poza_activa'].forEach(clave => {
+                try { window.localStorage.removeItem(clave); } catch (error) { /* sin acceso a localStorage */ }
+                almacenamientoTemporal.delete(clave);
+            });
+            ['cuy-hembras', 'cuy-machos', 'cuy-stock', 'cuy-codigo'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            actualizarSelectoresPozas();
+            guardarBD('Inventario reiniciado. Ya puedes registrar tus pozas desde cero.');
         }
 
         function guardarParto(e) {
