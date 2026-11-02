@@ -2613,8 +2613,6 @@
             const coincide = valor => claveUnicaPoza(valor) === codigo;
             const registros = clave => Array.isArray(fuente[clave]) ? fuente[clave] : [];
             const etapa = String(poza.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const hoy = new Date(`${fechaHoy()}T00:00:00`);
-            const esReciente = fecha => { const t = new Date(`${String(fecha).slice(0, 10)}T00:00:00`); return !isNaN(t) && (hoy - t) / 86400000 <= 30; };
             const totalDestete = d => d.machos !== undefined || d.hembras !== undefined ? Number(d.machos || 0) + Number(d.hembras || 0) : Number(d.cantidad || 0);
 
             // Base: stock inicial según la etapa de la poza.
@@ -2629,10 +2627,9 @@
             const destetadasDeEstaPoza = registros('destetados').filter(d => coincide(d.poza)).reduce((s, d) => s + totalDestete(d), 0);
             c.crias += Math.max(0, nacidas - destetadasDeEstaPoza);
 
-            // Destetados que llegaron a esta poza: hasta 30 días = destetados/crías; después = recría/engorde.
+            // Destetados vigentes: llegan a su poza de destino (o se quedan en la de origen si no hay destino) como recría/engorde.
             registros('destetados').forEach(d => {
-                const llegados = (coincide(d.pozaMachosDestino) ? Number(d.machos || 0) : 0) + (coincide(d.pozaHembrasDestino) ? Number(d.hembras || 0) : 0);
-                if (llegados > 0) c[esReciente(d.fecha) ? 'crias' : 'recria'] += llegados;
+                partesDestete(d).forEach(([destino, n]) => { if (coincide(destino)) c.recria += n; });
             });
 
             // Las bajas de la poza se descuentan de adultos, luego recría y luego crías.
@@ -2641,10 +2638,47 @@
             return c;
         }
 
+        // Divide un registro de destete en [poza destino, cantidad]; sin destino válido cuenta en la poza de origen.
+        function partesDestete(d) {
+            if (d.machos !== undefined || d.hembras !== undefined) {
+                return [[d.pozaMachosDestino || d.poza, Number(d.machos) || 0], [d.pozaHembrasDestino || d.poza, Number(d.hembras) || 0]];
+            }
+            return [[d.pozaDestino || d.poza, Number(d.cantidad) || 0]];
+        }
+
+        // Población viva por categoría: suma de pozas menos bajas sin poza y ventas (la venta no indica poza, se descuenta por categoría).
+        function obtenerConteosGranja(pozas, fuente = db) {
+            const total = { adultos: 0, recria: 0, crias: 0 };
+            pozas.forEach(poza => {
+                const c = obtenerConteosRacionPoza(poza, fuente);
+                total.adultos += c.adultos; total.recria += c.recria; total.crias += c.crias;
+            });
+            const claves = new Set(pozas.map(p => claveUnicaPoza(p.codigo || p.id)));
+            // Destetados cuyo destino no coincide con ninguna poza registrada también son recría vigente.
+            (Array.isArray(fuente.destetados) ? fuente.destetados : []).forEach(d => {
+                partesDestete(d).forEach(([destino, n]) => { if (!claves.has(claveUnicaPoza(destino))) total.recria += n; });
+            });
+            const descontar = (cantidad, orden) => {
+                let resto = Math.max(0, Number(cantidad) || 0);
+                orden.forEach(k => { const q = Math.min(total[k], resto); total[k] -= q; resto -= q; });
+            };
+            (Array.isArray(fuente.bajas) ? fuente.bajas : []).filter(b => !claves.has(claveUnicaPoza(b.identificador)))
+                .forEach(b => descontar(b.cantidad, ['adultos', 'recria', 'crias']));
+            (Array.isArray(fuente.ventas) ? fuente.ventas : []).forEach(v => {
+                const cat = String(v.categoria || '').toLowerCase();
+                const orden = cat.includes('gazapo') ? ['crias', 'recria', 'adultos']
+                    : cat.includes('reproductor') || cat.includes('abono') || cat.includes('subproducto') ? ['adultos', 'recria', 'crias']
+                    : ['recria', 'adultos', 'crias'];
+                descontar(v.cantidad, orden);
+            });
+            return total;
+        }
+
         function renderDesgloseRacion(q) {
             const cuerpo = document.getElementById('racion-desglose');
             if (!cuerpo) return;
             const filas = [];
+            let ajuste = null;
             let errorInventario = false;
             try {
                 let fuente = db;
@@ -2671,6 +2705,10 @@
                         conc: n.a * q.cAdulto + n.r * q.cRecria + n.c * q.cCrias
                     });
                 });
+                const g = obtenerConteosGranja([...unicas.values()], fuente);
+                const suma = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c }), { a: 0, r: 0, c: 0 });
+                const d = { a: g.adultos - suma.a, r: g.recria - suma.r, c: g.crias - suma.c };
+                if (d.a || d.r || d.c) ajuste = { codigo: 'Ventas y bajas sin poza', ...d, forraje: d.a * q.gAdulto + d.r * q.gRecria + d.c * q.gCrias, conc: d.a * q.cAdulto + d.r * q.cRecria + d.c * q.cCrias };
             } catch (error) { errorInventario = true; }
             filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
             const fila = (celdas, clase) => {
@@ -2687,9 +2725,10 @@
             }
             const formatoGramos = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
             const formatoKilos = gramos => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(gramos / 1000);
-            const tot = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
+            const tot = [...filas, ...(ajuste ? [ajuste] : [])].reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
             cuerpo.replaceChildren(
                 ...filas.map(f => fila([f.codigo, f.a, f.r, f.c, formatoKilos(f.forraje), formatoGramos(f.conc)])),
+                ...(ajuste ? [fila([ajuste.codigo, ajuste.a, ajuste.r, ajuste.c, formatoKilos(ajuste.forraje), formatoGramos(ajuste.conc)], 'border-t border-stone-200 text-red-800')] : []),
                 fila(['TOTAL', tot.a, tot.r, tot.c, formatoKilos(tot.forraje), formatoGramos(tot.conc)], 'border-t-2 border-emerald-700 bg-emerald-50 font-extrabold')
             );
         }
@@ -2702,13 +2741,7 @@
             campos.forEach(c => { c.readOnly = check.checked; });
             if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
             try {
-                const totales = obtenerPozasUnicas().reduce((suma, poza) => {
-                    const conteos = obtenerConteosRacionPoza(poza);
-                    suma.adultos += conteos.adultos;
-                    suma.recria += conteos.recria;
-                    suma.crias += conteos.crias;
-                    return suma;
-                }, { adultos: 0, recria: 0, crias: 0 });
+                const totales = obtenerConteosGranja(obtenerPozasUnicas());
                 campos[0].value = totales.adultos;
                 campos[1].value = totales.recria;
                 campos[2].value = totales.crias;
