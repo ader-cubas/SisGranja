@@ -1118,35 +1118,20 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Género Principal</label>
-                            <select id="cuy-genero" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
-                                <option value="Hembra">Hembra</option>
-                                <option value="Macho">Macho</option>
-                                <option value="Mixto">Mixto</option>
-                            </select>
-                        </div>
-                        <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Galpón / Ubicación</label>
                             <input type="text" id="cuy-poza" required class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. Galpón A">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
-                            <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="0">
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Machos</label>
+                            <input type="number" id="cuy-machos" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Hembras en la poza (opcional)</label>
-                            <input type="number" id="cuy-hembras" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 6">
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Cantidad de Hembras</label>
+                            <input type="number" id="cuy-hembras" required min="0" value="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-stone-600 mb-1">Machos en la poza (opcional)</label>
-                            <input type="number" id="cuy-machos" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 1">
-                        </div>
-                        <p class="sm:col-span-4 text-xs text-stone-500">Si indicas hembras y machos, el stock inicial es su suma (ej. 6 + 1 = 7).</p>
-                        <div class="sm:col-span-2 flex items-end">
-                            <label class="flex items-center gap-2 text-sm font-bold text-stone-700"><input type="checkbox" id="cuy-reemplazo" class="h-5 w-5"> Poza de reemplazo (reproductores de reemplazo)</label>
-                        </div>
-                        <div class="sm:col-span-4 flex justify-end">
-                            <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-6 rounded-xl text-sm hover:bg-emerald-700 transition shadow-xs">Guardar Registro</button>
+                        <p class="sm:col-span-4 text-xs text-stone-500">El total de la poza es machos + hembras (ej. 1 + 6 = 7). La etapa define si cuentan como reproductores, reemplazo, destetados, recría o crías.</p>
+                        <div class="sm:col-span-4">
+                            <button type="submit" class="action-giant action-destete w-full"><i class="ph ph-users-three" aria-hidden="true"></i><span>GUARDAR POZA</span></button>
                         </div>
                     </form>
                 </div>
@@ -3455,31 +3440,27 @@
         function guardarCuy(e) {
             e.preventDefault();
             const codigo = claveUnicaPoza(document.getElementById('cuy-codigo').value);
-            const datos = {
-                etapa: document.getElementById('cuy-etapa').value,
-                genero: document.getElementById('cuy-genero').value,
-                poza: document.getElementById('cuy-poza').value
-            };
-            const stockTexto = document.getElementById('cuy-stock').value.trim();
             const hembrasIni = Math.max(0, parseInt(document.getElementById('cuy-hembras').value, 10) || 0);
             const machosIni = Math.max(0, parseInt(document.getElementById('cuy-machos').value, 10) || 0);
-            const porSexo = hembrasIni + machosIni > 0;
+            const datos = {
+                etapa: document.getElementById('cuy-etapa').value,
+                genero: hembrasIni && machosIni ? 'Mixto' : machosIni ? 'Macho' : 'Hembra',
+                poza: document.getElementById('cuy-poza').value
+            };
             if (db.cuyes.some(item => claveUnicaPoza(item.codigo || item.id) === codigo)) {
                 mostrarToast(`La poza ${codigo} ya está registrada. Usa un código nuevo.`, 'error');
                 return;
             }
             db.cuyes.push({
                 codigo, ...datos,
-                stockInicial: porSexo ? hembrasIni + machosIni : Math.max(0, parseInt(stockTexto, 10) || 0),
-                ...(porSexo ? { hembrasIni, machosIni } : {}),
-                reemplazo: document.getElementById('cuy-reemplazo').checked || datos.etapa === 'Reemplazo'
+                stockInicial: hembrasIni + machosIni,
+                hembrasIni, machosIni,
+                reemplazo: datos.etapa === 'Reemplazo'
             });
             db.pozas = db.cuyes;
-            document.getElementById('cuy-reemplazo').checked = false;
             document.getElementById('cuy-codigo').value = '';
-            document.getElementById('cuy-stock').value = '';
-            document.getElementById('cuy-hembras').value = '';
-            document.getElementById('cuy-machos').value = '';
+            document.getElementById('cuy-hembras').value = '0';
+            document.getElementById('cuy-machos').value = '0';
             guardarBD();
         }
 
@@ -3492,7 +3473,8 @@
                 try { window.localStorage.removeItem(clave); } catch (error) { /* sin acceso a localStorage */ }
                 almacenamientoTemporal.delete(clave);
             });
-            ['cuy-hembras', 'cuy-machos', 'cuy-stock', 'cuy-codigo'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            ['cuy-hembras', 'cuy-machos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = '0'; });
+            const codigoCuy = document.getElementById('cuy-codigo'); if (codigoCuy) codigoCuy.value = '';
             actualizarSelectoresPozas();
             guardarBD('Inventario reiniciado. Ya puedes registrar tus pozas desde cero.');
         }
