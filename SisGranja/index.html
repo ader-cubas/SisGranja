@@ -1898,7 +1898,8 @@
                     <div id="esc-panel-proy" class="mt-3">
                     <label class="mod-field" for="esc-repro">Reproductoras a simular (50 a 2,000)</label>
                     <div class="flex flex-wrap items-center gap-3 mt-1">
-                        <input type="number" id="esc-repro" min="50" max="2000" step="1" value="200" inputmode="numeric" oninput="calcularEscala()" class="mod-input" style="max-width:180px;font-size:1.4rem;font-weight:800">
+                        <input type="number" id="esc-repro" min="1" max="2000" step="1" value="200" inputmode="numeric" oninput="calcularEscala()" class="mod-input" style="max-width:180px;font-size:1.4rem;font-weight:800">
+                        <button type="button" onclick="usarReproductorasActuales()" class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-900">Usar mis pozas actuales</button>
                     </div>
                     <input type="range" id="esc-slider" min="50" max="2000" step="10" value="200" oninput="document.getElementById('esc-repro').value = this.value; calcularEscala()" class="w-full mt-3" aria-label="Deslizar cantidad de reproductoras">
                     <div class="flex flex-wrap gap-2 mt-2">
@@ -2902,6 +2903,29 @@
         let modoEscala = 'actual';
         const GRAMOS_ESCALA = 300;
 
+        function usarReproductorasActuales() {
+            let totalHembras = 0, mixtos = 0;
+            obtenerPozasUnicas().forEach(p => {
+                const etapa = String(p.etapa || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                if (/recria|engorde|cria/.test(etapa)) return;
+                const genero = String(p.genero || '').toLowerCase();
+                const stock = Math.max(0, Number(p.stockInicial) || 0);
+                if (genero === 'hembra' || genero === 'reproductora') totalHembras += stock;
+                else if (genero === 'mixto') mixtos += stock;
+            });
+            // Las pozas mixtas no distinguen sexo: se reparten con la proporción macho:hembra.
+            const ratio = Math.max(1, Number(document.getElementById('esc-ratio').value) || 6);
+            totalHembras += Math.round(mixtos * ratio / (ratio + 1));
+            if (totalHembras <= 0) { mostrarToast('No hay pozas de hembras reproductoras con stock registrado.', 'error'); return; }
+
+            const valorFinal = Math.min(2000, totalHembras);
+            modoEscala = 'proyeccion';
+            document.getElementById('esc-repro').value = valorFinal;
+            document.getElementById('esc-slider').value = Math.max(50, valorFinal);
+            calcularEscala();
+            mostrarToast(`${valorFinal} reproductoras leídas de tus pozas.`, 'success');
+        }
+
         function fijarModoEscala(modo) {
             modoEscala = modo;
             calcularEscala();
@@ -2940,8 +2964,8 @@
                 info.textContent = `Población real tomada de tus pozas activas: ${ent.format(adultos)} reproductores, ${ent.format(recria)} en recría, ${ent.format(lactantes)} crías. Total ${ent.format(total)} cuyes.`;
                 if (!total) { salida.replaceChildren(crear('p', 'Aún no hay animales registrados en tus pozas. Usa el Modo Proyección.', 'mod-hint')); return; }
             } else {
-                hembras = Math.min(2000, Math.max(50, Math.floor(num('esc-repro'))));
-                document.getElementById('esc-slider').value = hembras;
+                hembras = Math.min(2000, Math.max(1, Math.floor(num('esc-repro'))));
+                document.getElementById('esc-slider').value = Math.max(50, hembras);
                 if (Number(document.getElementById('esc-repro').value) !== hembras && document.activeElement !== document.getElementById('esc-repro')) document.getElementById('esc-repro').value = hembras;
                 machos = Math.ceil(hembras / Math.max(1, num('esc-ratio')));
                 const diasLact = Math.max(1, num('esc-dias-lact'));
@@ -4365,7 +4389,9 @@
             document.getElementById('kpi-crias').innerText = pob.crias;
 
 
-            let poblacionTotal = obtenerPoblacionGranja().total;
+            // Total = suma exacta de las mismas cifras que muestran las tarjetas.
+            const parteRecria = pob.recria + pob.reemplazo;
+            let poblacionTotal = pob.adultos + pob.crias + parteRecria;
 
             let totalVentas = calcularTotalVentas();
             let totalCuyesVendidos = db.ventas.reduce((acc, v) => acc + Number(v.cantidad || 0), 0);
@@ -4400,8 +4426,7 @@
 
             const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
             if (elKpiPoblacionSub) {
-                const p = obtenerPoblacionGranja();
-                elKpiPoblacionSub.innerText = `Adultos ${p.adultos} · Crías ${p.crias} · Recría ${p.recria} · Reemplazo ${p.reemplazo}`;
+                elKpiPoblacionSub.innerText = `Adultos ${pob.adultos} + Crías ${pob.crias} + Destetados/Recría ${pob.recria} + Reemplazos ${pob.reemplazo} = ${poblacionTotal}`;
             }
 
             const elKpiIngresos = document.getElementById('kpi-ingresos');
