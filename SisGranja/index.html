@@ -1109,6 +1109,8 @@
                             <label class="block text-xs font-bold text-stone-600 mb-1">Etapa Zootécnica</label>
                             <select id="cuy-etapa" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600">
                                 <option value="Reproductor">Reproductor (1M:6H)</option>
+                                <option value="Reemplazo">Reemplazo (hembras y machos)</option>
+                                <option value="Destetado">Destetados (machos y hembras)</option>
                                 <option value="Recría">Recría</option>
                                 <option value="Engorde">Engorde (Para Venta)</option>
                                 <option value="Cría">Cría Lactante</option>
@@ -1131,6 +1133,15 @@
                             <label class="block text-xs font-bold text-stone-600 mb-1">Cuyes en la poza (stock inicial)</label>
                             <input type="number" id="cuy-stock" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="0">
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Hembras en la poza (opcional)</label>
+                            <input type="number" id="cuy-hembras" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 6">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1">Machos en la poza (opcional)</label>
+                            <input type="number" id="cuy-machos" min="0" step="1" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-sm outline-none focus:border-emerald-600" placeholder="Ej. 1">
+                        </div>
+                        <p class="sm:col-span-4 text-xs text-stone-500">Si indicas hembras y machos, el stock inicial es su suma (ej. 6 + 1 = 7).</p>
                         <div class="sm:col-span-2 flex items-end">
                             <label class="flex items-center gap-2 text-sm font-bold text-stone-700"><input type="checkbox" id="cuy-reemplazo" class="h-5 w-5"> Poza de reemplazo (reproductores de reemplazo)</label>
                         </div>
@@ -1144,7 +1155,7 @@
                     <div class="flex items-center justify-between">
                         <h4 class="font-bold text-stone-800 text-base">Inventario Activo</h4>
                         <div class="flex flex-wrap gap-2">
-                            <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
+                            <select id="filter-etapa" onchange="filtrarTabla('cuyes')" class="px-3 py-2 border rounded-xl text-sm"><option value="">Todas las etapas</option><option>Reproductor</option><option>Reemplazo</option><option>Destetado</option><option>Recría</option><option>Engorde</option><option>Cría</option><option>Cuarentena</option></select>
                             <input type="text" id="search-cuyes" onkeyup="filtrarTabla('cuyes')" placeholder="Buscar en pozas..." class="px-3 py-1.5 border rounded-xl text-xs outline-none focus:border-emerald-600 w-64">
                         </div>
                     </div>
@@ -2700,7 +2711,7 @@
             const base = Math.max(0, Number(poza.stockInicial ?? poza.cantidad) || 0);
             const c = { adultos: 0, recria: 0, crias: 0, reemplazo: 0 };
             if (poza.reemplazo) c.reemplazo = base;
-            else if (etapa.includes('recria') || etapa.includes('engorde')) c.recria = base;
+            else if (etapa.includes('recria') || etapa.includes('engorde') || etapa.includes('destetado')) c.recria = base;
             else if (etapa.includes('cria') || etapa.includes('destetado') || etapa.includes('gazapo')) c.crias = base;
             else c.adultos = base;
 
@@ -2770,18 +2781,27 @@
             const c = obtenerConteosGranja(pozas);
             const campoRatio = document.getElementById('esc-ratio');
             const ratio = Math.max(1, Number(campoRatio && campoRatio.value) || 6);
-            let h = 0, m = 0, sinSexo = 0;
-            pozas.forEach(p => {
-                const a = obtenerConteosRacionPoza(p).adultos;
+            // Fracción de hembras de una poza: conteo explícito, luego género/sexo, luego proporción por defecto.
+            const fracHembras = (p, defecto) => {
+                const h = Number(p.hembrasIni) || 0, m = Number(p.machosIni) || 0;
+                if (h + m > 0) return h / (h + m);
                 const sexo = String(p.sexo || p.genero || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                if (/^(hembra|reproductora)/.test(sexo)) h += a;
-                else if (/^(macho|reproductor$)/.test(sexo)) m += a;
-                else sinSexo += a;
+                if (/^(hembra|reproductora)/.test(sexo)) return 1;
+                if (/^macho/.test(sexo)) return 0;
+                return defecto;
+            };
+            let hA = 0, mA = 0, hR = 0, mR = 0;
+            pozas.forEach(p => {
+                const k = obtenerConteosRacionPoza(p);
+                const fa = fracHembras(p, ratio / (ratio + 1)), fr = fracHembras(p, 0.5);
+                hA += k.adultos * fa; mA += k.adultos * (1 - fa);
+                hR += k.reemplazo * fr; mR += k.reemplazo * (1 - fr);
             });
-            h += sinSexo * ratio / (ratio + 1);
-            m += sinSexo / (ratio + 1);
-            const hembras = c.adultos > 0 ? Math.round(c.adultos * (h + m > 0 ? h / (h + m) : ratio / (ratio + 1))) : 0;
-            return { ...c, hembras, machos: c.adultos - hembras, total: c.adultos + c.recria + c.crias + c.reemplazo };
+            // Los totales por sexo se ajustan al total vivo (descontadas bajas y ventas sin poza).
+            const repartir = (total, h, m, defecto) => { const r = total > 0 ? Math.round(total * (h + m > 0 ? h / (h + m) : defecto)) : 0; return [r, total - r]; };
+            const [hembras, machos] = repartir(c.adultos, hA, mA, ratio / (ratio + 1));
+            const [reemplazoHembras, reemplazoMachos] = repartir(c.reemplazo, hR, mR, 0.5);
+            return { ...c, hembras, machos, reemplazoHembras, reemplazoMachos, total: c.adultos + c.recria + c.crias + c.reemplazo };
         }
 
         function renderDesgloseRacion(q) {
@@ -2851,7 +2871,7 @@
             campos.forEach(c => { c.readOnly = check.checked; });
             if (!check.checked) { info.textContent = ''; calcularRacion(); return; }
             try {
-                const totales = obtenerConteosGranja(obtenerPozasUnicas());
+                const totales = obtenerPoblacionGranja();
                 campos[0].value = totales.adultos;
                 campos[1].value = totales.recria + totales.reemplazo;
                 campos[2].value = totales.crias;
@@ -3440,15 +3460,25 @@
                 poza: document.getElementById('cuy-poza').value
             };
             const stockTexto = document.getElementById('cuy-stock').value.trim();
+            const hembrasIni = Math.max(0, parseInt(document.getElementById('cuy-hembras').value, 10) || 0);
+            const machosIni = Math.max(0, parseInt(document.getElementById('cuy-machos').value, 10) || 0);
+            const porSexo = hembrasIni + machosIni > 0;
             if (db.cuyes.some(item => claveUnicaPoza(item.codigo || item.id) === codigo)) {
                 mostrarToast(`La poza ${codigo} ya está registrada. Usa un código nuevo.`, 'error');
                 return;
             }
-            db.cuyes.push({ codigo, ...datos, stockInicial: Math.max(0, parseInt(stockTexto, 10) || 0), reemplazo: document.getElementById('cuy-reemplazo').checked });
+            db.cuyes.push({
+                codigo, ...datos,
+                stockInicial: porSexo ? hembrasIni + machosIni : Math.max(0, parseInt(stockTexto, 10) || 0),
+                ...(porSexo ? { hembrasIni, machosIni } : {}),
+                reemplazo: document.getElementById('cuy-reemplazo').checked || datos.etapa === 'Reemplazo'
+            });
             db.pozas = db.cuyes;
             document.getElementById('cuy-reemplazo').checked = false;
             document.getElementById('cuy-codigo').value = '';
             document.getElementById('cuy-stock').value = '';
+            document.getElementById('cuy-hembras').value = '';
+            document.getElementById('cuy-machos').value = '';
             guardarBD();
         }
 
@@ -4524,7 +4554,7 @@
             if (!cont) return;
             const pozas = obtenerPozasUnicas().sort((a, b) => claveUnicaPoza(a.codigo || a.id).localeCompare(claveUnicaPoza(b.codigo || b.id), 'es', { numeric: true }));
             const g = obtenerPoblacionGranja();
-            document.getElementById('pozas-vivo-resumen').textContent = `Granja: ${g.total.toLocaleString('es-PE')} cuyes vivos \u00b7 ${g.adultos} adultos \u00b7 ${g.crias} cr\u00edas \u00b7 ${g.recria} recr\u00eda/engorde \u00b7 ${g.reemplazo} reemplazo`;
+            document.getElementById('pozas-vivo-resumen').textContent = `Granja: ${g.total.toLocaleString('es-PE')} cuyes vivos \u00b7 ${g.adultos} adultos (${g.hembras} H + ${g.machos} M) \u00b7 ${g.crias} cr\u00edas \u00b7 ${g.recria} destetados/recr\u00eda/engorde \u00b7 ${g.reemplazo} reemplazo (${g.reemplazoHembras} H + ${g.reemplazoMachos} M)`;
             const crear = (tag, texto, clase) => { const n = document.createElement(tag); n.textContent = texto; if (clase) n.className = clase; return n; };
             const reemplazoDisponible = pozas.filter(p => p.reemplazo && obtenerStockActualPoza(p) > 0).map(p => `${claveUnicaPoza(p.codigo || p.id)} (${obtenerStockActualPoza(p)})`);
             const tarjetas = pozas.map(poza => {
@@ -4539,7 +4569,7 @@
                 caja.append(
                     crear('p', `${codigo}${poza.reemplazo ? ' \u00b7 Reemplazo' : ''}`, 'text-lg font-extrabold text-stone-900'),
                     crear('p', `${total} vivos`, 'text-3xl font-extrabold text-emerald-800'),
-                    crear('p', `Reproductores adultos: ${c.adultos}`, 'text-sm'),
+                    crear('p', `Reproductores adultos: ${c.adultos}${poza.hembrasIni !== undefined ? ` (${poza.hembrasIni} H + ${poza.machosIni} M al registrar)` : ''}`, 'text-sm'),
                     crear('p', `Cr\u00edas lactantes: ${c.crias}`, 'text-sm'),
                     crear('p', `Destetados / recr\u00eda: ${c.recria}`, 'text-sm'),
                     ...(c.reemplazo || poza.reemplazo ? [crear('p', `Reemplazo: ${c.reemplazo}`, 'text-sm font-bold')] : []),
