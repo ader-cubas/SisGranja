@@ -600,9 +600,8 @@
         .app-topbar .brand-badge i { color: #fff !important; font-size: 1.4rem; }
         .app-topbar .brand-name { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #059669; line-height: 1.1; }
         .app-topbar .brand-card { background: linear-gradient(180deg, #ffffff, #f0fdf4); border: 1px solid #d1fae5; border-radius: 14px; padding: 6px 14px 6px 8px; box-shadow: 0 2px 8px rgb(6 78 59 / 8%); min-width: 0; }
-        .btn-volver-menu { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; padding: .6rem 1rem; margin-bottom: 1rem; border: 0; border-radius: 12px; background: #065f46; color: #fff; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 12px rgba(6,95,70,.35); cursor: pointer; }
+        .btn-volver-menu { float: right; position: relative; z-index: 5; display: inline-flex; align-items: center; gap: .25rem; padding: .375rem .75rem; margin: 0 0 .5rem .5rem; border: 0; border-radius: 9999px; background: #065f46; color: #fff; font-weight: 700; font-size: .75rem; line-height: 1rem; box-shadow: 0 2px 6px rgba(6,95,70,.3); cursor: pointer; }
         .btn-volver-menu:active { background: #064e3b; }
-        @media (min-width: 768px) { .btn-volver-menu { width: auto; } }
 
         /* Módulos de granja: pesos, ración y reproducción */
         .mod-card { margin-bottom: 16px; padding: 18px; border: 1px solid #d1d9e0; border-radius: 16px; background: #fff; box-shadow: 0 1px 3px rgb(15 23 42 / 8%); }
@@ -705,7 +704,6 @@
             .view-section .flex.items-center.justify-between { flex-wrap: wrap; gap: 8px; }
             .view-section section, .view-section .surface { padding: 14px !important; }
             #toast-container { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
-            .btn-volver-menu { top: 0; }
         }
     </style>
     <style>
@@ -911,52 +909,52 @@
                     <div class="kpi-card kpi-accent-green">
                         <p class="text-xs font-bold text-stone-500 uppercase">Pozas Activas</p>
                         <h3 id="kpi-pozas" class="text-3xl font-extrabold text-stone-900 mt-1">—</h3>
-                        <p id="kpi-pozas-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Calculando…</p>
+                        <p id="kpi-pozas-sub" class="text-xs text-stone-500 mt-1">Calculando…</p>
                     </div>
                     <div class="kpi-card kpi-accent-teal">
                         <p class="text-xs font-bold text-stone-500 uppercase">Población Total</p>
                         <h3 id="kpi-poblacion" class="text-3xl font-extrabold text-emerald-700 mt-1">—</h3>
-                        <p id="kpi-poblacion-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Calculando…</p>
+                        <p id="kpi-poblacion-sub" class="text-xs text-stone-500 mt-1">Calculando…</p>
                     </div>
                     <div class="kpi-card kpi-accent-blue">
                         <p class="text-xs font-bold text-stone-500 uppercase">Ventas / Ingresos</p>
                         <h3 id="kpi-ingresos" class="text-3xl font-extrabold text-blue-700 mt-1">S/ 0.00</h3>
-                        <p id="kpi-ventas-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">0 cuyes comercializados</p>
+                        <p id="kpi-ventas-sub" class="text-xs text-stone-500 mt-1">0 cuyes comercializados</p>
                     </div>
                     <div class="kpi-card kpi-accent-rose">
                         <p class="text-xs font-bold text-stone-500 uppercase">Mortalidad / Bajas</p>
                         <h3 id="kpi-bajas" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
-                        <p id="kpi-bajas-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Tasa: 0.0%</p>
+                        <p id="kpi-bajas-sub" class="text-xs text-stone-500 mt-1">Tasa: 0.0%</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-green">
                         <p class="text-xs font-bold text-stone-500 uppercase">Destetados / Recría</p>
                         <h3 id="kpi-destetados" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p id="kpi-destetados-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Engorde y reemplazo vigentes</p>
+                        <p id="kpi-destetados-sub" class="text-xs text-stone-500 mt-1">Engorde y reemplazo vigentes</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-teal">
                         <p class="text-xs font-bold text-stone-500 uppercase">Reproductores</p>
                         <h3 id="kpi-reproductores" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p id="kpi-reproductores-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Adultos vivos en pozas</p>
+                        <p class="text-xs text-stone-500 mt-1">Adultos vivos en pozas</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-amber">
                         <p class="text-xs font-bold text-stone-500 uppercase">Crías lactantes</p>
                         <h3 id="kpi-crias" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Nacidas vivas sin destetar</p>
+                        <p class="text-xs text-stone-500 mt-1">Nacidas vivas sin destetar</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-rose">
                         <p class="text-xs font-bold text-stone-500 uppercase">Gastos Operativos</p>
                         <h3 id="kpi-gastos" class="text-3xl font-extrabold text-rose-600 mt-1">S/ 0.00</h3>
-                        <p id="kpi-gastos-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">0 registros de egresos</p>
+                        <p id="kpi-gastos-sub" class="text-xs text-stone-500 mt-1">0 registros de egresos</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-amber">
                         <p class="text-xs font-bold text-stone-500 uppercase">Cantidad Vendida</p>
                         <h3 id="kpi-engorde" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
-                        <p id="kpi-engorde-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Vendidos: Comercial 0 · Gazapos 0 · Reproductores 0 · Abono 0</p>
+                        <p id="kpi-engorde-sub" class="text-xs text-stone-500 mt-1">Vendidos: Comercial 0 · Gazapos 0 · Reproductores 0 · Abono 0</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-teal">
                         <p class="text-xs font-bold text-stone-500 uppercase">Utilidad Neta</p>
                         <h3 id="kpi-utilidad" class="text-3xl font-extrabold text-emerald-600 mt-1">S/ 0.00</h3>
-                        <p id="kpi-utilidad-sub" class="text-xs md:text-sm font-semibold text-stone-800 mt-1 leading-snug">Superávit / Ganancia neta acumulada</p>
+                        <p id="kpi-utilidad-sub" class="text-xs text-stone-500 mt-1">Superávit / Ganancia neta acumulada</p>
                     </div>
                 </div>
 
@@ -3424,7 +3422,7 @@
                 boton.type = 'button';
                 boton.className = 'btn-volver-menu';
                 boton.setAttribute('aria-label', 'Volver al Menú Principal');
-                boton.innerHTML = '<span aria-hidden="true">⬅️</span><span>Volver al Menú Principal</span>';
+                boton.innerHTML = '<span aria-hidden="true">⬅️</span><span>Menú</span>';
                 boton.addEventListener('click', () => switchView('dashboard'));
                 seccion.prepend(boton);
             });
@@ -4408,8 +4406,6 @@
             if (elDestetados) elDestetados.innerText = pob.recria + pob.reemplazo;
             if (elDestetadosSub) elDestetadosSub.innerText = `${pob.recria} engorde/venta · ${pob.reemplazo} reemplazo`;
             document.getElementById('kpi-reproductores').innerText = pob.adultos;
-            const elReproSub = document.getElementById('kpi-reproductores-sub');
-            if (elReproSub) elReproSub.innerText = `${pob.hembras} hembras · ${pob.machos} machos`;
             document.getElementById('kpi-crias').innerText = pob.crias;
 
 
@@ -4450,7 +4446,7 @@
 
             const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
             if (elKpiPoblacionSub) {
-                elKpiPoblacionSub.innerText = `Reproductores ${pob.adultos} (${pob.hembras} H + ${pob.machos} M) + Reemplazos ${pob.reemplazo} (${pob.reemplazoHembras} H + ${pob.reemplazoMachos} M) + Crías ${pob.crias} + Destetados/Recría ${pob.recria} = ${poblacionTotal}`;
+                elKpiPoblacionSub.innerText = `Adultos ${pob.adultos} + Crías ${pob.crias} + Destetados/Recría ${pob.recria} + Reemplazos ${pob.reemplazo} = ${poblacionTotal}`;
             }
 
             const elKpiIngresos = document.getElementById('kpi-ingresos');
