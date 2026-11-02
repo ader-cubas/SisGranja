@@ -936,7 +936,7 @@
                     <div class="kpi-card kpi-card-secondary kpi-accent-teal">
                         <p class="text-xs font-bold text-stone-500 uppercase">Reproductores</p>
                         <h3 id="kpi-reproductores" class="text-3xl font-extrabold text-stone-900 mt-1">0</h3>
-                        <p class="text-xs text-stone-500 mt-1">Adultos vivos en pozas</p>
+                        <p id="kpi-reproductores-sub" class="text-xs text-stone-500 mt-1">Adultos vivos en pozas</p>
                     </div>
                     <div class="kpi-card kpi-card-secondary kpi-accent-amber">
                         <p class="text-xs font-bold text-stone-500 uppercase">Crías lactantes</p>
@@ -4408,6 +4408,8 @@
             if (elDestetados) elDestetados.innerText = pob.recria + pob.reemplazo;
             if (elDestetadosSub) elDestetadosSub.innerText = `${pob.recria} engorde/venta · ${pob.reemplazo} reemplazo`;
             document.getElementById('kpi-reproductores').innerText = pob.adultos;
+            const elReproSub = document.getElementById('kpi-reproductores-sub');
+            if (elReproSub) elReproSub.innerText = `${pob.hembras} hembras · ${pob.machos} machos`;
             document.getElementById('kpi-crias').innerText = pob.crias;
 
 
@@ -4448,7 +4450,7 @@
 
             const elKpiPoblacionSub = document.getElementById('kpi-poblacion-sub');
             if (elKpiPoblacionSub) {
-                elKpiPoblacionSub.innerText = `Adultos ${pob.adultos} + Crías ${pob.crias} + Destetados/Recría ${pob.recria} + Reemplazos ${pob.reemplazo} = ${poblacionTotal}`;
+                elKpiPoblacionSub.innerText = `Reproductores ${pob.adultos} (${pob.hembras} H + ${pob.machos} M) + Reemplazos ${pob.reemplazo} (${pob.reemplazoHembras} H + ${pob.reemplazoMachos} M) + Crías ${pob.crias} + Destetados/Recría ${pob.recria} = ${poblacionTotal}`;
             }
 
             const elKpiIngresos = document.getElementById('kpi-ingresos');
