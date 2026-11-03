@@ -1797,10 +1797,10 @@
                         </label>
                     </div>
                     <div class="mt-4 rounded-lg border border-emerald-300 bg-white p-4 shadow-sm">
-                        <label class="mod-field">Proyección de reproductores (editable, ej. 500, 1000, 2000)
+                        <label class="mod-field">Proyección de población total (editable, ej. 100, 500, 1000)
                             <input type="number" id="racion-proyeccion" min="0" step="1" value="500" inputmode="numeric" list="racion-proyeccion-lista" oninput="calcularRacion()" class="mod-input">
                         </label>
-                        <datalist id="racion-proyeccion-lista"><option value="500"></option><option value="1000"></option><option value="2000"></option></datalist>
+                        <datalist id="racion-proyeccion-lista"><option value="100"></option><option value="500"></option><option value="1000"></option></datalist>
                         <p id="racion-proyeccion-resultado" class="mt-2 text-base font-semibold text-emerald-900 sm:text-lg" aria-live="polite"></p>
                     </div>
                 </div>
@@ -2645,7 +2645,10 @@
             const gRecria = num('racion-g-forraje'), cRecria = num('racion-c-recria');
             const gCrias = num('racion-g-forraje'), cCrias = num('racion-c-crias');
             const forraje = document.getElementById('racion-forraje').value;
-            const fA = adultos * gAdulto, fR = recria * gRecria, fC = crias * gCrias;
+            const poblacionTotal = adultos + recria + crias;
+            const gForraje = gAdulto;
+            const fA = adultos * gForraje, fR = recria * gForraje, fC = crias * gForraje;
+            const forrajeTotal = poblacionTotal * gForraje;
             const cA = adultos * cAdulto, cR = recria * cRecria, cC = crias * cCrias;
             const kg = gramos => (gramos / 1000).toFixed(2);
             const salida = document.getElementById('racion-resultado');
@@ -2658,7 +2661,8 @@
                 return caja;
             };
             salida.replaceChildren(
-                bloque('🌿 Total de forraje verde a cortar', `${kg(fA + fR + fC)} kg de ${forraje}`, [
+                bloque('🌿 Total de forraje verde a cortar', `${kg(forrajeTotal)} kg de ${forraje}`, [
+                    `Población total: ${poblacionTotal} animales × ${gForraje} g = ${kg(forrajeTotal)} kg`,
                     `Adultos: ${adultos} × ${gAdulto} g = ${kg(fA)} kg`,
                     `Recría / engorde: ${recria} × ${gRecria} g = ${kg(fR)} kg`,
                     `Destetados / crías: ${crias} × ${gCrias} g = ${kg(fC)} kg`
@@ -2671,7 +2675,10 @@
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
             const proyeccion = ent('racion-proyeccion');
-            document.getElementById('racion-proyeccion-resultado').textContent = `${proyeccion.toLocaleString('es-PE')} reproductores necesitarían ${kg(proyeccion * gAdulto)} kg de forraje verde al día (${((proyeccion * gAdulto) / 1000 * 30).toFixed(0)} kg al mes) y ${kg(proyeccion * cAdulto)} kg de concentrado al día.`;
+            // Concentrado proyectado: promedio por animal según la mezcla actual de categorías.
+            const concPorAnimal = poblacionTotal > 0 ? (cA + cR + cC) / poblacionTotal : cAdulto;
+            const forrajeProy = proyeccion * gForraje, concProy = proyeccion * concPorAnimal;
+            document.getElementById('racion-proyeccion-resultado').textContent = `${proyeccion.toLocaleString('es-PE')} animales necesitarían ${kg(forrajeProy)} kg de forraje verde al día (${(forrajeProy / 1000 * 30).toFixed(0)} kg al mes) y ${kg(concProy)} kg de concentrado al día (${kg(concProy * 30)} kg al mes).`;
             document.getElementById('racion-conc-adulto-total').textContent = `${adultos} adultos: ${kg(cA)} kg/día`;
             document.getElementById('racion-conc-crias-total').textContent = `${crias} crías: ${kg(cC)} kg/día`;
             document.getElementById('racion-conc-recria-total').textContent = `${recria} en recría: ${kg(cR)} kg/día`;
