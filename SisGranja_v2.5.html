@@ -1296,7 +1296,7 @@
                         <header>
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
-                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto: el Dr. Cuy IA la analiza automáticamente y entrega el protocolo completo. Requiere internet.</p>
+                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y toca la patología que coincide con lo que ves: el Dr. Cuy IA entrega el protocolo completo al instante, 100% local y sin internet.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1338,8 +1338,8 @@
                                     </select>
                                 </label>
                             </div>
-                            <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                <p class="text-sm font-bold text-amber-900">Respaldo sin análisis automático (sin conexión o falla del servicio): toca la zona afectada.</p>
+                            <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p class="text-sm font-bold text-amber-900">Compara la foto con estos signos y toca la patología: Hinchazón de abdomen, zonas sin pelo con escamas, encías o patas inflamadas, diarrea, puntos blancos en hígado, tos o jadeo, costras con rascado.</p>
                                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                     <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón (Timpanismo)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('tina')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Tiña</button>
@@ -1526,7 +1526,7 @@
                         <div id="necro-preview-wrap" class="hidden sm:col-span-2">
                             <img id="necro-preview" class="max-h-64 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain" alt="Vista previa del hallazgo">
                         </div>
-                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">Sube o toma la foto: el Dr. Cuy IA la analiza automáticamente (requiere internet).</p>
+                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">Sube o toma la foto y elige el hallazgo para ver la guía local (sin internet).</p>
                         <label class="text-sm font-bold text-stone-700 sm:col-span-2">Hallazgos y signos observados
                             <textarea id="necro-observaciones" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Describe signos, órgano, lesiones y fecha de observación"></textarea>
                         </label>
@@ -4059,33 +4059,7 @@
             comprimirFotoClinica(archivo).then(async foto => {
                 if (version !== necropsiaFotoVersion) return;
                 necropsiaFotoBase64 = foto;
-                if (!navigator.onLine) {
-                    estadoFoto.textContent = 'Sin conexión: se requiere internet para el análisis fotográfico. Elige la zona afectada.';
-                    document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
-                    return;
-                }
-                estadoFoto.textContent = 'Analizando con Dr. Cuy IA…';
-                try {
-                    const r = await consultarDrCuy(foto);
-                    if (version !== necropsiaFotoVersion) return;
-                    necropsiaResultadoActual = {
-                        diagnostico: r.enfermedad,
-                        sintomas: r.prevencion,
-                        bioseguridad: r.accion,
-                        tratamiento: `${r.farmaco_dosis}. ${r.dias}`
-                    };
-                    document.getElementById('necro-patologia').value = '';
-                    document.querySelectorAll('[data-necro-zona]').forEach(opcion => opcion.setAttribute('aria-pressed', 'false'));
-                    document.getElementById('necro-diagnostico').textContent = r.enfermedad;
-                    document.getElementById('necro-sintomas').textContent = r.prevencion;
-                    document.getElementById('necro-bioseguridad').textContent = r.accion;
-                    document.getElementById('necro-tratamiento').textContent = `${r.farmaco_dosis}. ${r.dias}`;
-                    document.getElementById('necro-guia').classList.remove('hidden');
-                    estadoFoto.textContent = 'Diagnóstico listo (Dr. Cuy IA).';
-                } catch (error) {
-                    if (version !== necropsiaFotoVersion) return;
-                    estadoFoto.textContent = 'No se pudo analizar la foto. Intenta de nuevo o elige la zona afectada.';
-                }
+                estadoFoto.textContent = 'Foto lista. Elige el hallazgo para ver la guía local.';
                 document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
             }).catch(error => {
                 console.error('Error al preparar foto de necropsia:', error);
@@ -4131,7 +4105,7 @@
                 necropsiaResultadoActual = null;
                 document.getElementById('necro-preview').removeAttribute('src');
                 document.getElementById('necro-preview-wrap').classList.add('hidden');
-                document.getElementById('necro-foto-estado').textContent = 'Sube o toma la foto: el Dr. Cuy IA la analiza automáticamente (requiere internet).';
+                document.getElementById('necro-foto-estado').textContent = 'Sube o toma la foto y elige el hallazgo para ver la guía local (sin internet).';
                 document.getElementById('necro-guia').classList.add('hidden');
                 document.getElementById('necro-save').disabled = true;
             } catch (error) {
@@ -4219,18 +4193,11 @@
         };
         const ZONAS_DR_CUY = { higado: PATOLOGIAS_DR_CUY.salmonelosis, intestino: PATOLOGIAS_DR_CUY.coccidiosis, piel: PATOLOGIAS_DR_CUY.sarna, pulmon: PATOLOGIAS_DR_CUY.neumonia, timpanismo: PATOLOGIAS_DR_CUY.timpanismo, tina: PATOLOGIAS_DR_CUY.tina, escorbuto: PATOLOGIAS_DR_CUY.escorbuto };
 
-        // Cruza el diagnóstico recibido con la base interna y devuelve el protocolo completo.
-        function normalizarDiagnosticoDrCuy(r) {
-            const texto = String(r.enfermedad || '').toLowerCase();
-            const patologia = Object.values(PATOLOGIAS_DR_CUY).find(p => p.claves.some(c => texto.includes(c)));
-            return patologia ? { enfermedad: patologia.enfermedad, farmaco_dosis: patologia.farmaco_dosis, dias: patologia.dias, accion: patologia.accion, prevencion: patologia.prevencion } : r;
-        }
-
         function mostrarZonaDrCuy(zona) {
             const guia = ZONAS_DR_CUY[zona];
             if (!guia) return;
             bajaAnalisisActual = {
-                categoria_clinica: `Respaldo offline: ${zona}`,
+                categoria_clinica: `Dr. Cuy IA (local): ${zona}`,
                 diagnostico_situacion: guia.enfermedad,
                 causa_principal: guia.enfermedad,
                 accion_inmediata: guia.accion,
@@ -4242,11 +4209,7 @@
             document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        function actualizarRedDrCuy() {
-            const sinRed = !navigator.onLine;
-            document.getElementById('baja-offline-zonas').classList.toggle('hidden', !sinRed);
-            if (sinRed && !document.getElementById('baja-preview-card').classList.contains('hidden')) estadoDrCuy('Sin conexión: el análisis automático requiere internet. Usa el respaldo por zona.');
-        }
+        function actualizarRedDrCuy() {}
         window.addEventListener('online', actualizarRedDrCuy);
         window.addEventListener('offline', actualizarRedDrCuy);
         document.addEventListener('DOMContentLoaded', actualizarRedDrCuy);
@@ -4272,24 +4235,15 @@
                 return;
             }
             previewCard.classList.remove('hidden');
-            estadoDrCuy('Optimizando foto…', true);
+            estadoDrCuy('Foto lista. Toca la patología que coincide para ver el protocolo.');
             const urlInmediata = URL.createObjectURL(archivo);
             preview.src = urlInmediata;
             preview.classList.remove('hidden');
             preview.onload = () => URL.revokeObjectURL(urlInmediata);
-            try {
-                const foto = await comprimirFotoClinica(archivo);
-                if (versionCaptura !== bajaFotoVersion) return;
-                fotoClinicaAnalizadaBase64 = foto;
-                if (!navigator.onLine) { actualizarRedDrCuy(); return; }
-                document.getElementById('baja-offline-zonas').classList.add('hidden');
-                estadoDrCuy('Analizando con Dr. Cuy IA…', true);
-                await analizarFotoBaja(foto, versionCaptura);
-            } catch (error) {
-                if (versionCaptura !== bajaFotoVersion) return;
-                estadoDrCuy('No se pudo analizar la foto. Usa "Limpiar foto" para reintentar o el respaldo por zona.');
-                document.getElementById('baja-offline-zonas').classList.remove('hidden');
-            }
+            document.getElementById('baja-offline-zonas').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            comprimirFotoClinica(archivo).then(foto => {
+                if (versionCaptura === bajaFotoVersion) fotoClinicaAnalizadaBase64 = foto;
+            }).catch(() => {});
         }
 
         function limpiarFotoBaja() {
@@ -4306,44 +4260,6 @@
             document.getElementById('baja-analysis-detail').textContent = '';
             estadoDrCuy('', false);
             actualizarRedDrCuy();
-        }
-
-        async function analizarFotoBaja(imagenBase64, versionCaptura) {
-            const r = await consultarDrCuy(imagenBase64);
-            if (versionCaptura !== bajaFotoVersion) return;
-            bajaAnalisisActual = {
-                categoria_clinica: 'Dr. Cuy IA',
-                diagnostico_situacion: r.enfermedad,
-                causa_principal: r.enfermedad,
-                accion_inmediata: r.accion,
-                prevencion_diaria: r.prevencion,
-                tratamiento_manejo: `${r.farmaco_dosis}. ${r.dias}`
-            };
-            mostrarDiagnosticoDrCuy(r);
-            estadoDrCuy('Diagnóstico listo');
-            document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        const PROMPT_SISTEMA_DR_CUY = 'Eres el Dr. Cuy IA, veterinario experto en cuyes. Detecta en la foto una de: timpanismo/meteorismo, salmonelosis, sarna, tiña, neumonía, deficiencia de vitamina C (escorbuto) o coccidiosis. Responde siempre en español, de forma estrictamente breve, concisa y directa, sin rodeos ni introducciones. Ante cualquier consulta de enfermedad, medicamento, dosis en mililitros o días de tratamiento, da: enfermedad, fármaco y dosis en ml, días, acción inmediata en poza (aislamiento y desinfección) y prevención (oreado del pasto 8-12 h, calidad de agua, balance de concentrado), en frases cortas.';
-
-        async function consultarDrCuy(imagenBase64) {
-            const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
-            const publicKey = window.SISGRANJA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AjU9EvouA694BZwL-4Eglg_iI0rKo9I';
-            const coincidencia = String(imagenBase64).match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
-            if (!coincidencia) throw new Error('Imagen no válida');
-            const respuesta = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', apikey: publicKey },
-                body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido', system_prompt: PROMPT_SISTEMA_DR_CUY }),
-                signal: AbortSignal.timeout(30000)
-            });
-            const payload = await respuesta.json().catch(() => ({}));
-            if (!respuesta.ok) throw new Error(payload.error || 'Servicio no disponible');
-            const r = payload.result || payload;
-            if (['enfermedad', 'farmaco_dosis', 'dias', 'accion', 'prevencion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
-                throw new Error('Respuesta incompleta');
-            }
-            return normalizarDiagnosticoDrCuy(r);
         }
 
         async function comprimirFotoClinica(archivo) {
