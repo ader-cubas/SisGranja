@@ -1934,7 +1934,7 @@
                             <label class="mod-field">Partos por hembra al año<input type="number" id="esc-partos" min="0" step="0.1" value="3.5" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Crías vivas por parto<input type="number" id="esc-crias-parto" min="0" step="0.1" value="2.5" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Mortalidad en lactancia (%)<input type="number" id="esc-mort" min="0" max="100" step="1" value="10" oninput="calcularEscala()" class="mod-input"></label>
-                            <label class="mod-field">Hembras por macho<input type="number" id="esc-ratio" min="1" step="1" value="6" oninput="calcularEscala()" class="mod-input"></label>
+                            <label class="mod-field">Relación de reproducción (macho : hembras)<select id="esc-ratio" onchange="calcularEscala()" class="mod-input"><option value="6" selected>1 macho por 6 hembras</option><option value="7">1 macho por 7 hembras</option><option value="8">1 macho por 8 hembras</option></select></label>
                             <label class="mod-field">Días de lactancia<input type="number" id="esc-dias-lact" min="1" step="1" value="21" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Días de vida hasta la venta<input type="number" id="esc-dias-venta" min="1" step="1" value="90" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Margen de seguridad (%)<input type="number" id="esc-margen" min="0" step="1" value="15" oninput="calcularEscala()" class="mod-input"></label>
