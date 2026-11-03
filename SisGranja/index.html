@@ -1860,12 +1860,7 @@
                     <p id="racion-consejo" class="guia-aviso"></p>
                     <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Desglose de ración por poza</h4>
                     <p class="mod-hint">Pozas activas con animales, sincronizadas con el inventario. Forraje en kg y concentrado en g por día.</p>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-base sm:text-lg">
-                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Poza</th><th class="p-2">Adultos</th><th class="p-2">Recría</th><th class="p-2">Crías</th><th class="p-2">Forraje verde (kg/día)</th><th class="p-2">Concentrado (g/día)</th></tr></thead>
-                            <tbody id="racion-desglose"></tbody>
-                        </table>
-                    </div>
+                    <div id="racion-desglose" class="flex flex-col gap-3"></div>
                 </section>
             </div>
 
@@ -2859,25 +2854,38 @@
                 if (d.a || d.r || d.c) ajuste = { codigo: 'Ajustes: ventas, bajas sin poza y reemplazo', ...d, forraje: d.a * q.gAdulto + d.r * q.gRecria + d.c * q.gCrias, conc: d.a * q.cAdulto + d.r * q.cRecria + d.c * q.cCrias };
             } catch (error) { errorInventario = true; }
             filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
-            const fila = (celdas, clase) => {
-                const tr = document.createElement('tr');
-                tr.className = clase || 'border-t border-stone-200';
-                celdas.forEach((texto, i) => { const td = document.createElement('td'); td.className = 'p-2' + (i === 0 ? ' font-bold' : ''); td.textContent = texto; tr.append(td); });
-                return tr;
+            const fmt = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
+            const tarjeta = (f, clase, titulo) => {
+                const art = document.createElement('article');
+                art.className = `rounded-lg border p-4 shadow-sm ${clase}`;
+                const h = document.createElement('h5');
+                h.className = 'text-lg font-extrabold';
+                h.textContent = titulo || f.codigo;
+                const lista = document.createElement('dl');
+                lista.className = 'mt-2 grid grid-cols-1 gap-1 text-base sm:text-lg';
+                [['Adultos', f.a], ['Recría / engorde', f.r], ['Destetados / crías', f.c], ['Forraje verde (kg/día)', fmt(f.forraje / 1000)], ['Concentrado (g/día)', fmt(f.conc)]].forEach(([k, v]) => {
+                    const fila = document.createElement('div');
+                    fila.className = 'flex justify-between gap-3 border-t border-stone-100 pt-1';
+                    const dt = document.createElement('dt'); dt.textContent = k;
+                    const dd = document.createElement('dd'); dd.className = 'font-bold'; dd.textContent = v;
+                    fila.append(dt, dd);
+                    lista.append(fila);
+                });
+                art.append(h, lista);
+                return art;
             };
             if (!filas.length) {
-                const tr = fila([errorInventario ? 'No se pudo leer el inventario de pozas.' : 'Sin pozas activas con animales registradas.']);
-                tr.firstChild.colSpan = 6;
-                cuerpo.replaceChildren(tr);
+                const p = document.createElement('p');
+                p.className = 'mod-hint';
+                p.textContent = errorInventario ? 'No se pudo leer el inventario de pozas.' : 'Sin pozas activas con animales registradas.';
+                cuerpo.replaceChildren(p);
                 return;
             }
-            const formatoGramos = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
-            const formatoKilos = gramos => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(gramos / 1000);
             const tot = [...filas, ...(ajuste ? [ajuste] : [])].reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
             cuerpo.replaceChildren(
-                ...filas.map(f => fila([f.codigo, f.a, f.r, f.c, formatoKilos(f.forraje), formatoGramos(f.conc)])),
-                ...(ajuste ? [fila([ajuste.codigo, ajuste.a, ajuste.r, ajuste.c, formatoKilos(ajuste.forraje), formatoGramos(ajuste.conc)], 'border-t border-stone-200 text-red-800')] : []),
-                fila(['TOTAL', tot.a, tot.r, tot.c, formatoKilos(tot.forraje), formatoGramos(tot.conc)], 'border-t-2 border-emerald-700 bg-emerald-50 font-extrabold')
+                tarjeta(tot, 'border-emerald-700 bg-emerald-50', 'TOTAL'),
+                ...filas.map(f => tarjeta(f, 'border-stone-300 bg-white')),
+                ...(ajuste ? [tarjeta(ajuste, 'border-red-300 bg-red-50 text-red-800')] : [])
             );
         }
 
