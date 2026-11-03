@@ -4223,13 +4223,13 @@
 
         // Dosis por kilo de peso vivo [fármaco, cantidad por kg, unidad, vía/pauta] y dosis fijas por animal.
         const DOSIS_DR_CUY = {
-            abortos: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
-            salmonelosis: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
-            coccidiosis: { calc: [['Toltrazuril 2.5%', 0.04, 'ml', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
-            sarna: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC con jeringa de insulina; repetir a los 14 días']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
-            ectoparasitos: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC con jeringa de insulina; repetir a los 14 días']], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
-            neumonia: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
-            tina: { calc: [['Griseofulvina', 25, 'mg', 'oral cada 24 h, solo en casos extensos']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
+            abortos: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección', 'Baytril 5% / Enroxil 5%']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
+            salmonelosis: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h', 'Baytril 5% / Enroxil 5%']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            coccidiosis: { calc: [['Toltrazuril 2.5%', 0.04, 'ml', 'oral', 'Baycox 2.5%']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            sarna: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC; repetir a los 14 días', 'Ivomec 1% / Noromectin 1%']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            ectoparasitos: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC; repetir a los 14 días', 'Ivomec 1% / Noromectin 1%']], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
+            neumonia: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h', 'Baytril 5% / Enroxil 5%']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            tina: { calc: [['Griseofulvina', 25, 'mg', 'oral cada 24 h, solo en casos extensos', 'griseofulvina veterinaria genérica']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
         };
         let zonaDrCuyActual = null;
 
@@ -4248,9 +4248,13 @@
             if (!d) return guia.farmaco_dosis;
             const kg = pesoDrCuyKg();
             const fmt = n => n < 0.1 ? n.toFixed(3) : n < 10 ? n.toFixed(2) : n.toFixed(1);
-            const partes = d.calc.map(([nombre, porKg, u, via]) => kg
-                ? `${nombre}: ${fmt(porKg * kg)} ${u} (${porKg} ${u}/kg × ${(kg * 1000).toFixed(0)} g) ${via}`
-                : `${nombre}: ${porKg} ${u} por kg de peso vivo, ${via}`);
+            const partes = d.calc.map(([nombre, porKg, u, via, marcas]) => {
+                const ref = ` Opciones comerciales (mismo principio activo): ${marcas}.`;
+                if (!kg) return `${nombre}: ${porKg} ${u} por kg de peso vivo, ${via}.${ref}`;
+                const dosis = porKg * kg;
+                const jeringa = u === 'ml' ? ` (≈ ${(dosis * 100).toFixed(1)} unidades en jeringa de insulina U-100)` : '';
+                return `${nombre}: INYECTAR ${fmt(dosis)} ${u}${jeringa}, ${via}. Cálculo ${porKg} ${u}/kg × ${kg} kg.${ref}`;
+            });
             return [...partes, ...d.fijo].join(' + ');
         }
 
