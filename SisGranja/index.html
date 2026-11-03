@@ -1343,9 +1343,13 @@
                                 <label for="baja-peso-dr" class="text-sm font-bold text-stone-800">Peso del cuy (para calcular dosis):</label>
                                 <input type="number" id="baja-peso-dr" min="0" step="any" inputmode="decimal" oninput="recalcularZonaDrCuy()" style="width:6rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" placeholder="800">
                                 <select id="baja-peso-unidad" onchange="recalcularZonaDrCuy()" aria-label="Unidad de peso" style="width:4rem" class="rounded-lg border border-stone-300 px-1 py-2 text-base"><option value="g">g</option><option value="kg">kg</option></select>
-                                <label for="baja-conc-dr" class="text-sm font-bold text-stone-800">Frasco:</label>
-                                <select id="baja-conc-dr" onchange="recalcularZonaDrCuy()" aria-label="Concentración del frasco en porcentaje" style="width:7rem" class="rounded-lg border border-stone-300 px-1 py-2 text-base" disabled><option>% etiqueta</option></select>
-                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg. Elige la patología y la concentración que dice tu frasco.</span>
+                                <div class="flex w-full flex-wrap items-center gap-2">
+                                    <label for="baja-droga-dr" class="text-sm font-bold text-stone-800">Fármaco:</label>
+                                    <select id="baja-droga-dr" onchange="recalcularZonaDrCuy()" aria-label="Fármaco" style="min-width:10rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" disabled><option>Elige patología</option></select>
+                                    <label for="baja-conc-dr" class="text-sm font-bold text-stone-800">Concentración:</label>
+                                    <select id="baja-conc-dr" onchange="recalcularZonaDrCuy()" aria-label="Concentración del frasco en porcentaje" style="min-width:6rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" disabled><option>—</option></select>
+                                </div>
+                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg. Elige el fármaco y la concentración (%) que dice tu frasco.</span>
                             </div>
                             <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                 <p class="text-sm font-bold text-amber-900">Botones rápidos (sin internet): toca la patología para ver el protocolo clínico completo.</p>
@@ -4266,41 +4270,58 @@
             return kg;
         }
 
-        // Rellena el selector con las concentraciones del fármaco de la patología elegida.
+        const DROGAS_SELECCIONABLES = ['ivermectina', 'enrofloxacina', 'toltrazuril'];
+        let drogaConcPoblada = null;
+
+        function poblarConcentracionDrCuy(clave) {
+            const dr = DROGAS_DR_CUY[clave];
+            document.getElementById('baja-conc-dr').replaceChildren(...dr.conc.map(c => new Option(`${c}%`, String(c), false, c === dr.std)));
+            drogaConcPoblada = clave;
+        }
+
+        // Rellena los selectores de fármaco y concentración según la patología elegida.
         function prepararConcentracionDrCuy(zona) {
-            const sel = document.getElementById('baja-conc-dr');
+            const selD = document.getElementById('baja-droga-dr');
+            const selC = document.getElementById('baja-conc-dr');
             const d = DOSIS_DR_CUY[zona];
-            const droga = d && DROGAS_DR_CUY[d.calc[0][0]];
-            if (!droga || !droga.conc) {
-                sel.replaceChildren(new Option('% etiqueta', ''));
-                sel.disabled = true; zonaConcPoblada = zona;
+            const protocolo = d && d.calc[0][0];
+            if (!protocolo || !DROGAS_DR_CUY[protocolo].conc) {
+                selD.replaceChildren(new Option('Sin fármaco por peso', ''));
+                selC.replaceChildren(new Option('—', ''));
+                selD.disabled = selC.disabled = true;
+                zonaConcPoblada = zona; drogaConcPoblada = null;
                 return null;
             }
             if (zonaConcPoblada !== zona) {
-                sel.replaceChildren(...droga.conc.map(c => new Option(`${droga.nombre} ${c}%`, String(c), false, c === droga.std)));
-                zonaConcPoblada = zona;
+                selD.replaceChildren(...DROGAS_SELECCIONABLES.map(k => new Option(DROGAS_DR_CUY[k].nombre, k, false, k === protocolo)));
+                zonaConcPoblada = zona; drogaConcPoblada = null;
             }
-            sel.disabled = false;
-            return Number(sel.value) || droga.std;
+            selD.disabled = selC.disabled = false;
+            if (drogaConcPoblada !== selD.value) poblarConcentracionDrCuy(selD.value);
+            return { clave: selD.value, conc: Number(selC.value) || DROGAS_DR_CUY[selD.value].std, protocolo };
         }
 
         function textoDosisDrCuy(zona, guia) {
             const d = DOSIS_DR_CUY[zona];
             if (!d) return guia.farmaco_dosis;
             const kg = pesoDrCuyKg();
-            const concSel = prepararConcentracionDrCuy(zona);
-            const partes = d.calc.map(([clave, via]) => {
+            const sel = prepararConcentracionDrCuy(zona);
+            const partes = d.calc.map(([claveBase, via], i) => {
+                const clave = i === 0 && sel ? sel.clave : claveBase;
                 const dr = DROGAS_DR_CUY[clave];
-                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.`;
-                const oral = via.startsWith('oral');
-                if (!dr.conc) return kg ? `${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via}.${ref}` : `${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via}.${ref}`;
-                const mgMl = concSel * 10;
+                const cambiado = clave !== claveBase;
+                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.` + (cambiado ? ` ATENCIÓN: elegiste un fármaco distinto al del protocolo (${DROGAS_DR_CUY[claveBase].nombre}); confirma con el veterinario.` : '');
+                const via2 = cambiado ? (clave === 'toltrazuril' ? 'oral' : 'SC') : via;
+                const oral = via2.startsWith('oral');
+                if (!dr.conc) return kg ? `${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via2}.${ref}` : `${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via2}.${ref}`;
+                const conc = sel ? sel.conc : dr.std;
+                const mgMl = conc * 10;
                 const mlKg = dr.mgkg / mgMl;
-                const etiqueta = `${dr.nombre} ${concSel}%`;
-                if (!kg) return `${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
+                const etiqueta = `${dr.nombre} ${conc}%`;
+                if (!kg) return `${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via2}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
                 const ml = mlKg * kg;
                 const jeringa = ml < 1 ? ` = ${(ml * 100).toFixed(1)} unidades en JERINGA DE INSULINA U-100 (uso obligatorio${oral ? ', sin aguja' : ''})` : '';
-                return `${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
+                return `${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via2}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
             });
             return [...partes, ...d.fijo].join(' + ');
         }
@@ -4368,6 +4389,7 @@
         function limpiarFotoBaja() {
             zonaDrCuyActual = null;
             zonaConcPoblada = null;
+            drogaConcPoblada = null;
             prepararConcentracionDrCuy(null);
             bajaFotoVersion++;
             fotoClinicaAnalizadaBase64 = '';
