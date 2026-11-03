@@ -1017,6 +1017,7 @@
                             <button type="submit" class="self-end bg-emerald-700 text-white font-bold px-4 rounded-xl">Registrar empadre</button>
                         </form>
                         <div id="proyecciones-lista" class="mt-4 space-y-2" aria-live="polite"></div>
+                        <div id="alertas-sanidad-lista" class="mt-4 space-y-2" aria-live="polite"></div>
                     </div>
                 </section>
 
@@ -1355,6 +1356,7 @@
                                 <p class="text-sm font-bold text-amber-900">Botones rápidos (sin internet): toca la patología para ver el protocolo clínico completo.</p>
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                     <button type="button" onclick="mostrarZonaDrCuy('destete')" class="rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-3 text-sm font-bold text-emerald-900">Destete y Prevención (Ivermectina + Vit. C)</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('reproductoras')" class="rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-3 text-sm font-bold text-emerald-900">Reproductoras (cada 3 meses)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón / Timpanismo</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('abortos')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Abortos en Reproductoras</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('salmonelosis')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Salmonelosis (Hígado / Diarrea)</button>
@@ -4239,6 +4241,7 @@
             escorbuto: { claves: ['escorbuto', 'vitamina c', 'deficiencia de vit', 'avitamin', 'encias', 'encías', 'cojera', 'articulaciones'], enfermedad: 'Deficiencia de Vitamina C (Escorbuto)', farmaco_dosis: '[💧 VÍA ORAL] Vitamina C (ácido ascórbico) 50-100 mg/animal/día en el agua o directa, o [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml/animal', dias: '7-10 días, luego mantener con forraje verde fresco', accion: 'Separar a los afectados, evitar manipulación brusca (dolor articular), dar forraje verde fresco y desinfectar paredes y pisos de la poza', prevencion: 'Forraje verde fresco diario, vitamina C en el agua (usar el mismo día, se degrada), concentrado balanceado con vitamina C estabilizada, control de calidad del agua' },
             coccidiosis: { claves: ['coccidi', 'diarrea', 'intestin', 'enteritis'], enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5% 0.04 ml/kg oral + Complejo B 0.2 ml/animal SC y suero oral', dias: '2 días, repetir a los 7 días', accion: 'Aislamiento estricto, retirar heces, desinfectar paredes, pisos y comederos', prevencion: 'Cama seca, baja densidad, bebederos limpios, cuarentena de nuevos animales y balance de concentrado' }
             ,
+            reproductoras: { enfermedad: 'Control sanitario de reproductoras (cada 3 meses o antes del empadre)', farmaco_dosis: '[💉 INYECTABLE - Subcutáneo (SC)] Ivermectina 1% 0.03 ml/kg + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: 'Cada 3 meses o 7-10 días antes del empadre', accion: 'Aplicar con la poza limpia y desinfectada; no aplicar a hembras en el último tercio de gestación sin indicación del veterinario', prevencion: 'Cama seca, forraje oreado 8-12 horas, agua limpia y concentrado balanceado con vitamina C' },
             destete: { enfermedad: 'Protocolo de destete y prevención (desparasitación integral)', farmaco_dosis: '[💉 INYECTABLE - Subcutáneo (SC)] Ivermectina 1% 0.03 ml/kg + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: 'Ivermectina: 1 dosis al destete y repetir a los 7-10 días (solo para romper el ciclo de parásitos externos); Complejo B y Vitamina C inyectables: únicamente los primeros 3-5 días', accion: 'Pasar los destetados a una poza limpia y desinfectada (cal o Banodine), separar por sexo y tamaño, transición gradual de la dieta y vigilar a diario las primeras 2 semanas', prevencion: 'Forraje oreado 8-12 horas, agua limpia, concentrado balanceado con vitamina C, baja densidad por poza, cuarentena de animales nuevos y repetir la dosis a los 7-10 días' },
             abortos: { enfermedad: 'Abortos en reproductoras', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC cada 24 h solo si hay fiebre, secreción o sospecha de infección + Vitamina C 0.2 ml SC + Complejo B 0.2 ml SC', dias: '5 días', accion: 'Aislar a la hembra, retirar feto y placenta con guantes, enterrarlos con cal viva, revisar forraje y agua, y desinfectar paredes y pisos de la poza', prevencion: 'Forraje oreado 8-12 horas y sin moho; agua limpia; evitar golpes, hacinamiento y estrés; vitamina C en la dieta y concentrado balanceado; cuarentena de animales nuevos' },
             ectoparasitos: { enfermedad: 'Pulgas y piojos (ectoparásitos)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina) + piretrina o azufre en polvo sobre pelaje y cama', dias: '1 dosis, repetir a los 7-10 días (2 aplicaciones)', accion: 'Aislar afectados, cambiar toda la cama (quemar o enterrar con cal), desinfectar paredes y pisos y tratar a los contactos', prevencion: 'Cama seca y limpia, cal en pisos y esquinas, control de roedores y aves, cuarentena de animales nuevos, forraje oreado 8-12 horas y concentrado balanceado' },
@@ -4251,10 +4254,13 @@
             enrofloxacina: { nombre: 'Enrofloxacina', mgkg: 5, conc: [5, 10], std: 5, marcas: 'Enromic 5% / Baytril 5%' },
             ivermectina: { nombre: 'Ivermectina', mgkg: 0.3, conc: [0.5, 1], std: 1, marcas: 'Ivomec 1% / Noromectin 1%' },
             toltrazuril: { nombre: 'Toltrazuril', mgkg: 1, conc: [2.5, 5], std: 2.5, marcas: 'Baycox 2.5% / toltrazuril peruano' },
+            simeticona: { nombre: 'Simeticona gotas', mlKg: 0.4, rango: '0.3-0.5 ml por cuy', conc: null, std: 0, marcas: 'simeticona gotas (farmacia o veterinaria)' },
             griseofulvina: { nombre: 'Griseofulvina', mgkg: 25, conc: null, std: 0, marcas: 'griseofulvina veterinaria genérica' }
         };
         const IVERM_DOSIS2 = 'SC; SEGUNDA DOSIS OBLIGATORIA a los 7-10 días';
         const DOSIS_DR_CUY = {
+            timpanismo: { calc: [['simeticona', 'oral, cada 6-8 h']], fijo: ['masaje abdominal suave; retirar el forraje verde y dar heno'] },
+            reproductoras: { calc: [['ivermectina', 'SC en el pliegue del pescuezo']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC'] },
             destete: { calc: [['ivermectina', 'SC al destete (acción dual: parásitos internos y externos); REPETIR a los 7-10 días solo para romper el ciclo de los parásitos externos (piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC, SOLO los primeros 3-5 días', 'Vitamina C 0.2 ml SC, SOLO los primeros 3-5 días (contra el estrés del cambio de dieta)'] },
             abortos: { calc: [['enrofloxacina', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
             salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
@@ -4289,35 +4295,44 @@
             if (/tópic|polvo|pomada/i.test(t)) return VIA_TOPICA;
             return '';
         }
-        const DROGAS_SELECCIONABLES = ['ivermectina', 'enrofloxacina', 'toltrazuril'];
         let drogaConcPoblada = null;
 
-        function poblarConcentracionDrCuy(clave) {
-            const dr = DROGAS_DR_CUY[clave];
-            document.getElementById('baja-conc-dr').replaceChildren(...dr.conc.map(c => new Option(`${c}%`, String(c), false, c === dr.std)));
-            drogaConcPoblada = clave;
-        }
-
-        // Rellena los selectores de fármaco y concentración según la patología elegida.
+        // Autoselecciona el fármaco propio de la patología (sin cruces) y rellena sus concentraciones.
         function prepararConcentracionDrCuy(zona) {
             const selD = document.getElementById('baja-droga-dr');
             const selC = document.getElementById('baja-conc-dr');
             const d = DOSIS_DR_CUY[zona];
-            const protocolo = d && d.calc[0][0];
-            if (!protocolo || !DROGAS_DR_CUY[protocolo].conc) {
+            const clave = d && d.calc[0][0];
+            const dr = clave && DROGAS_DR_CUY[clave];
+            if (!dr) {
                 selD.replaceChildren(new Option('Sin fármaco por peso', ''));
                 selC.replaceChildren(new Option('—', ''));
                 selD.disabled = selC.disabled = true;
                 zonaConcPoblada = zona; drogaConcPoblada = null;
                 return null;
             }
-            if (zonaConcPoblada !== zona) {
-                selD.replaceChildren(...DROGAS_SELECCIONABLES.map(k => new Option(DROGAS_DR_CUY[k].nombre, k, false, k === protocolo)));
-                zonaConcPoblada = zona; drogaConcPoblada = null;
+            selD.replaceChildren(new Option(dr.nombre, clave, true, true));
+            selD.disabled = true;
+            if (!dr.conc) {
+                selC.replaceChildren(new Option('—', ''));
+                selC.disabled = true; zonaConcPoblada = zona; drogaConcPoblada = clave;
+                return { clave, conc: 0 };
             }
-            selD.disabled = selC.disabled = false;
-            if (drogaConcPoblada !== selD.value) poblarConcentracionDrCuy(selD.value);
-            return { clave: selD.value, conc: Number(selC.value) || DROGAS_DR_CUY[selD.value].std, protocolo };
+            if (zonaConcPoblada !== zona || drogaConcPoblada !== clave) {
+                selC.replaceChildren(...dr.conc.map(c => new Option(`${c}%`, String(c), false, c === dr.std)));
+                zonaConcPoblada = zona; drogaConcPoblada = clave;
+            }
+            selC.disabled = false;
+            return { clave, conc: Number(selC.value) || dr.std };
+        }
+
+        // Dosis en ml del fármaco principal del protocolo según peso y concentración elegidos.
+        function dosisPrincipalDrCuy(zona) {
+            const kg = pesoDrCuyKg();
+            const sel = prepararConcentracionDrCuy(zona);
+            const dr = DROGAS_DR_CUY[sel.clave];
+            const mlKg = dr.mlKg || dr.mgkg / (sel.conc * 10);
+            return { dr, kg, conc: sel.conc, mlKg, ml: kg ? mlKg * kg : 0 };
         }
 
         function textoDosisDrCuy(zona, guia) {
@@ -4325,25 +4340,95 @@
             if (!d) return guia.farmaco_dosis;
             const kg = pesoDrCuyKg();
             const sel = prepararConcentracionDrCuy(zona);
-            const partes = d.calc.map(([claveBase, via], i) => {
-                const clave = i === 0 && sel ? sel.clave : claveBase;
+            const partes = d.calc.map(([clave, via]) => {
                 const dr = DROGAS_DR_CUY[clave];
-                const cambiado = clave !== claveBase;
-                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.` + (cambiado ? ` ATENCIÓN: elegiste un fármaco distinto al del protocolo (${DROGAS_DR_CUY[claveBase].nombre}); confirma con el veterinario.` : '');
-                const via2 = cambiado ? (clave === 'toltrazuril' ? 'oral' : 'SC') : via;
-                const oral = via2.startsWith('oral');
-                const tag = clave === 'toltrazuril' || clave === 'griseofulvina' || oral ? VIA_ORAL : tagVia(via2);
-                if (!dr.conc) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via2}.${ref}` : `${tag} ${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via2}.${ref}`;
-                const conc = sel ? sel.conc : dr.std;
-                const mgMl = conc * 10;
+                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.`;
+                const oral = via.startsWith('oral');
+                const tag = clave === 'griseofulvina' || oral ? VIA_ORAL : tagVia(via);
+                if (dr.mlKg) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mlKg * kg).toFixed(2)} ml (${dr.rango}), ${via}.${ref}` : `${tag} ${dr.nombre}: ${dr.rango}, ${via}.${ref}`;
+                if (!dr.conc) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via}.${ref}` : `${tag} ${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via}.${ref}`;
+                const mgMl = sel.conc * 10;
                 const mlKg = dr.mgkg / mgMl;
-                const etiqueta = `${dr.nombre} ${conc}%`;
-                if (!kg) return `${tag} ${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via2}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
+                const etiqueta = `${dr.nombre} ${sel.conc}%`;
+                if (!kg) return `${tag} ${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
                 const ml = mlKg * kg;
                 const jeringa = ml < 1 ? ` = ${(ml * 100).toFixed(1)} unidades en JERINGA DE INSULINA U-100 (uso obligatorio${oral ? ', sin aguja' : ''})` : '';
-                return `${tag} ${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via2}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
+                return `${tag} ${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
             });
             return [...partes, ...d.fijo.map(f => `${tagVia(f)} ${f}`.trim())].join(' + ');
+        }
+
+        // Tarjetas directas: destete y reproductoras muestran solo las inyecciones con su dosis y la alerta de repetición.
+        function mostrarTarjetaDrCuy(zona) {
+            const { dr, kg, conc, mlKg, ml } = dosisPrincipalDrCuy(zona);
+            const destete = zona === 'destete';
+            const el = (tag, clase, texto) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
+            const mlTxt = !kg ? `${mlKg.toFixed(3)} ml por kg (escribe el peso para el cálculo exacto)` : `${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml (${(ml * 100).toFixed(1)} unidades en jeringa de insulina U-100)`;
+            const fila = (nombre, dosis) => {
+                const p = el('p', 'rounded-lg bg-white px-3 py-2 border border-emerald-200');
+                p.append(el('strong', '', `💉 ${nombre}: `), `${dosis} | Vía: `, el('strong', 'rounded bg-emerald-700 px-1 text-white', 'Subcutánea (pliegue del pescuezo)'));
+                return p;
+            };
+            const hoy = fechaHoy();
+            const alerta = el('div', 'rounded-lg border-2 border-amber-400 bg-amber-50 p-3 font-semibold text-amber-900');
+            const boton = el('button', 'mt-2 min-h-11 rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white', '⏰ Programar alerta en el panel');
+            boton.type = 'button';
+            if (destete) {
+                alerta.textContent = `⏰ SEGUNDA DOSIS: de 7 a 10 días después (entre ${sumarDias(hoy, 7)} y ${sumarDias(hoy, 10)}) aplica SOLO Ivermectina, recalculada al nuevo peso del cuy. Sin vitaminas.`;
+                boton.addEventListener('click', () => programarAlertaSanidad('destete'));
+            } else {
+                alerta.textContent = `⏰ Repite cada 3 meses o 7-10 días antes del empadre. Próximo control: ${sumarDias(hoy, 90)}.`;
+                boton.addEventListener('click', () => programarAlertaSanidad('repro'));
+            }
+            alerta.append(document.createElement('br'), boton);
+            document.getElementById('baja-result-lineas').replaceChildren(
+                el('p', 'text-lg font-extrabold text-emerald-900', destete ? 'Destete: día de la primera aplicación (3 inyecciones)' : 'Reproductoras adultas: ivermectina y refuerzo vitamínico'),
+                fila(`${dr.nombre} ${conc}%`, mlTxt),
+                fila('Complejo B', '0.2 ml'),
+                fila('Vitamina C', '0.2 ml'),
+                alerta
+            );
+            document.getElementById('baja-results').classList.remove('hidden');
+        }
+
+        const ALERTAS_SANIDAD_CLAVE = 'sisgranja_alertas_sanidad';
+        function leerAlertasSanidad() {
+            try { const a = JSON.parse(leerAlmacenamiento(ALERTAS_SANIDAD_CLAVE) || '[]'); return Array.isArray(a) ? a : []; } catch (error) { return []; }
+        }
+
+        function programarAlertaSanidad(tipo) {
+            const hoy = fechaHoy();
+            const alertas = leerAlertasSanidad();
+            alertas.push(tipo === 'destete'
+                ? { id: Date.now(), desde: sumarDias(hoy, 7), hasta: sumarDias(hoy, 10), texto: 'Segunda dosis de Ivermectina (SOLO ivermectina, sin vitaminas; recalcular al nuevo peso)' }
+                : { id: Date.now(), desde: sumarDias(hoy, 90), hasta: sumarDias(hoy, 90), texto: 'Control de reproductoras: Ivermectina + Complejo B + Vitamina C' });
+            escribirAlmacenamiento(ALERTAS_SANIDAD_CLAVE, JSON.stringify(alertas.slice(-50)));
+            renderAlertasSanidad();
+            mostrarToast('Alerta programada en el panel principal');
+        }
+
+        function completarAlertaSanidad(id) {
+            escribirAlmacenamiento(ALERTAS_SANIDAD_CLAVE, JSON.stringify(leerAlertasSanidad().filter(a => a.id !== id)));
+            renderAlertasSanidad();
+        }
+
+        function renderAlertasSanidad() {
+            const cont = document.getElementById('alertas-sanidad-lista');
+            if (!cont) return;
+            const alertas = leerAlertasSanidad().sort((a, b) => a.desde.localeCompare(b.desde));
+            cont.replaceChildren(...alertas.map(a => {
+                const faltan = diasHasta(a.desde);
+                const vencida = diasHasta(a.hasta) < 0;
+                const p = document.createElement('p');
+                p.className = `flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${vencida ? 'bg-rose-50 text-rose-800' : faltan <= 0 ? 'bg-amber-100 text-amber-900' : 'bg-stone-50 text-stone-700'}`;
+                const estado = vencida ? 'VENCIDA' : faltan <= 0 ? 'HOY ES EL MOMENTO' : `faltan ${faltan} días`;
+                const hecho = document.createElement('button');
+                hecho.type = 'button'; hecho.textContent = 'Hecho';
+                hecho.className = 'rounded-lg border border-stone-400 bg-white px-3 py-1 text-xs font-bold text-stone-800';
+                hecho.addEventListener('click', () => completarAlertaSanidad(a.id));
+                p.append(`💉 ${a.texto} · ${a.desde === a.hasta ? a.desde : `${a.desde} a ${a.hasta}`} · ${estado} `, hecho);
+                return p;
+            }));
         }
 
         function recalcularZonaDrCuy() {
@@ -4364,7 +4449,7 @@
                 prevencion_diaria: guia.prevencion,
                 tratamiento_manejo: `${guia.farmaco_dosis}. ${guia.dias}`
             };
-            mostrarDiagnosticoDrCuy(guia);
+            if (zona === 'destete' || zona === 'reproductoras') mostrarTarjetaDrCuy(zona); else mostrarDiagnosticoDrCuy(guia);
             estadoDrCuy('Diagnóstico listo');
             document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -4595,6 +4680,7 @@
         }
 
         function actualizarProyecciones() {
+            renderAlertasSanidad();
             const contenedor = document.getElementById('proyecciones-lista');
             const eventos = [];
             let partosEstimados = 0;
