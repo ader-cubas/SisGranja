@@ -4259,7 +4259,7 @@
         const IVERM_DOSIS2 = 'SC; SEGUNDA DOSIS OBLIGATORIA a los 7-10 días';
         const DOSIS_DR_CUY = {
             timpanismo: { calc: [['simeticona', 'oral, cada 6-8 h']], fijo: ['masaje abdominal suave; retirar el forraje verde y dar heno'] },
-            reproductoras: { calc: [['ivermectina', 'SC en el pliegue del pescuezo']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC'] },
+            reproductoras: { calc: [['ivermectina', 'SC en el pliegue del cuello']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC'] },
             destete: { calc: [['ivermectina', 'SC al destete (acción dual: parásitos internos y externos); REPETIR a los 7-10 días solo para romper el ciclo de los parásitos externos (piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC, SOLO los primeros 3-5 días', 'Vitamina C 0.2 ml SC, SOLO los primeros 3-5 días (contra el estrés del cambio de dieta)'] },
             abortos: { calc: [['enrofloxacina', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
             salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
@@ -4365,7 +4365,7 @@
             const mlTxt = !kg ? `${mlKg.toFixed(3)} ml por kg (escribe el peso para el cálculo exacto)` : `${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml (${(ml * 100).toFixed(1)} unidades en jeringa de insulina U-100)`;
             const fila = (nombre, dosis) => {
                 const p = el('p', 'rounded-lg bg-white px-3 py-2 border border-emerald-200');
-                p.append(el('strong', '', `💉 ${nombre}: `), `${dosis} | Vía: `, el('strong', 'rounded bg-emerald-700 px-1 text-white', 'Subcutánea (pliegue del pescuezo)'));
+                p.append(el('strong', '', `💉 ${nombre}: `), `${dosis} | Vía: `, el('strong', 'rounded bg-emerald-700 px-1 text-white', 'Subcutánea (pliegue del cuello)'));
                 return p;
             };
             const hoy = fechaHoy();
@@ -4376,7 +4376,7 @@
                 alerta.textContent = `⏰ SEGUNDA DOSIS: de 7 a 10 días después (entre ${sumarDias(hoy, 7)} y ${sumarDias(hoy, 10)}) aplica SOLO Ivermectina, recalculada al nuevo peso del cuy. Sin vitaminas.`;
                 boton.addEventListener('click', () => programarAlertaSanidad('destete'));
             } else {
-                alerta.textContent = `⏰ Repite cada 3 meses o 7-10 días antes del empadre. Próximo control: ${sumarDias(hoy, 90)}.`;
+                alerta.textContent = `⏰ Repite cada 3 meses o 7-10 días antes del empadre. Próximo control: ${sumarDias(hoy, 90)}. ⚠️ No aplicar en el último tercio de gestación sin indicación del veterinario.`;
                 boton.addEventListener('click', () => programarAlertaSanidad('repro'));
             }
             alerta.append(document.createElement('br'), boton);
