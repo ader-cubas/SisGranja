@@ -4215,7 +4215,14 @@
                 const linea = document.createElement('p');
                 const etiqueta = document.createElement('strong');
                 etiqueta.textContent = `${titulo}: `;
-                linea.append(etiqueta, String(valor || '—'));
+                const nodos = String(valor || '—').split(/(\[[^\]]+\])/).filter(Boolean).map(t => {
+                    if (!/^\[.+\]$/.test(t)) return t;
+                    const via = document.createElement('strong');
+                    via.className = 'rounded bg-emerald-700 px-1 text-white';
+                    via.textContent = t;
+                    return via;
+                });
+                linea.append(etiqueta, ...nodos);
                 return linea;
             }));
             document.getElementById('baja-results').classList.remove('hidden');
@@ -4224,18 +4231,18 @@
 
         // Base clínica interna (referencial, cuy adulto ~1 kg): el protocolo se aplica al diagnóstico detectado; validar con veterinario.
         const PATOLOGIAS_DR_CUY = {
-            timpanismo: { claves: ['timpan', 'meteor', 'hinchaz', 'distensi', 'abdomen distend', 'gas'], enfermedad: 'Timpanismo / Meteorismo (hinchazón por forraje tierno o sin oreado)', farmaco_dosis: 'Simeticona gotas 0.3-0.5 ml oral cada 6-8 h + masaje abdominal suave; retirar forraje verde y dar heno', dias: '1-2 días (hasta que baje la distensión); si no mejora en 2-3 horas, llamar al veterinario', accion: 'Aislar al animal, retirar de inmediato el forraje fresco, mantenerlo en movimiento y desinfectar paredes y pisos de la poza', prevencion: 'Oreado obligatorio del pasto 8-12 horas antes de ofrecerlo; no dar forraje tierno, mojado o fermentado; transición gradual de forrajes; balance de concentrado' },
+            timpanismo: { claves: ['timpan', 'meteor', 'hinchaz', 'distensi', 'abdomen distend', 'gas'], enfermedad: 'Timpanismo / Meteorismo (hinchazón por forraje tierno o sin oreado)', farmaco_dosis: '[💧 VÍA ORAL] Simeticona gotas 0.3-0.5 ml cada 6-8 h + masaje abdominal suave; retirar forraje verde y dar heno', dias: '1-2 días (hasta que baje la distensión); si no mejora en 2-3 horas, llamar al veterinario', accion: 'Aislar al animal, retirar de inmediato el forraje fresco, mantenerlo en movimiento y desinfectar paredes y pisos de la poza', prevencion: 'Oreado obligatorio del pasto 8-12 horas antes de ofrecerlo; no dar forraje tierno, mojado o fermentado; transición gradual de forrajes; balance de concentrado' },
             salmonelosis: { claves: ['salmonel', 'puntos blancos', 'higado', 'hígado', 'paratifoidea'], enfermedad: 'Salmonelosis', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Complejo B 0.2 ml/animal SC + suero oral', dias: '5 días', accion: 'Aislamiento estricto de afectados, retirar cama y heces, desinfectar paredes y pisos de la poza y comederos/bebederos', prevencion: 'Control de calidad del agua (limpia y clorada), forraje limpio sin heces de roedores, control de roedores, cuarentena de 15-21 días para animales nuevos y balance de concentrado' },
             sarna: { claves: ['sarna', 'acaro', 'ácaro', 'trixacarus', 'ectopar', 'costras', 'rascado'], enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina; repetir a los 7-10 días) + Vitamina AD3E/C 0.2 ml/animal SC', dias: '2 dosis separadas por 7-10 días', accion: 'Aislamiento estricto, cambiar cama, desinfectar paredes, pisos y jaulas, revisar a todos los contactos', prevencion: 'Cuarentena de nuevos animales, cama limpia y seca, no mezclar lotes, control de calidad del agua y concentrado balanceado' },
             tina: { claves: ['tiña', 'tina', 'hongo', 'dermatofit', 'trichophyton', 'micosis', 'alopecia circular'], enfermedad: 'Tiña (hongos, Trichophyton)', farmaco_dosis: 'Miconazol o clotrimazol tópico 1-2 veces al día (o yodo 2% local) + Griseofulvina 25 mg/kg oral cada 24 h en casos extensos', dias: '14-21 días (continuar 7 días tras la curación visible)', accion: 'Aislamiento estricto, usar guantes (zoonosis), desinfectar paredes y pisos con solución antifúngica y cambiar la cama', prevencion: 'Cuarentena de nuevos animales, reducir humedad y hacinamiento, cama seca, control de agua y concentrado balanceado con vitaminas' },
             neumonia: { claves: ['neumon', 'pulmon', 'pulmón', 'respirat', 'tos', 'estornud', 'jadeo', 'pasteurel', 'bordetel'], enfermedad: 'Neumonía', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Vitamina AD3E/C 0.2 ml/animal SC', dias: '5-7 días', accion: 'Aislamiento estricto, ventilar sin corrientes de aire directas, retirar cama húmeda y desinfectar paredes y pisos', prevencion: 'Evitar humedad, polvo y amoníaco; sin cambios bruscos de temperatura; cuarentena de nuevos animales; control de calidad del agua y concentrado balanceado' },
-            escorbuto: { claves: ['escorbuto', 'vitamina c', 'deficiencia de vit', 'avitamin', 'encias', 'encías', 'cojera', 'articulaciones'], enfermedad: 'Deficiencia de Vitamina C (Escorbuto)', farmaco_dosis: 'Vitamina C (ácido ascórbico) 50-100 mg/animal/día oral o 0.2 ml SC + Complejo B 0.2 ml/animal SC', dias: '7-10 días, luego mantener con forraje verde fresco', accion: 'Separar a los afectados, evitar manipulación brusca (dolor articular), dar forraje verde fresco y desinfectar paredes y pisos de la poza', prevencion: 'Forraje verde fresco diario, vitamina C en el agua (usar el mismo día, se degrada), concentrado balanceado con vitamina C estabilizada, control de calidad del agua' },
+            escorbuto: { claves: ['escorbuto', 'vitamina c', 'deficiencia de vit', 'avitamin', 'encias', 'encías', 'cojera', 'articulaciones'], enfermedad: 'Deficiencia de Vitamina C (Escorbuto)', farmaco_dosis: '[💧 VÍA ORAL] Vitamina C (ácido ascórbico) 50-100 mg/animal/día en el agua o directa, o [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml/animal', dias: '7-10 días, luego mantener con forraje verde fresco', accion: 'Separar a los afectados, evitar manipulación brusca (dolor articular), dar forraje verde fresco y desinfectar paredes y pisos de la poza', prevencion: 'Forraje verde fresco diario, vitamina C en el agua (usar el mismo día, se degrada), concentrado balanceado con vitamina C estabilizada, control de calidad del agua' },
             coccidiosis: { claves: ['coccidi', 'diarrea', 'intestin', 'enteritis'], enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5% 0.04 ml/kg oral + Complejo B 0.2 ml/animal SC y suero oral', dias: '2 días, repetir a los 7 días', accion: 'Aislamiento estricto, retirar heces, desinfectar paredes, pisos y comederos', prevencion: 'Cama seca, baja densidad, bebederos limpios, cuarentena de nuevos animales y balance de concentrado' }
             ,
-            destete: { enfermedad: 'Protocolo de destete y prevención (desparasitación integral)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC + Complejo B 0.2 ml SC + Vitamina C 0.2 ml SC', dias: 'Ivermectina: 1 dosis al destete y repetir a los 7-10 días; Complejo B y Vitamina C: 3-5 días', accion: 'Pasar los destetados a una poza limpia y desinfectada (cal o Banodine), separar por sexo y tamaño, transición gradual de la dieta y vigilar a diario las primeras 2 semanas', prevencion: 'Forraje oreado 8-12 horas, agua limpia, concentrado balanceado con vitamina C, baja densidad por poza, cuarentena de animales nuevos y repetir la dosis a los 7-10 días' },
+            destete: { enfermedad: 'Protocolo de destete y prevención (desparasitación integral)', farmaco_dosis: '[💉 INYECTABLE - Subcutáneo (SC)] Ivermectina 1% 0.03 ml/kg + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: 'Ivermectina: 1 dosis al destete y repetir a los 7-10 días (solo para romper el ciclo de parásitos externos); Complejo B y Vitamina C inyectables: únicamente los primeros 3-5 días', accion: 'Pasar los destetados a una poza limpia y desinfectada (cal o Banodine), separar por sexo y tamaño, transición gradual de la dieta y vigilar a diario las primeras 2 semanas', prevencion: 'Forraje oreado 8-12 horas, agua limpia, concentrado balanceado con vitamina C, baja densidad por poza, cuarentena de animales nuevos y repetir la dosis a los 7-10 días' },
             abortos: { enfermedad: 'Abortos en reproductoras', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC cada 24 h solo si hay fiebre, secreción o sospecha de infección + Vitamina C 0.2 ml SC + Complejo B 0.2 ml SC', dias: '5 días', accion: 'Aislar a la hembra, retirar feto y placenta con guantes, enterrarlos con cal viva, revisar forraje y agua, y desinfectar paredes y pisos de la poza', prevencion: 'Forraje oreado 8-12 horas y sin moho; agua limpia; evitar golpes, hacinamiento y estrés; vitamina C en la dieta y concentrado balanceado; cuarentena de animales nuevos' },
             ectoparasitos: { enfermedad: 'Pulgas y piojos (ectoparásitos)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina) + piretrina o azufre en polvo sobre pelaje y cama', dias: '1 dosis, repetir a los 7-10 días (2 aplicaciones)', accion: 'Aislar afectados, cambiar toda la cama (quemar o enterrar con cal), desinfectar paredes y pisos y tratar a los contactos', prevencion: 'Cama seca y limpia, cal en pisos y esquinas, control de roedores y aves, cuarentena de animales nuevos, forraje oreado 8-12 horas y concentrado balanceado' },
-            prepucio: { enfermedad: 'Problemas en el prepucio (prolapso / viruta atrapada)', farmaco_dosis: 'Lavado con suero tibio o yodo diluido; retirar viruta o pelos con cuidado + pomada antibiótica (oxitetraciclina o nitrofurazona) 1-2 veces al día + Vitamina C 0.2 ml SC', dias: '5-7 días (prolapso grave: veterinario)', accion: 'Aislar al macho, cambiar la viruta por cama suave, desinfectar paredes y pisos de la poza', prevencion: 'No usar viruta fina ni aserrín; revisar machos cada semana; cama limpia y seca; agua de calidad y concentrado balanceado con vitamina C' }
+            prepucio: { enfermedad: 'Problemas en el prepucio (prolapso / viruta atrapada)', farmaco_dosis: '[🧴 USO TÓPICO] Lavado con suero tibio o yodo diluido; retirar viruta o pelos con cuidado + [🧴 USO TÓPICO] pomada antibiótica (oxitetraciclina o nitrofurazona) 1-2 veces al día + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: '5-7 días (prolapso grave: veterinario)', accion: 'Aislar al macho, cambiar la viruta por cama suave, desinfectar paredes y pisos de la poza', prevencion: 'No usar viruta fina ni aserrín; revisar machos cada semana; cama limpia y seca; agua de calidad y concentrado balanceado con vitamina C' }
         };
         const ZONAS_DR_CUY = PATOLOGIAS_DR_CUY;
 
@@ -4248,10 +4255,10 @@
         };
         const IVERM_DOSIS2 = 'SC; SEGUNDA DOSIS OBLIGATORIA a los 7-10 días';
         const DOSIS_DR_CUY = {
-            destete: { calc: [['ivermectina', 'SC al destete; REPETIR a los 7-10 días (acción dual: parásitos internos y externos como piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC (contra el estrés del cambio de dieta)'] },
+            destete: { calc: [['ivermectina', 'SC al destete (acción dual: parásitos internos y externos); REPETIR a los 7-10 días solo para romper el ciclo de los parásitos externos (piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC, SOLO los primeros 3-5 días', 'Vitamina C 0.2 ml SC, SOLO los primeros 3-5 días (contra el estrés del cambio de dieta)'] },
             abortos: { calc: [['enrofloxacina', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
-            salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
-            coccidiosis: { calc: [['toltrazuril', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
+            coccidiosis: { calc: [['toltrazuril', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
             sarna: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
             ectoparasitos: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
             neumonia: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
@@ -4270,6 +4277,18 @@
             return kg;
         }
 
+        const VIA_INY = '[💉 INYECTABLE - Subcutáneo (SC)]';
+        const VIA_INY_IM = '[💉 INYECTABLE - SC o IM]';
+        const VIA_ORAL = '[💧 VÍA ORAL]';
+        const VIA_TOPICA = '[🧴 USO TÓPICO]';
+        function tagVia(texto) {
+            const t = String(texto);
+            if (/^oral|\boral\b/i.test(t) && !/\bSC\b/.test(t)) return VIA_ORAL;
+            if (/\bSC o IM\b/.test(t)) return VIA_INY_IM;
+            if (/\bSC\b/.test(t)) return VIA_INY;
+            if (/tópic|polvo|pomada/i.test(t)) return VIA_TOPICA;
+            return '';
+        }
         const DROGAS_SELECCIONABLES = ['ivermectina', 'enrofloxacina', 'toltrazuril'];
         let drogaConcPoblada = null;
 
@@ -4313,17 +4332,18 @@
                 const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.` + (cambiado ? ` ATENCIÓN: elegiste un fármaco distinto al del protocolo (${DROGAS_DR_CUY[claveBase].nombre}); confirma con el veterinario.` : '');
                 const via2 = cambiado ? (clave === 'toltrazuril' ? 'oral' : 'SC') : via;
                 const oral = via2.startsWith('oral');
-                if (!dr.conc) return kg ? `${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via2}.${ref}` : `${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via2}.${ref}`;
+                const tag = clave === 'toltrazuril' || clave === 'griseofulvina' || oral ? VIA_ORAL : tagVia(via2);
+                if (!dr.conc) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via2}.${ref}` : `${tag} ${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via2}.${ref}`;
                 const conc = sel ? sel.conc : dr.std;
                 const mgMl = conc * 10;
                 const mlKg = dr.mgkg / mgMl;
                 const etiqueta = `${dr.nombre} ${conc}%`;
-                if (!kg) return `${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via2}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
+                if (!kg) return `${tag} ${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via2}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
                 const ml = mlKg * kg;
                 const jeringa = ml < 1 ? ` = ${(ml * 100).toFixed(1)} unidades en JERINGA DE INSULINA U-100 (uso obligatorio${oral ? ', sin aguja' : ''})` : '';
-                return `${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via2}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
+                return `${tag} ${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via2}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
             });
-            return [...partes, ...d.fijo].join(' + ');
+            return [...partes, ...d.fijo.map(f => `${tagVia(f)} ${f}`.trim())].join(' + ');
         }
 
         function recalcularZonaDrCuy() {
