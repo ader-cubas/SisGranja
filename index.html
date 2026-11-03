@@ -1937,7 +1937,6 @@
                             <label class="mod-field">Hembras por macho<input type="number" id="esc-ratio" min="1" step="1" value="6" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Días de lactancia<input type="number" id="esc-dias-lact" min="1" step="1" value="21" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Días de vida hasta la venta<input type="number" id="esc-dias-venta" min="1" step="1" value="90" oninput="calcularEscala()" class="mod-input"></label>
-                            <label class="mod-field">Rendimiento (t forraje verde/ha/año)<input type="number" id="esc-rend" min="1" step="1" value="60" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Margen de seguridad (%)<input type="number" id="esc-margen" min="0" step="1" value="15" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Días de rebrote entre cortes (40 a 45)<input type="number" id="esc-ciclo" min="40" max="45" step="1" value="42" oninput="calcularEscala()" class="mod-input"></label>
                             <label class="mod-field">Días de siembra al 1.er corte<input type="number" id="esc-estab" min="0" step="1" value="90" oninput="calcularEscala()" class="mod-input"></label>
@@ -2947,7 +2946,6 @@
 
         function aplicarTipoEscala() {
             const alfalfa = document.getElementById('esc-tipo').value === 'Alfalfa';
-            document.getElementById('esc-rend').value = alfalfa ? 60 : 45;
             document.getElementById('esc-ciclo').value = alfalfa ? 42 : 45;
             document.getElementById('esc-estab').value = 90;
             calcularEscala();
@@ -2993,20 +2991,19 @@
 
             const g = (id, def) => num(id) || def;
             const forrajeDia = total * GRAMOS_ESCALA / 1000;
-            const concDia = (adultos * g('racion-c-adulto', 30) + recria * g('racion-c-recria', 15) + lactantes * g('racion-c-crias', 12.5)) / 1000;
             const tipo = document.getElementById('esc-tipo').value;
 
             const margen = 1 + num('esc-margen') / 100;
-            const rendimiento = Math.max(1, num('esc-rend'));
-            const hectareas = forrajeDia * 365 * margen / 1000 / rendimiento;
-            const m2Total = hectareas * 10000;
+            // Rendimiento conservador: 2.0 kg/m² por corte; cada bloque se corta una vez por ciclo de rebrote.
+            const KG_M2_CORTE = 2.0;
             const bloques = 8;
             // Rebrote en sierra alta: 40 a 45 días; primer corte a los 90 días de la siembra.
             const ciclo = Math.min(45, Math.max(40, num('esc-ciclo') || 42));
             const estab = num('esc-estab') || 90;
             const intervalo = ciclo / bloques;
-            const m2Bloque = m2Total / bloques;
             const kgPorCorte = forrajeDia * intervalo * margen;
+            const m2Bloque = kgPorCorte / KG_M2_CORTE;
+            const m2Total = m2Bloque * bloques;
             const inicio = document.getElementById('esc-inicio').value;
 
             const tarjeta = (titulo, grande, lineas, clase) => {
@@ -3015,7 +3012,7 @@
                 lineas.forEach(l => c.append(crear('p', l, 'text-sm sm:text-base')));
                 return c;
             };
-            const fila = (...tarjetas) => { const f = crear('div', '', 'grid gap-4 md:grid-cols-3'); f.append(...tarjetas); return f; };
+            const fila = (...tarjetas) => { const f = crear('div', '', 'grid gap-4 md:grid-cols-2'); f.append(...tarjetas); return f; };
 
             const resumen = fila(
                 tarjeta('🐹 Población total estimada', `${ent.format(total)} cuyes`, [
@@ -3028,21 +3025,12 @@
                     `Con margen de seguridad: ${nf.format(forrajeDia * margen)} kg/día`,
                     `Mensual: ${nf.format(forrajeDia * 30)} kg (${nf.format(forrajeDia * 30 / 1000)} t)`,
                     `Anual con margen: ${nf.format(forrajeDia * 365 * margen / 1000)} t`
-                ], 'border-teal-400 bg-teal-50 text-teal-950'),
-                tarjeta('🌾 Concentrado', `${nf.format(concDia)} kg/día`, [
-                    `Mensual: ${nf.format(concDia * 30)} kg`,
-                    `≈ ${nf.format(concDia * 30 / 40)} sacos de 40 kg al mes`
-                ], 'border-amber-400 bg-amber-50 text-amber-950')
+                ], 'border-teal-400 bg-teal-50 text-teal-950')
             );
-            const terreno = tarjeta('📏 Terreno bajo riego necesario todo el año', `${nf.format(hectareas)} ha`, [
-                `${ent.format(m2Total)} m² en total, repartidos en ${bloques} bloques de ${ent.format(m2Bloque)} m² cada uno.`,
-                `Rendimiento usado: ${nf.format(rendimiento)} t/ha/año con ${nf.format((margen - 1) * 100)} % de margen.`
-            ], 'border-emerald-600 bg-white text-emerald-950');
-
             const plan = crear('div', '', 'rounded-2xl border border-stone-200 bg-white p-4');
             plan.append(
                 crear('p', `🗓️ Plan de rotación: ${bloques} bloques, un corte cada ${nf.format(intervalo)} días`, 'text-lg font-extrabold text-emerald-900'),
-                crear('p', `Los ${bloques} bloques se siembran escalonados cada ${nf.format(intervalo)} días (${ent.format(ciclo)} de rebrote ÷ ${bloques}). Desde el primer corte, cada bloque se corta cada ${ent.format(ciclo)} días y hay un corte nuevo cada ${nf.format(intervalo)} días: forraje verde continuo. Cada corte rinde ≈ ${nf.format(kgPorCorte)} kg para ${nf.format(intervalo)} días de consumo.`, 'text-sm text-stone-700 mb-3')
+                crear('p', `Los ${bloques} bloques se siembran escalonados cada ${nf.format(intervalo)} días (${ent.format(ciclo)} de rebrote ÷ ${bloques}). Desde el primer corte, cada bloque se corta cada ${ent.format(ciclo)} días y hay un corte nuevo cada ${nf.format(intervalo)} días: forraje verde continuo. Cada corte rinde ≈ ${nf.format(kgPorCorte)} kg (rendimiento conservador de ${KG_M2_CORTE.toFixed(1)} kg/m² por corte, con ${nf.format((margen - 1) * 100)} % de margen) para ${nf.format(intervalo)} días de consumo. Superficie total: ${ent.format(m2Total)} m² (${nf.format(m2Total / 10000)} ha) en ${bloques} bloques de ${ent.format(m2Bloque)} m².`, 'text-sm text-stone-700 mb-3')
             );
             const rejilla = crear('div', '', 'grid gap-3 sm:grid-cols-2 xl:grid-cols-4');
             const colores = ['border-emerald-300 bg-emerald-50 text-emerald-950', 'border-teal-300 bg-teal-50 text-teal-950', 'border-amber-300 bg-amber-50 text-amber-950'];
@@ -3064,7 +3052,7 @@
             }
             plan.append(rejilla);
             const aviso = crear('p', `⚠️ Entre la siembra del bloque 1 y su primer corte pasan ${ent.format(estab)} días (3 meses): cubre ese lapso con forraje comprado o con un lote ya establecido. Después del primer corte de cada bloque, la rotación entrega forraje verde fresco sin interrupciones. Orea el forraje antes de darlo.`, 'rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900');
-            salida.replaceChildren(resumen, terreno, plan, aviso);
+            salida.replaceChildren(resumen, plan, aviso);
         }
 
         function cargarAlmacenGuardado() {
