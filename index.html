@@ -2492,6 +2492,7 @@
                     normalizarDB();
                     escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
                     renderizarTodo();
+                    try { cargarRacionGuardada(); cargarFormulaciones(); renderAlertasSanidad(); } catch (e) { /* vistas aún no listas */ }
                 } else if (tsLocal > tsRemoto) {
                     await subirANube();
                 }
@@ -2500,6 +2501,24 @@
             } finally {
                 sincronizandoNube = false;
             }
+        }
+
+        // Alertas de sanidad, ración y fórmulas viajan dentro de db.compartido para sincronizarse en Supabase con todo el equipo.
+        function leerCompartido(clave) {
+            if (db && db.compartido && db.compartido[clave] !== undefined) return JSON.stringify(db.compartido[clave]);
+            return leerAlmacenamiento(clave);
+        }
+
+        function escribirCompartido(clave, texto) {
+            if (!db || typeof db !== 'object' || Array.isArray(db)) return;
+            if (!db.compartido || typeof db.compartido !== 'object') db.compartido = {};
+            let valor;
+            try { valor = JSON.parse(texto); } catch (error) { return; }
+            if (JSON.stringify(db.compartido[clave]) === texto) return;
+            db.compartido[clave] = valor;
+            db._ts = Date.now();
+            escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
+            programarSubidaNube();
         }
 
         function guardarBD(mensaje = "Datos guardados correctamente", tipo = 'success') {
@@ -2811,7 +2830,7 @@
             document.getElementById('racion-conc-adulto-total').textContent = `${adultos} adultos: ${kg(cA)} kg/día`;
             document.getElementById('racion-conc-crias-total').textContent = `${crias} crías: ${kg(cC)} kg/día`;
             document.getElementById('racion-conc-recria-total').textContent = `${recria} en recría: ${kg(cR)} kg/día`;
-            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gForraje: gAdulto, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, proyeccion, sync: document.getElementById('racion-sync').checked }));
+            escribirCompartido('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gForraje: gAdulto, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, proyeccion, sync: document.getElementById('racion-sync').checked }));
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
   }
 
@@ -2832,7 +2851,7 @@
 
         function cargarFormulaciones() {
             let guardado = {};
-            try { guardado = JSON.parse(leerAlmacenamiento(FORMULA_CLAVE) || '{}') || {}; } catch (error) { /* datos corruptos: se ignoran */ }
+            try { guardado = JSON.parse(leerCompartido(FORMULA_CLAVE) || '{}') || {}; } catch (error) { /* datos corruptos: se ignoran */ }
             formulas = {};
             ETAPAS_FORMULA.forEach(e => {
                 const g = guardado[e.id] || {};
@@ -2987,7 +3006,7 @@
                 art.append(h, d);
                 return art;
             }));
-            escribirAlmacenamiento(FORMULA_CLAVE, JSON.stringify(formulas));
+            escribirCompartido(FORMULA_CLAVE, JSON.stringify(formulas));
         }
 
         function registrarFormulacionEnGastos() {
@@ -3319,7 +3338,7 @@
 
         function cargarRacionGuardada() {
             try {
-                const guardado = JSON.parse(leerAlmacenamiento('sisgranja_racion_inia') || 'null');
+                const guardado = JSON.parse(leerCompartido('sisgranja_racion_inia') || 'null');
                 if (guardado) {
                     document.getElementById('racion-sync').checked = guardado.sync !== false;
                     document.getElementById('racion-adultos').value = guardado.adultos || '';
@@ -4392,7 +4411,7 @@
 
         const ALERTAS_SANIDAD_CLAVE = 'sisgranja_alertas_sanidad';
         function leerAlertasSanidad() {
-            try { const a = JSON.parse(leerAlmacenamiento(ALERTAS_SANIDAD_CLAVE) || '[]'); return Array.isArray(a) ? a : []; } catch (error) { return []; }
+            try { const a = JSON.parse(leerCompartido(ALERTAS_SANIDAD_CLAVE) || '[]'); return Array.isArray(a) ? a : []; } catch (error) { return []; }
         }
 
         function programarAlertaSanidad(tipo, fecha = fechaHoy(), lote = '') {
@@ -4401,7 +4420,7 @@
             alertas.push(tipo === 'destete'
                 ? { id: Date.now(), desde: sumarDias(fecha, 7), hasta: sumarDias(fecha, 10), texto: `${pref}2ª dosis de Ivermectina (SOLO ivermectina, sin vitaminas; recalcular al nuevo peso)` }
                 : { id: Date.now(), desde: sumarDias(fecha, 90), hasta: sumarDias(fecha, 90), texto: `${pref}control de reproductoras: Ivermectina + Complejo B + Vitamina C` });
-            escribirAlmacenamiento(ALERTAS_SANIDAD_CLAVE, JSON.stringify(alertas.slice(-50)));
+            escribirCompartido(ALERTAS_SANIDAD_CLAVE, JSON.stringify(alertas.slice(-50)));
             renderAlertasSanidad();
             mostrarToast('Alerta programada en Desparasitación y en el tablero');
         }
@@ -4413,7 +4432,7 @@
         }
 
         function completarAlertaSanidad(id) {
-            escribirAlmacenamiento(ALERTAS_SANIDAD_CLAVE, JSON.stringify(leerAlertasSanidad().filter(a => a.id !== id)));
+            escribirCompartido(ALERTAS_SANIDAD_CLAVE, JSON.stringify(leerAlertasSanidad().filter(a => a.id !== id)));
             renderAlertasSanidad();
         }
 
