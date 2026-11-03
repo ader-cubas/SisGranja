@@ -1797,11 +1797,11 @@
                         </label>
                     </div>
                     <div class="mt-4 rounded-lg border border-emerald-300 bg-white p-4 shadow-sm">
-                        <label class="mod-field">Proyección de población total (editable, ej. 100, 500, 1000)
-                            <input type="number" id="racion-proyeccion" min="0" step="1" value="500" inputmode="numeric" list="racion-proyeccion-lista" oninput="calcularRacion()" class="mod-input">
+                        <label class="mod-field">Número de reproductoras madres (ej. 100, 500)
+                            <input type="number" id="racion-proyeccion" min="0" step="1" value="100" inputmode="numeric" list="racion-proyeccion-lista" oninput="calcularRacion()" class="mod-input">
                         </label>
-                        <datalist id="racion-proyeccion-lista"><option value="100"></option><option value="500"></option><option value="1000"></option></datalist>
-                        <p id="racion-proyeccion-resultado" class="mt-2 text-base font-semibold text-emerald-900 sm:text-lg" aria-live="polite"></p>
+                        <datalist id="racion-proyeccion-lista"><option value="100"></option><option value="500"></option></datalist>
+                        <ul id="racion-proyeccion-resultado" class="mt-2 space-y-1 text-base font-semibold text-emerald-900 sm:text-lg" aria-live="polite"></ul>
                     </div>
                 </div>
                 </section>
@@ -1852,8 +1852,8 @@
                     </aside>
                     <div id="racion-resultado" class="mod-result" aria-live="polite"></div>
                     <p id="racion-consejo" class="guia-aviso"></p>
-                    <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Desglose de ración por poza</h4>
-                    <p class="mod-hint">Pozas activas con animales, sincronizadas con el inventario. Forraje en kg y concentrado en g por día.</p>
+                    <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Resumen general de la granja</h4>
+                    <p class="mod-hint">Suma de toda la población actual, agrupada por etapa. Alimento requerido por día.</p>
                     <div id="racion-desglose" class="flex flex-col gap-3"></div>
                 </section>
             </div>
@@ -2675,10 +2675,23 @@
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
             const proyeccion = ent('racion-proyeccion');
-            // Concentrado proyectado: promedio por animal según la mezcla actual de categorías.
-            const concPorAnimal = poblacionTotal > 0 ? (cA + cR + cC) / poblacionTotal : cAdulto;
-            const forrajeProy = proyeccion * gForraje, concProy = proyeccion * concPorAnimal;
-            document.getElementById('racion-proyeccion-resultado').textContent = `${proyeccion.toLocaleString('es-PE')} animales necesitarían ${kg(forrajeProy)} kg de forraje verde al día (${(forrajeProy / 1000 * 30).toFixed(0)} kg al mes) y ${kg(concProy)} kg de concentrado al día (${kg(concProy * 30)} kg al mes).`;
+            // Estructura estimada del plantel a partir de las madres: partos/año, crías destetadas por parto, días de lactancia y de recría.
+            const ratioMachos = Math.max(1, Number(document.getElementById('esc-ratio')?.value) || 6);
+            const destetadasAnio = proyeccion * 3.5 * 2.8;
+            const pAdultos = proyeccion + Math.ceil(proyeccion / ratioMachos);
+            const pCrias = Math.round(destetadasAnio * 15 / 365);
+            const pRecria = Math.round(destetadasAnio * 75 / 365);
+            const pTotal = pAdultos + pCrias + pRecria;
+            const pForraje = pTotal * gForraje;
+            const pConc = pAdultos * cAdulto + pRecria * cRecria + pCrias * cCrias;
+            const nf = n => n.toLocaleString('es-PE');
+            document.getElementById('racion-proyeccion-resultado').replaceChildren(...[
+                `${nf(proyeccion)} madres + ${nf(pAdultos - proyeccion)} machos = ${nf(pAdultos)} reproductores`,
+                `${nf(pCrias)} crías lactantes y ${nf(pRecria)} en recría / engorde (estimado)`,
+                `Población total: ${nf(pTotal)} animales`,
+                `Forraje verde: ${kg(pForraje)} kg/día (${(pForraje / 1000 * 30).toFixed(0)} kg/mes)`,
+                `Concentrado: ${kg(pConc)} kg/día (${kg(pConc * 30)} kg/mes)`
+            ].map(txt => { const li = document.createElement('li'); li.textContent = txt; return li; }));
             document.getElementById('racion-conc-adulto-total').textContent = `${adultos} adultos: ${kg(cA)} kg/día`;
             document.getElementById('racion-conc-crias-total').textContent = `${crias} crías: ${kg(cC)} kg/día`;
             document.getElementById('racion-conc-recria-total').textContent = `${recria} en recría: ${kg(cR)} kg/día`;
@@ -2821,73 +2834,26 @@
         function renderDesgloseRacion(q) {
             const cuerpo = document.getElementById('racion-desglose');
             if (!cuerpo) return;
-            const filas = [];
-            let ajuste = null;
-            let errorInventario = false;
-            try {
-                let fuente = db;
-                let pozas = Array.isArray(fuente.cuyes) && fuente.cuyes.length ? fuente.cuyes : Array.isArray(fuente.pozas) ? fuente.pozas : [];
-                if (!pozas.length) {
-                    const guardado = leerAlmacenamiento('sisgranja_cuy_db');
-                    if (guardado) {
-                        fuente = typeof guardado === 'string' ? JSON.parse(guardado) : guardado;
-                        pozas = Array.isArray(fuente.cuyes) && fuente.cuyes.length ? fuente.cuyes : Array.isArray(fuente.pozas) ? fuente.pozas : [];
-                    }
-                }
-                const unicas = new Map();
-                pozas.forEach(poza => {
-                    const codigo = claveUnicaPoza(poza && (poza.codigo || poza.id));
-                    if (codigo && !unicas.has(codigo)) unicas.set(codigo, poza);
-                });
-                [...unicas.values()].forEach(poza => {
-                    const conteos = obtenerConteosRacionPoza(poza, fuente);
-                    if (!conteos.adultos && !conteos.recria && !conteos.crias && !conteos.reemplazo) return;
-                    const n = { a: conteos.adultos, r: conteos.recria + conteos.reemplazo, c: conteos.crias };
-                    filas.push({
-                        codigo: claveUnicaPoza(poza.codigo || poza.id), ...n,
-                        forraje: n.a * q.gAdulto + n.r * q.gRecria + n.c * q.gCrias,
-                        conc: n.a * q.cAdulto + n.r * q.cRecria + n.c * q.cCrias
-                    });
-                });
-                const g = obtenerConteosGranja([...unicas.values()], fuente);
-                const suma = filas.reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c }), { a: 0, r: 0, c: 0 });
-                const d = { a: g.adultos - suma.a, r: g.recria + g.reemplazo - suma.r, c: g.crias - suma.c };
-                if (d.a || d.r || d.c) ajuste = { codigo: 'Ajustes: ventas, bajas sin poza y reemplazo', ...d, forraje: d.a * q.gAdulto + d.r * q.gRecria + d.c * q.gCrias, conc: d.a * q.cAdulto + d.r * q.cRecria + d.c * q.cCrias };
-            } catch (error) { errorInventario = true; }
-            filas.sort((x, y) => x.codigo.localeCompare(y.codigo, 'es', { numeric: true }));
-            const fmt = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 3 }).format(valor);
-            const tarjeta = (f, clase, titulo) => {
-                const art = document.createElement('article');
-                art.className = `rounded-lg border p-4 shadow-sm ${clase}`;
-                const h = document.createElement('h5');
-                h.className = 'text-lg font-extrabold';
-                h.textContent = titulo || f.codigo;
-                const lista = document.createElement('dl');
-                lista.className = 'mt-2 grid grid-cols-1 gap-1 text-base sm:text-lg';
-                [['Adultos', f.a], ['Recría / engorde', f.r], ['Destetados / crías', f.c], ['Forraje verde (kg/día)', fmt(f.forraje / 1000)], ['Concentrado (g/día)', fmt(f.conc)]].forEach(([k, v]) => {
-                    const fila = document.createElement('div');
-                    fila.className = 'flex justify-between gap-3 border-t border-stone-100 pt-1';
-                    const dt = document.createElement('dt'); dt.textContent = k;
-                    const dd = document.createElement('dd'); dd.className = 'font-bold'; dd.textContent = v;
-                    fila.append(dt, dd);
-                    lista.append(fila);
-                });
-                art.append(h, lista);
-                return art;
+            const val = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+            const fmt = valor => new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 }).format(valor);
+            const etapas = [
+                ['Reproductores adultos', val('racion-adultos'), q.cAdulto],
+                ['Recría / engorde', val('racion-recria'), q.cRecria],
+                ['Destetados / crías', val('racion-crias'), q.cCrias]
+            ].map(([nombre, n, c]) => ({ nombre, n, forraje: n * q.gAdulto / 1000, conc: n * c / 1000 }));
+            const tot = etapas.reduce((s, e) => ({ n: s.n + e.n, forraje: s.forraje + e.forraje, conc: s.conc + e.conc }), { n: 0, forraje: 0, conc: 0 });
+            const fila = (e, clase) => {
+                const div = document.createElement('div');
+                div.className = `flex flex-wrap items-baseline justify-between gap-x-4 px-3 py-2 ${clase}`;
+                const nombre = document.createElement('span'); nombre.className = 'font-bold'; nombre.textContent = `${e.nombre}: ${fmt(e.n)}`;
+                const alimento = document.createElement('span'); alimento.textContent = `Forraje ${fmt(e.forraje)} kg · Concentrado ${fmt(e.conc)} kg`;
+                div.append(nombre, alimento);
+                return div;
             };
-            if (!filas.length) {
-                const p = document.createElement('p');
-                p.className = 'mod-hint';
-                p.textContent = errorInventario ? 'No se pudo leer el inventario de pozas.' : 'Sin pozas activas con animales registradas.';
-                cuerpo.replaceChildren(p);
-                return;
-            }
-            const tot = [...filas, ...(ajuste ? [ajuste] : [])].reduce((s, f) => ({ a: s.a + f.a, r: s.r + f.r, c: s.c + f.c, forraje: s.forraje + f.forraje, conc: s.conc + f.conc }), { a: 0, r: 0, c: 0, forraje: 0, conc: 0 });
-            cuerpo.replaceChildren(
-                tarjeta(tot, 'border-emerald-700 bg-emerald-50', 'TOTAL'),
-                ...filas.map(f => tarjeta(f, 'border-stone-300 bg-white')),
-                ...(ajuste ? [tarjeta(ajuste, 'border-red-300 bg-red-50 text-red-800')] : [])
-            );
+            const caja = document.createElement('div');
+            caja.className = 'overflow-hidden rounded-lg border border-emerald-300 bg-white text-base shadow-sm sm:text-lg';
+            caja.append(...etapas.map(e => fila(e, 'border-b border-stone-200')), fila({ nombre: 'TOTAL animales', ...tot }, 'bg-emerald-50 font-extrabold'));
+            cuerpo.replaceChildren(caja);
         }
 
         // Cantidades tomadas del registro de pozas: reproductor; recría + engorde; cría.
@@ -3128,7 +3094,7 @@
                     document.getElementById('racion-c-recria').value = guardado.cRecria ?? 15;
                     
                     document.getElementById('racion-c-crias').value = guardado.cCrias ?? 12.5;
-                    document.getElementById('racion-proyeccion').value = guardado.proyeccion ?? 500;
+                    document.getElementById('racion-proyeccion').value = guardado.proyeccion ?? 100;
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
