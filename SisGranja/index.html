@@ -1296,7 +1296,7 @@
                         <header>
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
-                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y el Dr. Cuy IA entrega el diagnóstico. Requiere internet.</p>
+                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y toca la zona o signo afectado: el Dr. Cuy IA entrega el protocolo al instante, sin internet.</p>
                             <p class="mt-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="note">⚖️ Aviso legal de responsabilidad técnica: las recomendaciones del Dr. Cuy IA son orientativas y no sustituyen el criterio profesional. Deben ser confirmadas por un médico veterinario antes de aplicar cualquier tratamiento, dosis o medida sanitaria.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
@@ -1339,8 +1339,8 @@
                                     </select>
                                 </label>
                             </div>
-                            <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                <p class="text-sm font-bold text-amber-900">Sin conexión: el análisis fotográfico requiere internet. Respaldo por zona afectada:</p>
+                            <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p class="text-sm font-bold text-amber-900">Diagnóstico instantáneo local: toca la zona o signo afectado que ves en la foto.</p>
                                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                     <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón (Timpanismo)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('tina')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Tiña</button>
@@ -1353,6 +1353,7 @@
                             </div>
                             <div id="baja-results" class="hidden space-y-1 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-stone-900" aria-live="polite">
                                 <div id="baja-result-lineas" class="space-y-1"></div>
+                                <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar / Analizar otra foto</button>
                             </div>
                             <button type="submit" id="baja-save-button" class="action-giant action-baja"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR REGISTRO DE BAJA</span></button>
                         </form>
@@ -4200,7 +4201,7 @@
                 const linea = document.createElement('p');
                 const etiqueta = document.createElement('strong');
                 etiqueta.textContent = `${titulo}: `;
-                linea.append(etiqueta, String(valor || '—').slice(0, 600));
+                linea.append(etiqueta, String(valor || '—'));
                 return linea;
             }));
             document.getElementById('baja-results').classList.remove('hidden');
@@ -4238,12 +4239,11 @@
                 tratamiento_manejo: `${guia.farmaco_dosis}. ${guia.dias}`
             };
             mostrarDiagnosticoDrCuy(guia);
+            estadoDrCuy('Diagnóstico listo');
+            document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function actualizarRedDrCuy() {
-            const sinRed = !navigator.onLine;
-            document.getElementById('baja-offline-zonas').classList.toggle('hidden', !sinRed);
-            if (sinRed) estadoDrCuy('Sin conexión: se requiere internet para el análisis fotográfico.');
         }
         window.addEventListener('online', actualizarRedDrCuy);
         window.addEventListener('offline', actualizarRedDrCuy);
@@ -4270,31 +4270,15 @@
                 return;
             }
             previewCard.classList.remove('hidden');
-            estadoDrCuy('Optimizando foto…', true);
+            estadoDrCuy('Foto lista. Toca la zona o signo afectado para el diagnóstico inmediato.');
             const urlInmediata = URL.createObjectURL(archivo);
             preview.src = urlInmediata;
             preview.classList.remove('hidden');
             preview.onload = () => URL.revokeObjectURL(urlInmediata);
-            try {
-                // Se comprime primero (800px, JPEG 0.7) y la vista previa usa la imagen ligera.
-                const foto = await comprimirFotoClinica(archivo);
-                if (versionCaptura !== bajaFotoVersion) return;
-                fotoClinicaAnalizadaBase64 = foto;
-                preview.src = foto;
-                preview.classList.remove('hidden');
-                if (!navigator.onLine) {
-                    estadoDrCuy('Foto lista. Sin conexión: usa el respaldo por zona.');
-                    actualizarRedDrCuy();
-                    return;
-                }
-                document.getElementById('baja-offline-zonas').classList.add('hidden');
-                estadoDrCuy('Analizando…', true);
-                await analizarFotoBaja(foto, versionCaptura);
-            } catch (error) {
-                if (versionCaptura !== bajaFotoVersion) return;
-                estadoDrCuy('No se pudo analizar la foto. Intenta de nuevo o usa el respaldo por zona.');
-                document.getElementById('baja-offline-zonas').classList.remove('hidden');
-            }
+            // La compresión corre en segundo plano solo para guardar la foto; no bloquea el diagnóstico.
+            comprimirFotoClinica(archivo).then(foto => {
+                if (versionCaptura === bajaFotoVersion) fotoClinicaAnalizadaBase64 = foto;
+            }).catch(() => {});
         }
 
         function limpiarFotoBaja() {
@@ -4333,21 +4317,6 @@
                 throw new Error('Respuesta incompleta');
             }
             return normalizarDiagnosticoDrCuy(r);
-        }
-
-        async function analizarFotoBaja(imagenBase64, versionCaptura) {
-            const r = await consultarDrCuy(imagenBase64);
-            if (versionCaptura !== bajaFotoVersion) return;
-            bajaAnalisisActual = {
-                categoria_clinica: 'Dr. Cuy IA',
-                diagnostico_situacion: r.enfermedad,
-                causa_principal: r.enfermedad,
-                accion_inmediata: r.accion,
-                prevencion_diaria: r.prevencion,
-                tratamiento_manejo: `${r.farmaco_dosis}. ${r.dias}`
-            };
-            mostrarDiagnosticoDrCuy(r);
-            estadoDrCuy('Diagnóstico listo');
         }
 
         async function comprimirFotoClinica(archivo) {
