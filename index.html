@@ -2755,8 +2755,8 @@
             { id: 'destetados', nombre: 'Destetados', fuente: 'racion-c-recria', defecto: 15 },
             { id: 'recria', nombre: 'Recría / Engorde', fuente: 'racion-c-recria', defecto: 15 }
         ];
-        const INSUMOS_BASE = ['Maíz molido', 'Alfalfa molida', 'Afrecho', 'Torta de soya', 'Polvillo', 'Soya integral', 'Núcleo con vitamina C', 'Melaza'];
         const FORMULA_REPRODUCTORAS = [['Maíz molido', 30], ['Alfalfa molida', 18], ['Afrecho de trigo', 19], ['Torta de soya', 17], ['Polvillo de arroz', 4], ['Soya integral', 7], ['Núcleo con Vitamina C', 1], ['Melaza de caña', 4]];
+        const INSUMOS_BASE = FORMULA_REPRODUCTORAS.map(([nombre]) => nombre);
         let formulas = null;
         let etapaFormula = 'repro';
 
@@ -2766,9 +2766,9 @@
             formulas = {};
             ETAPAS_FORMULA.forEach(e => {
                 const g = guardado[e.id] || {};
-                // Se precarga la fórmula base si la etapa aún no tiene cantidades ni costos guardados.
+                // Sin cantidades ni costos guardados: Reproductoras usa la fórmula base y las demás etapas la misma lista de insumos en 0.
                 const vacia = !Array.isArray(g.filas) || !g.filas.some(x => Number(x.kg) > 0 || Number(x.costo) > 0);
-                if (e.id === 'repro' && vacia) g.filas = FORMULA_REPRODUCTORAS.map(([nombre, kg]) => ({ nombre, kg, costo: 0 }));
+                if (vacia) g.filas = FORMULA_REPRODUCTORAS.map(([nombre, kg]) => ({ nombre, kg: e.id === 'repro' ? kg : 0, costo: 0 }));
                 const desdeRacion = Number(document.getElementById(e.fuente)?.value);
                 formulas[e.id] = {
                     base: Number(g.base) > 0 ? Number(g.base) : 100,
