@@ -1813,27 +1813,27 @@
 
                 <section class="mod-card" aria-labelledby="racion-conc-titulo">
                     <h3 id="racion-conc-titulo" class="mod-title">🌾 Concentrado por etapas</h3>
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4">
                         <article class="rounded-2xl border-2 border-emerald-300 bg-white p-4">
-                            <h4 class="text-lg font-extrabold text-emerald-900">Reproductoras adultos</h4>
+                            <h4 class="text-lg font-extrabold text-emerald-900">🐹 Reproductoras adultos</h4>
                             <label class="mod-field mt-2">Concentrado por adulto (g/día)
                                 <input type="number" id="racion-c-adulto" min="0" step="1" value="30" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                             </label>
                             <p id="racion-conc-adulto-total" class="mt-2 text-base font-semibold text-emerald-900"></p>
                         </article>
-                        <article class="rounded-2xl border-2 border-amber-300 bg-white p-4">
-                            <h4 class="text-lg font-extrabold text-amber-900">Gazapos / Crías</h4>
-                            <label class="mod-field mt-2">Concentrado por cría (g/día, 10–15)
-                                <input type="number" id="racion-c-crias" min="0" step="0.5" value="12.5" inputmode="decimal" oninput="calcularRacion()" class="mod-input">
-                            </label>
-                            <p id="racion-conc-crias-total" class="mt-2 text-base font-semibold text-amber-900"></p>
-                        </article>
                         <article class="rounded-2xl border-2 border-sky-300 bg-white p-4">
-                            <h4 class="text-lg font-extrabold text-sky-900">Destetados / Recría para engorde</h4>
+                            <h4 class="text-lg font-extrabold text-sky-900">🐖 Cuyes de recría / engorde</h4>
                             <label class="mod-field mt-2">Concentrado por recría (g/día)
                                 <input type="number" id="racion-c-recria" min="0" step="1" value="15" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                             </label>
                             <p id="racion-conc-recria-total" class="mt-2 text-base font-semibold text-sky-900"></p>
+                        </article>
+                        <article class="rounded-2xl border-2 border-amber-300 bg-white p-4">
+                            <h4 class="text-lg font-extrabold text-amber-900">🐹 Cuyes destetados / crías</h4>
+                            <label class="mod-field mt-2">Concentrado por cría (g/día, 10–15)
+                                <input type="number" id="racion-c-crias" min="0" step="0.5" value="12.5" inputmode="decimal" oninput="calcularRacion()" class="mod-input">
+                            </label>
+                            <p id="racion-conc-crias-total" class="mt-2 text-base font-semibold text-amber-900"></p>
                         </article>
                     </div>
                 </section>
