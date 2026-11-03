@@ -1338,6 +1338,14 @@
                                     </select>
                                 </label>
                             </div>
+                            <div class="rounded-xl border border-emerald-300 bg-white p-4">
+                                <label for="baja-peso-dr" class="block text-sm font-bold text-stone-800">Peso del cuy (opcional, para calcular la dosis exacta)</label>
+                                <div class="mt-2 flex gap-2">
+                                    <input type="number" id="baja-peso-dr" min="0" step="any" inputmode="decimal" oninput="recalcularZonaDrCuy()" class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-3 text-base" placeholder="Ej. 850">
+                                    <select id="baja-peso-unidad" onchange="recalcularZonaDrCuy()" aria-label="Unidad de peso" class="rounded-lg border border-stone-300 px-3 py-3 text-base"><option value="g">gramos</option><option value="kg">kg</option></select>
+                                </div>
+                                <p id="baja-peso-aviso" class="mt-1 text-xs text-stone-600">Sin peso se muestra la dosis estándar por kilo.</p>
+                            </div>
                             <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                 <p class="text-sm font-bold text-amber-900">Botones rápidos (sin internet): toca la patología para ver el protocolo clínico completo.</p>
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -4214,9 +4222,49 @@
         };
         const ZONAS_DR_CUY = PATOLOGIAS_DR_CUY;
 
+        // Dosis por kilo de peso vivo [fármaco, cantidad por kg, unidad, vía/pauta] y dosis fijas por animal.
+        const DOSIS_DR_CUY = {
+            abortos: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
+            salmonelosis: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            coccidiosis: { calc: [['Toltrazuril 2.5%', 0.04, 'ml', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            sarna: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC con jeringa de insulina; repetir a los 14 días']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            ectoparasitos: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC con jeringa de insulina; repetir a los 14 días']], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
+            neumonia: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            tina: { calc: [['Griseofulvina', 25, 'mg', 'oral cada 24 h, solo en casos extensos']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
+        };
+        let zonaDrCuyActual = null;
+
+        function pesoDrCuyKg() {
+            const v = Number(document.getElementById('baja-peso-dr').value);
+            const aviso = document.getElementById('baja-peso-aviso');
+            if (!(v > 0)) { aviso.textContent = 'Sin peso se muestra la dosis estándar por kilo.'; return 0; }
+            const kg = document.getElementById('baja-peso-unidad').value === 'g' ? v / 1000 : v;
+            if (kg < 0.05 || kg > 2.5) { aviso.textContent = 'Peso fuera de rango (50 g a 2.5 kg): se muestra la dosis estándar por kilo.'; return 0; }
+            aviso.textContent = `Dosis calculada para ${(kg * 1000).toFixed(0)} g.`;
+            return kg;
+        }
+
+        function textoDosisDrCuy(zona, guia) {
+            const d = DOSIS_DR_CUY[zona];
+            if (!d) return guia.farmaco_dosis;
+            const kg = pesoDrCuyKg();
+            const fmt = n => n < 0.1 ? n.toFixed(3) : n < 10 ? n.toFixed(2) : n.toFixed(1);
+            const partes = d.calc.map(([nombre, porKg, u, via]) => kg
+                ? `${nombre}: ${fmt(porKg * kg)} ${u} (${porKg} ${u}/kg × ${(kg * 1000).toFixed(0)} g) ${via}`
+                : `${nombre}: ${porKg} ${u} por kg de peso vivo, ${via}`);
+            return [...partes, ...d.fijo].join(' + ');
+        }
+
+        function recalcularZonaDrCuy() {
+            if (zonaDrCuyActual) mostrarZonaDrCuy(zonaDrCuyActual);
+            else pesoDrCuyKg();
+        }
+
         function mostrarZonaDrCuy(zona) {
-            const guia = ZONAS_DR_CUY[zona];
-            if (!guia) return;
+            const base = ZONAS_DR_CUY[zona];
+            if (!base) return;
+            zonaDrCuyActual = zona;
+            const guia = { ...base, farmaco_dosis: textoDosisDrCuy(zona, base) };
             bajaAnalisisActual = {
                 categoria_clinica: `Dr. Cuy IA (local): ${zona}`,
                 diagnostico_situacion: guia.enfermedad,
@@ -4268,6 +4316,7 @@
         }
 
         function limpiarFotoBaja() {
+            zonaDrCuyActual = null;
             bajaFotoVersion++;
             fotoClinicaAnalizadaBase64 = '';
             bajaAnalisisActual = null;
