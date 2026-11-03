@@ -1343,11 +1343,14 @@
                                 <label for="baja-peso-dr" class="text-sm font-bold text-stone-800">Peso del cuy (para calcular dosis):</label>
                                 <input type="number" id="baja-peso-dr" min="0" step="any" inputmode="decimal" oninput="recalcularZonaDrCuy()" style="width:6rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" placeholder="800">
                                 <select id="baja-peso-unidad" onchange="recalcularZonaDrCuy()" aria-label="Unidad de peso" style="width:4rem" class="rounded-lg border border-stone-300 px-1 py-2 text-base"><option value="g">g</option><option value="kg">kg</option></select>
-                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg.</span>
+                                <label for="baja-conc-dr" class="text-sm font-bold text-stone-800">Frasco:</label>
+                                <select id="baja-conc-dr" onchange="recalcularZonaDrCuy()" aria-label="Concentración del frasco en porcentaje" style="width:7rem" class="rounded-lg border border-stone-300 px-1 py-2 text-base" disabled><option>% etiqueta</option></select>
+                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg. Elige la patología y la concentración que dice tu frasco.</span>
                             </div>
                             <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                 <p class="text-sm font-bold text-amber-900">Botones rápidos (sin internet): toca la patología para ver el protocolo clínico completo.</p>
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                    <button type="button" onclick="mostrarZonaDrCuy('destete')" class="rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-3 text-sm font-bold text-emerald-900">Destete y Prevención (Ivermectina + Vit. C)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón / Timpanismo</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('abortos')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Abortos en Reproductoras</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('salmonelosis')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Salmonelosis (Hígado / Diarrea)</button>
@@ -1728,6 +1731,16 @@
                                 <li><strong>Reingreso:</strong> deja actuar y secar de 3 a 7 días, coloca cama nueva y seca, y recién entonces ingresa los animales.</li>
                             </ol>
                             <p><span class="bio-no">Prohibido</span> mojar a los animales con cal ni dejarlos sobre cal fresca.</p>
+                        </article>
+                        <article class="bio-card">
+                            <h3>🧴 6. Desinfección con Banodine (yodóforo)</h3>
+                            <ol>
+                                <li><strong>Limpia primero:</strong> el yodo pierde fuerza con estiércol y materia orgánica; barre y lava pisos, paredes, comederos y bebederos.</li>
+                                <li><strong>Dilución:</strong> prepárala exactamente como indica la etiqueta del Banodine, con agua limpia y el mismo día de uso.</li>
+                                <li><strong>Aplicación:</strong> riega o asperja pisos, paredes, divisiones, comederos y bebederos; deja actuar según la etiqueta y enjuaga comederos y bebederos antes de reutilizarlos.</li>
+                                <li><strong>Con cal:</strong> no los mezcles; usa Banodine en superficies lavadas y la cal en pisos secos y esquinas, en momentos distintos.</li>
+                                <li><strong>Pediluvio:</strong> renueva la solución a diario en la entrada del galpón.</li>
+                            </ol>
                         </article>
                     </div>
                 </section>
@@ -3339,7 +3352,7 @@
             'Colibacilosis': ENROFLOXACINA,
             'Coccidiosis': { farmaco: 'Toltrazuril 2.5 %', conc: 25, mgkg: 1, via: 'Oral', frec: 'cada 24 h; repetir el ciclo a los 7 días', dias: 2 },
             'Enfermedad de Tyzzer': { farmaco: 'Oxitetraciclina 20 % inyectable', conc: 200, mgkg: 20, via: 'Intramuscular (IM)', frec: 'cada 24 h', dias: 3 },
-            'Sarna': { farmaco: 'Ivermectina 1 % diluida 1:10 (1 ml + 9 ml de suero fisiológico = 1 mg/ml)', conc: 1, mgkg: 0.2, via: 'Subcutánea (SC)', frec: 'dosis única; repetir a los 14 días', dias: 1 },
+            'Sarna': { farmaco: 'Ivermectina 1 % diluida 1:10 (1 ml + 9 ml de suero fisiológico = 1 mg/ml)', conc: 1, mgkg: 0.2, via: 'Subcutánea (SC)', frec: 'dosis única; repetir a los 7-10 días', dias: 1 },
             'Hongos / Tiña': { tópico: 'Antifúngico tópico (miconazol o yodo povidona) una vez al día sobre la lesión, con guantes, durante 14 a 21 días. No se dosifica por peso.' },
             'Afecciones Genitales': { tópico: ['Aseo riguroso con solución antiséptica tibia (agua oxigenada diluida o yodopovidona rebajada).', 'Aplicar localmente crema cicatrizante o antibiótica (con oxitetraciclina o nitrofurazona).', 'Prolapso grave o necrosis: evaluación e intervención quirúrgica por el veterinario.', 'Descanso reproductivo obligatorio bajo criterio veterinario. No se dosifica por peso.'] },
             'Timpanismo': { farmaco: 'Simeticona 4 % gotas (antiespumante, uso oral)', conc: 40, mgkg: 20, via: 'Oral', frec: 'dosis única, repetir a las 6 h si persiste', dias: 1 }
@@ -4209,29 +4222,39 @@
         const PATOLOGIAS_DR_CUY = {
             timpanismo: { claves: ['timpan', 'meteor', 'hinchaz', 'distensi', 'abdomen distend', 'gas'], enfermedad: 'Timpanismo / Meteorismo (hinchazón por forraje tierno o sin oreado)', farmaco_dosis: 'Simeticona gotas 0.3-0.5 ml oral cada 6-8 h + masaje abdominal suave; retirar forraje verde y dar heno', dias: '1-2 días (hasta que baje la distensión); si no mejora en 2-3 horas, llamar al veterinario', accion: 'Aislar al animal, retirar de inmediato el forraje fresco, mantenerlo en movimiento y desinfectar paredes y pisos de la poza', prevencion: 'Oreado obligatorio del pasto 8-12 horas antes de ofrecerlo; no dar forraje tierno, mojado o fermentado; transición gradual de forrajes; balance de concentrado' },
             salmonelosis: { claves: ['salmonel', 'puntos blancos', 'higado', 'hígado', 'paratifoidea'], enfermedad: 'Salmonelosis', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Complejo B 0.2 ml/animal SC + suero oral', dias: '5 días', accion: 'Aislamiento estricto de afectados, retirar cama y heces, desinfectar paredes y pisos de la poza y comederos/bebederos', prevencion: 'Control de calidad del agua (limpia y clorada), forraje limpio sin heces de roedores, control de roedores, cuarentena de 15-21 días para animales nuevos y balance de concentrado' },
-            sarna: { claves: ['sarna', 'acaro', 'ácaro', 'trixacarus', 'ectopar', 'costras', 'rascado'], enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina; repetir a los 14 días) + Vitamina AD3E/C 0.2 ml/animal SC', dias: '14-21 días (2 dosis separadas por 14 días)', accion: 'Aislamiento estricto, cambiar cama, desinfectar paredes, pisos y jaulas, revisar a todos los contactos', prevencion: 'Cuarentena de nuevos animales, cama limpia y seca, no mezclar lotes, control de calidad del agua y concentrado balanceado' },
+            sarna: { claves: ['sarna', 'acaro', 'ácaro', 'trixacarus', 'ectopar', 'costras', 'rascado'], enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina; repetir a los 7-10 días) + Vitamina AD3E/C 0.2 ml/animal SC', dias: '2 dosis separadas por 7-10 días', accion: 'Aislamiento estricto, cambiar cama, desinfectar paredes, pisos y jaulas, revisar a todos los contactos', prevencion: 'Cuarentena de nuevos animales, cama limpia y seca, no mezclar lotes, control de calidad del agua y concentrado balanceado' },
             tina: { claves: ['tiña', 'tina', 'hongo', 'dermatofit', 'trichophyton', 'micosis', 'alopecia circular'], enfermedad: 'Tiña (hongos, Trichophyton)', farmaco_dosis: 'Miconazol o clotrimazol tópico 1-2 veces al día (o yodo 2% local) + Griseofulvina 25 mg/kg oral cada 24 h en casos extensos', dias: '14-21 días (continuar 7 días tras la curación visible)', accion: 'Aislamiento estricto, usar guantes (zoonosis), desinfectar paredes y pisos con solución antifúngica y cambiar la cama', prevencion: 'Cuarentena de nuevos animales, reducir humedad y hacinamiento, cama seca, control de agua y concentrado balanceado con vitaminas' },
             neumonia: { claves: ['neumon', 'pulmon', 'pulmón', 'respirat', 'tos', 'estornud', 'jadeo', 'pasteurel', 'bordetel'], enfermedad: 'Neumonía', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Vitamina AD3E/C 0.2 ml/animal SC', dias: '5-7 días', accion: 'Aislamiento estricto, ventilar sin corrientes de aire directas, retirar cama húmeda y desinfectar paredes y pisos', prevencion: 'Evitar humedad, polvo y amoníaco; sin cambios bruscos de temperatura; cuarentena de nuevos animales; control de calidad del agua y concentrado balanceado' },
             escorbuto: { claves: ['escorbuto', 'vitamina c', 'deficiencia de vit', 'avitamin', 'encias', 'encías', 'cojera', 'articulaciones'], enfermedad: 'Deficiencia de Vitamina C (Escorbuto)', farmaco_dosis: 'Vitamina C (ácido ascórbico) 50-100 mg/animal/día oral o 0.2 ml SC + Complejo B 0.2 ml/animal SC', dias: '7-10 días, luego mantener con forraje verde fresco', accion: 'Separar a los afectados, evitar manipulación brusca (dolor articular), dar forraje verde fresco y desinfectar paredes y pisos de la poza', prevencion: 'Forraje verde fresco diario, vitamina C en el agua (usar el mismo día, se degrada), concentrado balanceado con vitamina C estabilizada, control de calidad del agua' },
             coccidiosis: { claves: ['coccidi', 'diarrea', 'intestin', 'enteritis'], enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5% 0.04 ml/kg oral + Complejo B 0.2 ml/animal SC y suero oral', dias: '2 días, repetir a los 7 días', accion: 'Aislamiento estricto, retirar heces, desinfectar paredes, pisos y comederos', prevencion: 'Cama seca, baja densidad, bebederos limpios, cuarentena de nuevos animales y balance de concentrado' }
             ,
+            destete: { enfermedad: 'Protocolo de destete y prevención (desparasitación integral)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC + Complejo B 0.2 ml SC + Vitamina C 0.2 ml SC', dias: 'Ivermectina: 1 dosis al destete y repetir a los 7-10 días; Complejo B y Vitamina C: 3-5 días', accion: 'Pasar los destetados a una poza limpia y desinfectada (cal o Banodine), separar por sexo y tamaño, transición gradual de la dieta y vigilar a diario las primeras 2 semanas', prevencion: 'Forraje oreado 8-12 horas, agua limpia, concentrado balanceado con vitamina C, baja densidad por poza, cuarentena de animales nuevos y repetir la dosis a los 7-10 días' },
             abortos: { enfermedad: 'Abortos en reproductoras', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC cada 24 h solo si hay fiebre, secreción o sospecha de infección + Vitamina C 0.2 ml SC + Complejo B 0.2 ml SC', dias: '5 días', accion: 'Aislar a la hembra, retirar feto y placenta con guantes, enterrarlos con cal viva, revisar forraje y agua, y desinfectar paredes y pisos de la poza', prevencion: 'Forraje oreado 8-12 horas y sin moho; agua limpia; evitar golpes, hacinamiento y estrés; vitamina C en la dieta y concentrado balanceado; cuarentena de animales nuevos' },
-            ectoparasitos: { enfermedad: 'Pulgas y piojos (ectoparásitos)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina) + piretrina o azufre en polvo sobre pelaje y cama', dias: '1 dosis, repetir a los 14 días (2 aplicaciones)', accion: 'Aislar afectados, cambiar toda la cama (quemar o enterrar con cal), desinfectar paredes y pisos y tratar a los contactos', prevencion: 'Cama seca y limpia, cal en pisos y esquinas, control de roedores y aves, cuarentena de animales nuevos, forraje oreado 8-12 horas y concentrado balanceado' },
+            ectoparasitos: { enfermedad: 'Pulgas y piojos (ectoparásitos)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina) + piretrina o azufre en polvo sobre pelaje y cama', dias: '1 dosis, repetir a los 7-10 días (2 aplicaciones)', accion: 'Aislar afectados, cambiar toda la cama (quemar o enterrar con cal), desinfectar paredes y pisos y tratar a los contactos', prevencion: 'Cama seca y limpia, cal en pisos y esquinas, control de roedores y aves, cuarentena de animales nuevos, forraje oreado 8-12 horas y concentrado balanceado' },
             prepucio: { enfermedad: 'Problemas en el prepucio (prolapso / viruta atrapada)', farmaco_dosis: 'Lavado con suero tibio o yodo diluido; retirar viruta o pelos con cuidado + pomada antibiótica (oxitetraciclina o nitrofurazona) 1-2 veces al día + Vitamina C 0.2 ml SC', dias: '5-7 días (prolapso grave: veterinario)', accion: 'Aislar al macho, cambiar la viruta por cama suave, desinfectar paredes y pisos de la poza', prevencion: 'No usar viruta fina ni aserrín; revisar machos cada semana; cama limpia y seca; agua de calidad y concentrado balanceado con vitamina C' }
         };
         const ZONAS_DR_CUY = PATOLOGIAS_DR_CUY;
 
-        // Dosis por kilo de peso vivo [fármaco, cantidad por kg, unidad, vía/pauta] y dosis fijas por animal.
+        // mgkg = dosis en mg por kg de peso vivo; conc = porcentajes de etiqueta disponibles (1% = 10 mg/ml); std = concentración de referencia.
+        const DROGAS_DR_CUY = {
+            enrofloxacina: { nombre: 'Enrofloxacina', mgkg: 5, conc: [5, 10], std: 5, marcas: 'Enromic 5% / Baytril 5%' },
+            ivermectina: { nombre: 'Ivermectina', mgkg: 0.3, conc: [0.5, 1], std: 1, marcas: 'Ivomec 1% / Noromectin 1%' },
+            toltrazuril: { nombre: 'Toltrazuril', mgkg: 1, conc: [2.5, 5], std: 2.5, marcas: 'Baycox 2.5% / toltrazuril peruano' },
+            griseofulvina: { nombre: 'Griseofulvina', mgkg: 25, conc: null, std: 0, marcas: 'griseofulvina veterinaria genérica' }
+        };
+        const IVERM_DOSIS2 = 'SC; SEGUNDA DOSIS OBLIGATORIA a los 7-10 días';
         const DOSIS_DR_CUY = {
-            abortos: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección', 'Baytril 5% / Enroxil 5%']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
-            salmonelosis: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h', 'Baytril 5% / Enroxil 5%']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
-            coccidiosis: { calc: [['Toltrazuril 2.5%', 0.04, 'ml', 'oral', 'Baycox 2.5%']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
-            sarna: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC; repetir a los 14 días', 'Ivomec 1% / Noromectin 1%']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
-            ectoparasitos: { calc: [['Ivermectina 1%', 0.03, 'ml', 'SC; repetir a los 14 días', 'Ivomec 1% / Noromectin 1%']], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
-            neumonia: { calc: [['Enrofloxacina 5%', 0.1, 'ml', 'SC o IM cada 24 h', 'Baytril 5% / Enroxil 5%']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
-            tina: { calc: [['Griseofulvina', 25, 'mg', 'oral cada 24 h, solo en casos extensos', 'griseofulvina veterinaria genérica']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
+            destete: { calc: [['ivermectina', 'SC al destete; REPETIR a los 7-10 días (acción dual: parásitos internos y externos como piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC (contra el estrés del cambio de dieta)'] },
+            abortos: { calc: [['enrofloxacina', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
+            salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            coccidiosis: { calc: [['toltrazuril', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral'] },
+            sarna: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            ectoparasitos: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
+            neumonia: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
+            tina: { calc: [['griseofulvina', 'oral cada 24 h, solo en casos extensos']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
         };
         let zonaDrCuyActual = null;
+        let zonaConcPoblada = null;
 
         function pesoDrCuyKg() {
             const v = Number(document.getElementById('baja-peso-dr').value);
@@ -4243,17 +4266,41 @@
             return kg;
         }
 
+        // Rellena el selector con las concentraciones del fármaco de la patología elegida.
+        function prepararConcentracionDrCuy(zona) {
+            const sel = document.getElementById('baja-conc-dr');
+            const d = DOSIS_DR_CUY[zona];
+            const droga = d && DROGAS_DR_CUY[d.calc[0][0]];
+            if (!droga || !droga.conc) {
+                sel.replaceChildren(new Option('% etiqueta', ''));
+                sel.disabled = true; zonaConcPoblada = zona;
+                return null;
+            }
+            if (zonaConcPoblada !== zona) {
+                sel.replaceChildren(...droga.conc.map(c => new Option(`${droga.nombre} ${c}%`, String(c), false, c === droga.std)));
+                zonaConcPoblada = zona;
+            }
+            sel.disabled = false;
+            return Number(sel.value) || droga.std;
+        }
+
         function textoDosisDrCuy(zona, guia) {
             const d = DOSIS_DR_CUY[zona];
             if (!d) return guia.farmaco_dosis;
             const kg = pesoDrCuyKg();
-            const fmt = n => n < 0.1 ? n.toFixed(3) : n < 10 ? n.toFixed(2) : n.toFixed(1);
-            const partes = d.calc.map(([nombre, porKg, u, via, marcas]) => {
-                const ref = ` Opciones comerciales (mismo principio activo): ${marcas}.`;
-                if (!kg) return `${nombre}: ${porKg} ${u} por kg de peso vivo, ${via}.${ref}`;
-                const dosis = porKg * kg;
-                const jeringa = u === 'ml' ? ` (≈ ${(dosis * 100).toFixed(1)} unidades en jeringa de insulina U-100)` : '';
-                return `${nombre}: INYECTAR ${fmt(dosis)} ${u}${jeringa}, ${via}. Cálculo ${porKg} ${u}/kg × ${kg} kg.${ref}`;
+            const concSel = prepararConcentracionDrCuy(zona);
+            const partes = d.calc.map(([clave, via]) => {
+                const dr = DROGAS_DR_CUY[clave];
+                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.`;
+                const oral = via.startsWith('oral');
+                if (!dr.conc) return kg ? `${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via}.${ref}` : `${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via}.${ref}`;
+                const mgMl = concSel * 10;
+                const mlKg = dr.mgkg / mgMl;
+                const etiqueta = `${dr.nombre} ${concSel}%`;
+                if (!kg) return `${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
+                const ml = mlKg * kg;
+                const jeringa = ml < 1 ? ` = ${(ml * 100).toFixed(1)} unidades en JERINGA DE INSULINA U-100 (uso obligatorio${oral ? ', sin aguja' : ''})` : '';
+                return `${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
             });
             return [...partes, ...d.fijo].join(' + ');
         }
@@ -4320,6 +4367,8 @@
 
         function limpiarFotoBaja() {
             zonaDrCuyActual = null;
+            zonaConcPoblada = null;
+            prepararConcentracionDrCuy(null);
             bajaFotoVersion++;
             fotoClinicaAnalizadaBase64 = '';
             bajaAnalisisActual = null;
