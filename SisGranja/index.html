@@ -1297,6 +1297,7 @@
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
                             <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y el Dr. Cuy IA entrega el diagnóstico. Requiere internet.</p>
+                            <p class="mt-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="note">⚖️ Aviso legal de responsabilidad técnica: las recomendaciones del Dr. Cuy IA son orientativas y no sustituyen el criterio profesional. Deben ser confirmadas por un médico veterinario antes de aplicar cualquier tratamiento, dosis o medida sanitaria.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1764,34 +1765,34 @@
             <div id="view-racion" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">🌿 Calculadora de ración</h3>
-                    <p class="mod-hint">Parámetros INIA (zona altoandina, 3,600 m s.n.m.), por animal al día y editables: adultos 315 g de forraje + 30 g de concentrado; recría/engorde 150–200 g + 15 g; destetados/crías 100 g + 10–15 g.</p>
+                    <p class="mod-hint">Parámetros INIA (zona altoandina, 3,600 m s.n.m.), por animal al día y editables.</p>
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        <label class="flex items-center gap-2 text-base font-semibold text-stone-800"><input type="checkbox" id="racion-sync" checked onchange="sincronizarRacionPozas()" class="h-5 w-5"> Tomar cantidades de mis pozas automáticamente</label>
+                    </div>
+                    <p id="racion-sync-info" class="mod-hint mt-1"></p>
+                </section>
+
+                <section class="mod-card" aria-labelledby="racion-forraje-titulo">
+                    <h3 id="racion-forraje-titulo" class="mod-title">🌱 Forraje verde</h3>
+                    <p class="mod-hint">La población actual se toma de las pozas. Ajusta los gramos por animal al día y usa la proyección para planificar.</p>
                     <div class="mod-grid">
-                        <label class="mod-field">Reproductores adultos
+                        <label class="mod-field">Reproductores adultos (actual)
                             <input type="number" id="racion-adultos" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 40">
                         </label>
-                        <label class="mod-field">Cuyes de recría / engorde
+                        <label class="mod-field">Cuyes de recría / engorde (actual)
                             <input type="number" id="racion-recria" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 60">
                         </label>
-                        <label class="mod-field">Cuyes destetados / crías
+                        <label class="mod-field">Cuyes destetados / crías (actual)
                             <input type="number" id="racion-crias" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 30">
                         </label>
                         <label class="mod-field">Forraje por adulto (g/día)
                             <input type="number" id="racion-g-adulto" min="0" step="5" value="315" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
-                        <label class="mod-field">Concentrado por adulto (g/día)
-                            <input type="number" id="racion-c-adulto" min="0" step="1" value="30" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
-                        </label>
                         <label class="mod-field">Forraje por recría (g/día, 150–200)
                             <input type="number" id="racion-g-recria" min="0" step="5" value="175" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
-                        <label class="mod-field">Concentrado por recría (g/día)
-                            <input type="number" id="racion-c-recria" min="0" step="1" value="15" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
-                        </label>
                         <label class="mod-field">Forraje por cría (g/día)
                             <input type="number" id="racion-g-crias" min="0" step="5" value="100" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
-                        </label>
-                        <label class="mod-field">Concentrado por cría (g/día, 10–15)
-                            <input type="number" id="racion-c-crias" min="0" step="0.5" value="12.5" inputmode="decimal" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Tipo de forraje
                             <select id="racion-forraje" onchange="calcularRacion()" class="mod-input">
@@ -1801,10 +1802,43 @@
                             </select>
                         </label>
                     </div>
-                    <div class="mt-3 flex flex-wrap items-center gap-3">
-                        <label class="flex items-center gap-2 text-base font-semibold text-stone-800"><input type="checkbox" id="racion-sync" checked onchange="sincronizarRacionPozas()" class="h-5 w-5"> Tomar cantidades de mis pozas automáticamente</label>
+                    <div class="mt-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4">
+                        <label class="mod-field">Proyección de reproductores (editable, ej. 500, 1000, 2000)
+                            <input type="number" id="racion-proyeccion" min="0" step="1" value="500" inputmode="numeric" list="racion-proyeccion-lista" oninput="calcularRacion()" class="mod-input">
+                        </label>
+                        <datalist id="racion-proyeccion-lista"><option value="500"></option><option value="1000"></option><option value="2000"></option></datalist>
+                        <p id="racion-proyeccion-resultado" class="mt-2 text-base font-semibold text-emerald-900 sm:text-lg" aria-live="polite"></p>
                     </div>
-                    <p id="racion-sync-info" class="mod-hint mt-1"></p>
+                </section>
+
+                <section class="mod-card" aria-labelledby="racion-conc-titulo">
+                    <h3 id="racion-conc-titulo" class="mod-title">🌾 Concentrado por etapas</h3>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <article class="rounded-2xl border-2 border-emerald-300 bg-white p-4">
+                            <h4 class="text-lg font-extrabold text-emerald-900">Reproductoras adultos</h4>
+                            <label class="mod-field mt-2">Concentrado por adulto (g/día)
+                                <input type="number" id="racion-c-adulto" min="0" step="1" value="30" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                            </label>
+                            <p id="racion-conc-adulto-total" class="mt-2 text-base font-semibold text-emerald-900"></p>
+                        </article>
+                        <article class="rounded-2xl border-2 border-amber-300 bg-white p-4">
+                            <h4 class="text-lg font-extrabold text-amber-900">Gazapos / Crías</h4>
+                            <label class="mod-field mt-2">Concentrado por cría (g/día, 10–15)
+                                <input type="number" id="racion-c-crias" min="0" step="0.5" value="12.5" inputmode="decimal" oninput="calcularRacion()" class="mod-input">
+                            </label>
+                            <p id="racion-conc-crias-total" class="mt-2 text-base font-semibold text-amber-900"></p>
+                        </article>
+                        <article class="rounded-2xl border-2 border-sky-300 bg-white p-4">
+                            <h4 class="text-lg font-extrabold text-sky-900">Destetados / Recría para engorde</h4>
+                            <label class="mod-field mt-2">Concentrado por recría (g/día)
+                                <input type="number" id="racion-c-recria" min="0" step="1" value="15" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                            </label>
+                            <p id="racion-conc-recria-total" class="mt-2 text-base font-semibold text-sky-900"></p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="mod-card">
                     <aside class="mt-4 rounded-2xl border-2 border-red-400 bg-red-50 p-4 text-stone-900" role="note" aria-label="Técnica del oreado">
                         <p class="text-lg font-extrabold text-red-900">⚠️ Técnica del oreado (obligatoria)</p>
                         <p class="mt-2 text-base leading-snug sm:text-lg">Orea el forraje (alfalfa, rye grass o trébol) a la sombra entre 8 y 12 horas antes de darlo. El forraje recién cortado, tierno o mojado causa timpanismo (meteorismo).</p>
@@ -2646,7 +2680,12 @@
                 ])
             );
             document.getElementById('racion-consejo').textContent = CONSEJOS_FORRAJE[forraje] || '';
-            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, sync: document.getElementById('racion-sync').checked }));
+            const proyeccion = ent('racion-proyeccion');
+            document.getElementById('racion-proyeccion-resultado').textContent = `${proyeccion.toLocaleString('es-PE')} reproductores necesitarían ${kg(proyeccion * gAdulto)} kg de forraje verde al día (${((proyeccion * gAdulto) / 1000 * 30).toFixed(0)} kg al mes) y ${kg(proyeccion * cAdulto)} kg de concentrado al día.`;
+            document.getElementById('racion-conc-adulto-total').textContent = `${adultos} adultos: ${kg(cA)} kg/día`;
+            document.getElementById('racion-conc-crias-total').textContent = `${crias} crías: ${kg(cC)} kg/día`;
+            document.getElementById('racion-conc-recria-total').textContent = `${recria} en recría: ${kg(cR)} kg/día`;
+            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, proyeccion, sync: document.getElementById('racion-sync').checked }));
             calcularAlmacen();
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
   }
@@ -3079,6 +3118,7 @@
                     document.getElementById('racion-c-recria').value = guardado.cRecria ?? 15;
                     document.getElementById('racion-g-crias').value = guardado.gCrias ?? 100;
                     document.getElementById('racion-c-crias').value = guardado.cCrias ?? 12.5;
+                    document.getElementById('racion-proyeccion').value = guardado.proyeccion ?? 500;
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
