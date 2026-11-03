@@ -1319,7 +1319,7 @@
                                             <span id="baja-analysis-message">Analizando…</span>
                                         </p>
                                         <p id="baja-analysis-detail" class="mt-2 text-sm text-stone-600"></p>
-                                        <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar / Analizar otra foto</button>
+                                        <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar foto</button>
                                     </div>
                                 </div>
                             </div>
@@ -1353,7 +1353,7 @@
                             </div>
                             <div id="baja-results" class="hidden space-y-1 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-stone-900" aria-live="polite">
                                 <div id="baja-result-lineas" class="space-y-1"></div>
-                                <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar / Analizar otra foto</button>
+                                <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar foto</button>
                             </div>
                             <button type="submit" id="baja-save-button" class="action-giant action-baja"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR REGISTRO DE BAJA</span></button>
                         </form>
@@ -2773,7 +2773,7 @@
                 const g = guardado[e.id] || {};
                 // Sin cantidades ni costos guardados: Reproductoras usa la fórmula base y las demás etapas la misma lista de insumos en 0.
                 const vacia = !Array.isArray(g.filas) || !g.filas.some(x => Number(x.kg) > 0 || Number(x.costo) > 0);
-                if (vacia) g.filas = FORMULA_REPRODUCTORAS.map(([nombre, kg]) => ({ nombre, kg: e.id === 'repro' ? kg : 0, costo: 0 }));
+                if (vacia) g.filas = FORMULA_REPRODUCTORAS.map(([nombre, kg]) => ({ nombre, kg, costo: 0 }));
                 const desdeRacion = Number(document.getElementById(e.fuente)?.value);
                 formulas[e.id] = {
                     base: Number(g.base) > 0 ? Number(g.base) : 100,
