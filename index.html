@@ -1296,7 +1296,7 @@
                         <header>
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
-                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y toca la zona o signo afectado: el Dr. Cuy IA entrega el protocolo al instante, sin internet.</p>
+                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto: el Dr. Cuy IA la analiza automáticamente y entrega el protocolo completo. Requiere internet.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1338,8 +1338,8 @@
                                     </select>
                                 </label>
                             </div>
-                            <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                <p class="text-sm font-bold text-amber-900">Diagnóstico instantáneo local: toca la zona o signo afectado que ves en la foto.</p>
+                            <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p class="text-sm font-bold text-amber-900">Respaldo sin análisis automático (sin conexión o falla del servicio): toca la zona afectada.</p>
                                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                     <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón (Timpanismo)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('tina')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Tiña</button>
@@ -4243,6 +4243,9 @@
         }
 
         function actualizarRedDrCuy() {
+            const sinRed = !navigator.onLine;
+            document.getElementById('baja-offline-zonas').classList.toggle('hidden', !sinRed);
+            if (sinRed && !document.getElementById('baja-preview-card').classList.contains('hidden')) estadoDrCuy('Sin conexión: el análisis automático requiere internet. Usa el respaldo por zona.');
         }
         window.addEventListener('online', actualizarRedDrCuy);
         window.addEventListener('offline', actualizarRedDrCuy);
@@ -4269,15 +4272,24 @@
                 return;
             }
             previewCard.classList.remove('hidden');
-            estadoDrCuy('Foto lista. Toca la zona o signo afectado para el diagnóstico inmediato.');
+            estadoDrCuy('Optimizando foto…', true);
             const urlInmediata = URL.createObjectURL(archivo);
             preview.src = urlInmediata;
             preview.classList.remove('hidden');
             preview.onload = () => URL.revokeObjectURL(urlInmediata);
-            // La compresión corre en segundo plano solo para guardar la foto; no bloquea el diagnóstico.
-            comprimirFotoClinica(archivo).then(foto => {
-                if (versionCaptura === bajaFotoVersion) fotoClinicaAnalizadaBase64 = foto;
-            }).catch(() => {});
+            try {
+                const foto = await comprimirFotoClinica(archivo);
+                if (versionCaptura !== bajaFotoVersion) return;
+                fotoClinicaAnalizadaBase64 = foto;
+                if (!navigator.onLine) { actualizarRedDrCuy(); return; }
+                document.getElementById('baja-offline-zonas').classList.add('hidden');
+                estadoDrCuy('Analizando con Dr. Cuy IA…', true);
+                await analizarFotoBaja(foto, versionCaptura);
+            } catch (error) {
+                if (versionCaptura !== bajaFotoVersion) return;
+                estadoDrCuy('No se pudo analizar la foto. Usa "Limpiar foto" para reintentar o el respaldo por zona.');
+                document.getElementById('baja-offline-zonas').classList.remove('hidden');
+            }
         }
 
         function limpiarFotoBaja() {
@@ -4296,7 +4308,23 @@
             actualizarRedDrCuy();
         }
 
-        const PROMPT_SISTEMA_DR_CUY = 'Eres el Dr. Cuy IA, veterinario experto en cuyes. Responde siempre en español, de forma estrictamente breve, concisa y directa, sin rodeos ni introducciones. Ante cualquier consulta de enfermedad, medicamento, dosis en mililitros o días de tratamiento, da solo: enfermedad, fármaco y dosis en ml, días y acción inmediata, en frases cortas.';
+        async function analizarFotoBaja(imagenBase64, versionCaptura) {
+            const r = await consultarDrCuy(imagenBase64);
+            if (versionCaptura !== bajaFotoVersion) return;
+            bajaAnalisisActual = {
+                categoria_clinica: 'Dr. Cuy IA',
+                diagnostico_situacion: r.enfermedad,
+                causa_principal: r.enfermedad,
+                accion_inmediata: r.accion,
+                prevencion_diaria: r.prevencion,
+                tratamiento_manejo: `${r.farmaco_dosis}. ${r.dias}`
+            };
+            mostrarDiagnosticoDrCuy(r);
+            estadoDrCuy('Diagnóstico listo');
+            document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        const PROMPT_SISTEMA_DR_CUY = 'Eres el Dr. Cuy IA, veterinario experto en cuyes. Detecta en la foto una de: timpanismo/meteorismo, salmonelosis, sarna, tiña, neumonía, deficiencia de vitamina C (escorbuto) o coccidiosis. Responde siempre en español, de forma estrictamente breve, concisa y directa, sin rodeos ni introducciones. Ante cualquier consulta de enfermedad, medicamento, dosis en mililitros o días de tratamiento, da: enfermedad, fármaco y dosis en ml, días, acción inmediata en poza (aislamiento y desinfección) y prevención (oreado del pasto 8-12 h, calidad de agua, balance de concentrado), en frases cortas.';
 
         async function consultarDrCuy(imagenBase64) {
             const endpoint = window.SISGRANJA_VET_API_URL || 'https://mdfwmaxtjhtcuzwsqrci.supabase.co/functions/v1/veterinario-virtual';
