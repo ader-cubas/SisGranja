@@ -811,6 +811,9 @@
                     <i class="ph ph-stethoscope text-lg"></i><span>Sanidad · Dr. Cuy IA</span>
                     <span id="badge-bajas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
+                <button onclick="switchView('desparasitacion')" id="nav-desparasitacion" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-bug text-lg"></i><span>Desparasitación</span>
+                </button>
                 <button onclick="switchView('ventas')" id="nav-ventas" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-shopping-cart text-lg"></i><span>Ventas e Ingresos</span>
                     <span id="badge-ventas" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
@@ -1343,13 +1346,7 @@
                                 <label for="baja-peso-dr" class="text-sm font-bold text-stone-800">Peso del cuy (para calcular dosis):</label>
                                 <input type="number" id="baja-peso-dr" min="0" step="any" inputmode="decimal" oninput="recalcularZonaDrCuy()" style="width:6rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" placeholder="800">
                                 <select id="baja-peso-unidad" onchange="recalcularZonaDrCuy()" aria-label="Unidad de peso" style="width:4rem" class="rounded-lg border border-stone-300 px-1 py-2 text-base"><option value="g">g</option><option value="kg">kg</option></select>
-                                <div class="flex w-full flex-wrap items-center gap-2">
-                                    <label for="baja-droga-dr" class="text-sm font-bold text-stone-800">Fármaco:</label>
-                                    <select id="baja-droga-dr" onchange="recalcularZonaDrCuy()" aria-label="Fármaco" style="min-width:10rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" disabled><option>Elige patología</option></select>
-                                    <label for="baja-conc-dr" class="text-sm font-bold text-stone-800">Concentración:</label>
-                                    <select id="baja-conc-dr" onchange="recalcularZonaDrCuy()" aria-label="Concentración del frasco en porcentaje" style="min-width:6rem" class="rounded-lg border border-stone-300 px-2 py-2 text-base" disabled><option>—</option></select>
-                                </div>
-                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg. Elige el fármaco y la concentración (%) que dice tu frasco.</span>
+                                <span id="baja-peso-aviso" class="w-full text-xs text-stone-600">Sin peso: dosis estándar por kg. Escribe el peso y toca la patología: la dosis se calcula sola.</span>
                             </div>
                             <div id="baja-offline-zonas" class="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                 <p class="text-sm font-bold text-amber-900">Botones rápidos (sin internet): toca la patología para ver el protocolo clínico completo.</p>
@@ -1676,6 +1673,27 @@
                         <details class="guia-card"><summary>🍊 Vitamina C (escorbuto)</summary><div class="guia-body"><p>El cuy no fabrica vitamina C. Su falta causa escorbuto: cojera, hinchazón de articulaciones y menor defensa. Dale forraje verde fresco todos los días y suplementa en lactancia, estrés y tratamientos.</p></div></details>
                         <details class="guia-card"><summary>📦 Almacenamiento de concentrados</summary><div class="guia-body"><ul><li>Guarda los sacos sobre parihuelas, lejos de paredes y del suelo.</li><li>Lugar seco, ventilado y protegido de roedores.</li><li>No uses alimento con moho o mal olor.</li></ul></div></details>
                     </div>
+                </section>
+            </div>
+
+            <div id="view-desparasitacion" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">🐛 Desparasitación: control de fechas y alertas</h3>
+                    <p class="mod-hint">Destete: 1ª dosis (ivermectina + complejo B + vitamina C) y 2ª dosis a los 7-10 días solo con ivermectina. Reproductoras: control cada 3 meses.</p>
+                    <form onsubmit="registrarDesparasitacion(event)" class="mod-grid mt-3">
+                        <label class="mod-field">Protocolo
+                            <select id="desp-tipo" class="mod-input"><option value="destete">Destete (1ª dosis hoy, 2ª a los 7-10 días)</option><option value="repro">Reproductoras (próximo control a 3 meses)</option></select>
+                        </label>
+                        <label class="mod-field">Lote o poza
+                            <input type="text" id="desp-lote" maxlength="60" class="mod-input" placeholder="Ej. Poza 3">
+                        </label>
+                        <label class="mod-field">Fecha de aplicación
+                            <input type="date" id="desp-fecha" required class="mod-input">
+                        </label>
+                        <button type="submit" class="self-end rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-800">⏰ Registrar y programar alerta</button>
+                    </form>
+                    <button type="button" onclick="switchView('bajas')" class="mt-3 rounded-xl border-2 border-stone-400 bg-white px-4 py-2 text-sm font-bold text-stone-800">Calcular la dosis en Dr. Cuy IA</button>
+                    <div id="desp-lista" class="mt-4 space-y-2" aria-live="polite"></div>
                 </section>
             </div>
 
@@ -2547,6 +2565,7 @@
                 salud: 'Kardex Sanitario y de Insumos',
                 guia: 'Guía Técnica INIA',
                 bioseguridad: 'Bioseguridad y Prevención',
+                desparasitacion: 'Desparasitación y Alertas de Segunda Dosis',
                 pesos: 'Control de Pesos y Curva de Crecimiento',
                 racion: 'Ración y Forraje',
                 formulacion: 'Formulación de Raciones',
@@ -2561,6 +2580,7 @@
             
             if (viewName === 'racion') sincronizarRacionPozas();
             if (viewName === 'formulacion') renderFormulacion();
+            if (viewName === 'desparasitacion') { const f = document.getElementById('desp-fecha'); if (f && !f.value) f.value = fechaHoy(); renderAlertasSanidad(); }
             if (viewName === 'escala') calcularEscala();
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
@@ -4270,7 +4290,6 @@
             tina: { calc: [['griseofulvina', 'oral cada 24 h, solo en casos extensos']], fijo: ['miconazol o clotrimazol tópico 1-2 veces al día'] }
         };
         let zonaDrCuyActual = null;
-        let zonaConcPoblada = null;
 
         function pesoDrCuyKg() {
             const v = Number(document.getElementById('baja-peso-dr').value);
@@ -4294,99 +4313,69 @@
             if (/tópic|polvo|pomada/i.test(t)) return VIA_TOPICA;
             return '';
         }
-        let drogaConcPoblada = null;
+        const DONDE_VIA = { [VIA_INY]: 'pliegue del cuello', [VIA_INY_IM]: 'músculo del muslo', [VIA_ORAL]: 'directo a la boca con jeringa sin aguja', [VIA_TOPICA]: 'sobre la zona afectada' };
 
-        // Autoselecciona el fármaco propio de la patología (sin cruces) y rellena sus concentraciones.
-        function prepararConcentracionDrCuy(zona) {
-            const selD = document.getElementById('baja-droga-dr');
-            const selC = document.getElementById('baja-conc-dr');
+        // Filas de dosis del protocolo con el peso ingresado y la concentración estándar de cada fármaco.
+        function filasDosisDrCuy(zona, guia) {
             const d = DOSIS_DR_CUY[zona];
-            const clave = d && d.calc[0][0];
-            const dr = clave && DROGAS_DR_CUY[clave];
-            if (!dr) {
-                selD.replaceChildren(new Option('Sin fármaco por peso', ''));
-                selC.replaceChildren(new Option('—', ''));
-                selD.disabled = selC.disabled = true;
-                zonaConcPoblada = zona; drogaConcPoblada = null;
-                return null;
-            }
-            selD.replaceChildren(new Option(dr.nombre, clave, true, true));
-            selD.disabled = true;
-            if (!dr.conc) {
-                selC.replaceChildren(new Option('—', ''));
-                selC.disabled = true; zonaConcPoblada = zona; drogaConcPoblada = clave;
-                return { clave, conc: 0 };
-            }
-            if (zonaConcPoblada !== zona || drogaConcPoblada !== clave) {
-                selC.replaceChildren(...dr.conc.map(c => new Option(`${c}%`, String(c), false, c === dr.std)));
-                zonaConcPoblada = zona; drogaConcPoblada = clave;
-            }
-            selC.disabled = false;
-            return { clave, conc: Number(selC.value) || dr.std };
-        }
-
-        // Dosis en ml del fármaco principal del protocolo según peso y concentración elegidos.
-        function dosisPrincipalDrCuy(zona) {
+            if (!d) return [{ texto: guia.farmaco_dosis }];
             const kg = pesoDrCuyKg();
-            const sel = prepararConcentracionDrCuy(zona);
-            const dr = DROGAS_DR_CUY[sel.clave];
-            const mlKg = dr.mlKg || dr.mgkg / (sel.conc * 10);
-            return { dr, kg, conc: sel.conc, mlKg, ml: kg ? mlKg * kg : 0 };
+            const filas = d.calc.map(([clave, via]) => {
+                const dr = DROGAS_DR_CUY[clave];
+                const oral = via.startsWith('oral');
+                const tag = clave === 'griseofulvina' || oral ? VIA_ORAL : tagVia(via);
+                const titulo = dr.conc ? `${dr.nombre} ${dr.std}%` : dr.nombre;
+                let dosis;
+                if (dr.mlKg) dosis = kg ? `${(dr.mlKg * kg).toFixed(2)} ml` : `${dr.rango}`;
+                else if (!dr.conc) dosis = kg ? `${(dr.mgkg * kg).toFixed(0)} mg` : `${dr.mgkg} mg por kg`;
+                else {
+                    const mlKg = dr.mgkg / (dr.std * 10);
+                    const ml = mlKg * kg;
+                    dosis = kg ? `${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${ml < 1 ? ` (${(ml * 100).toFixed(1)} unidades en jeringa de insulina U-100)` : ''}` : `${mlKg.toFixed(3)} ml por kg`;
+                }
+                const nota = (via.match(/cada [\d-]+ h/) || [''])[0];
+                return { titulo, dosis, tag, donde: DONDE_VIA[tag] || '', nota };
+            });
+            d.fijo.forEach(f => { const tag = tagVia(f); filas.push({ texto: f, tag, donde: DONDE_VIA[tag] || '' }); });
+            return filas;
         }
 
         function textoDosisDrCuy(zona, guia) {
-            const d = DOSIS_DR_CUY[zona];
-            if (!d) return guia.farmaco_dosis;
-            const kg = pesoDrCuyKg();
-            const sel = prepararConcentracionDrCuy(zona);
-            const partes = d.calc.map(([clave, via]) => {
-                const dr = DROGAS_DR_CUY[clave];
-                const ref = ` Opciones comerciales (mismo principio activo): ${dr.marcas}.`;
-                const oral = via.startsWith('oral');
-                const tag = clave === 'griseofulvina' || oral ? VIA_ORAL : tagVia(via);
-                if (dr.mlKg) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mlKg * kg).toFixed(2)} ml (${dr.rango}), ${via}.${ref}` : `${tag} ${dr.nombre}: ${dr.rango}, ${via}.${ref}`;
-                if (!dr.conc) return kg ? `${tag} ${dr.nombre}: ADMINISTRAR ${(dr.mgkg * kg).toFixed(0)} mg (${dr.mgkg} mg/kg × ${(kg * 1000).toFixed(0)} g), ${via}.${ref}` : `${tag} ${dr.nombre}: ${dr.mgkg} mg por kg de peso vivo, ${via}.${ref}`;
-                const mgMl = sel.conc * 10;
-                const mlKg = dr.mgkg / mgMl;
-                const etiqueta = `${dr.nombre} ${sel.conc}%`;
-                if (!kg) return `${tag} ${etiqueta}: ${mlKg.toFixed(3)} ml por kg de peso vivo (${dr.mgkg} mg/kg ÷ ${mgMl} mg/ml), ${via}. Para dosis menores de 1 ml usa siempre jeringa de insulina U-100.${ref}`;
-                const ml = mlKg * kg;
-                const jeringa = ml < 1 ? ` = ${(ml * 100).toFixed(1)} unidades en JERINGA DE INSULINA U-100 (uso obligatorio${oral ? ', sin aguja' : ''})` : '';
-                return `${tag} ${etiqueta}: ${oral ? 'ADMINISTRAR' : 'INYECTAR'} ${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml${jeringa}, ${via}. Cálculo: ${dr.mgkg} mg/kg × ${kg} kg ÷ ${mgMl} mg/ml.${ref}`;
-            });
-            return [...partes, ...d.fijo.map(f => `${tagVia(f)} ${f}`.trim())].join(' + ');
+            return filasDosisDrCuy(zona, guia).map(f => f.texto ? `${f.tag || ''} ${f.texto}`.trim() : `${f.tag} ${f.titulo}: ${f.dosis}${f.donde ? ` (${f.donde})` : ''}`).join(' + ');
         }
 
-        // Tarjetas directas: destete y reproductoras muestran solo las inyecciones con su dosis y la alerta de repetición.
-        function mostrarTarjetaDrCuy(zona) {
-            const { dr, kg, conc, mlKg, ml } = dosisPrincipalDrCuy(zona);
-            const destete = zona === 'destete';
+        // Tarjeta limpia: dosis al peso, vía y lugar de aplicación; el detalle clínico queda plegado.
+        function mostrarTarjetaDrCuy(zona, guia) {
             const el = (tag, clase, texto) => { const n = document.createElement(tag); if (clase) n.className = clase; if (texto !== undefined) n.textContent = texto; return n; };
-            const mlTxt = !kg ? `${mlKg.toFixed(3)} ml por kg (escribe el peso para el cálculo exacto)` : `${ml < 0.1 ? ml.toFixed(3) : ml.toFixed(2)} ml (${(ml * 100).toFixed(1)} unidades en jeringa de insulina U-100)`;
-            const fila = (nombre, dosis) => {
-                const p = el('p', 'rounded-lg bg-white px-3 py-2 border border-emerald-200');
-                p.append(el('strong', '', `💉 ${nombre}: `), `${dosis} | Vía: `, el('strong', 'rounded bg-emerald-700 px-1 text-white', 'Subcutánea (pliegue del cuello)'));
+            const badge = t => el('strong', 'rounded bg-emerald-700 px-1 text-white', t);
+            const filas = filasDosisDrCuy(zona, guia).map(f => {
+                const p = el('p', 'rounded-lg border border-emerald-200 bg-white px-3 py-2');
+                if (f.texto) { p.append(...(f.tag ? [badge(f.tag), ' '] : []), f.texto, ...(f.donde ? [` | Dónde: ${f.donde}`] : [])); return p; }
+                p.append(el('strong', '', `${f.tag.startsWith('[💧') ? '💧' : '💉'} ${f.titulo}: `), f.dosis, ' | Vía: ', badge(f.tag), ` (${f.donde})`, ...(f.nota ? [` · ${f.nota}`] : []));
                 return p;
-            };
+            });
             const hoy = fechaHoy();
-            const alerta = el('div', 'rounded-lg border-2 border-amber-400 bg-amber-50 p-3 font-semibold text-amber-900');
-            const boton = el('button', 'mt-2 min-h-11 rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white', '⏰ Programar alerta en el panel');
-            boton.type = 'button';
-            if (destete) {
-                alerta.textContent = `⏰ SEGUNDA DOSIS: de 7 a 10 días después (entre ${sumarDias(hoy, 7)} y ${sumarDias(hoy, 10)}) aplica SOLO Ivermectina, recalculada al nuevo peso del cuy. Sin vitaminas.`;
-                boton.addEventListener('click', () => programarAlertaSanidad('destete'));
-            } else {
-                alerta.textContent = `⏰ Repite cada 3 meses o 7-10 días antes del empadre. Próximo control: ${sumarDias(hoy, 90)}. ⚠️ No aplicar en el último tercio de gestación sin indicación del veterinario.`;
-                boton.addEventListener('click', () => programarAlertaSanidad('repro'));
+            const piezas = [el('p', 'text-lg font-extrabold text-emerald-900', guia.enfermedad), ...filas];
+            if (DOSIS_DR_CUY[zona] && !pesoDrCuyKg()) piezas.push(el('p', 'text-sm font-semibold text-amber-900', 'Escribe el peso arriba para ver los ml exactos.'));
+            if (zona === 'destete' || zona === 'reproductoras') {
+                const destete = zona === 'destete';
+                const alerta = el('div', 'rounded-lg border-2 border-amber-400 bg-amber-50 p-3 font-semibold text-amber-900');
+                alerta.textContent = destete
+                    ? `⏰ SEGUNDA DOSIS: de 7 a 10 días después (entre ${sumarDias(hoy, 7)} y ${sumarDias(hoy, 10)}) aplica SOLO Ivermectina, recalculada al nuevo peso del cuy. Sin vitaminas.`
+                    : `⏰ Repite cada 3 meses o antes del empadre. Próximo control: ${sumarDias(hoy, 90)}. ⚠️ No aplicar en el último tercio de gestación sin indicación del veterinario.`;
+                const boton = el('button', 'mt-2 min-h-11 rounded-lg bg-amber-600 px-4 py-2 text-sm font-bold text-white', '⏰ Programar alerta en Desparasitación');
+                boton.type = 'button';
+                boton.addEventListener('click', () => programarAlertaSanidad(destete ? 'destete' : 'repro'));
+                alerta.append(document.createElement('br'), boton);
+                piezas.push(alerta);
             }
-            alerta.append(document.createElement('br'), boton);
-            document.getElementById('baja-result-lineas').replaceChildren(
-                el('p', 'text-lg font-extrabold text-emerald-900', destete ? 'Destete: día de la primera aplicación (3 inyecciones)' : 'Reproductoras adultas: ivermectina y refuerzo vitamínico'),
-                fila(`${dr.nombre} ${conc}%`, mlTxt),
-                fila('Complejo B', '0.2 ml'),
-                fila('Vitamina C', '0.2 ml'),
-                alerta
-            );
+            const detalle = el('details', 'rounded-lg border border-stone-300 bg-white px-3 py-2');
+            detalle.append(el('summary', 'cursor-pointer text-sm font-bold text-stone-800', 'Ver días, acción en poza y prevención'));
+            [['Días', guia.dias], ['Acción inmediata en poza', guia.accion], ['Prevención', guia.prevencion]].forEach(([t, v]) => {
+                const l = el('p', 'mt-1 text-sm'); l.append(el('strong', '', `${t}: `), v || '—'); detalle.append(l);
+            });
+            piezas.push(detalle);
+            document.getElementById('baja-result-lineas').replaceChildren(...piezas);
             document.getElementById('baja-results').classList.remove('hidden');
         }
 
@@ -4395,15 +4384,21 @@
             try { const a = JSON.parse(leerAlmacenamiento(ALERTAS_SANIDAD_CLAVE) || '[]'); return Array.isArray(a) ? a : []; } catch (error) { return []; }
         }
 
-        function programarAlertaSanidad(tipo) {
-            const hoy = fechaHoy();
+        function programarAlertaSanidad(tipo, fecha = fechaHoy(), lote = '') {
             const alertas = leerAlertasSanidad();
+            const pref = lote ? `${lote}: ` : '';
             alertas.push(tipo === 'destete'
-                ? { id: Date.now(), desde: sumarDias(hoy, 7), hasta: sumarDias(hoy, 10), texto: 'Segunda dosis de Ivermectina (SOLO ivermectina, sin vitaminas; recalcular al nuevo peso)' }
-                : { id: Date.now(), desde: sumarDias(hoy, 90), hasta: sumarDias(hoy, 90), texto: 'Control de reproductoras: Ivermectina + Complejo B + Vitamina C' });
+                ? { id: Date.now(), desde: sumarDias(fecha, 7), hasta: sumarDias(fecha, 10), texto: `${pref}2ª dosis de Ivermectina (SOLO ivermectina, sin vitaminas; recalcular al nuevo peso)` }
+                : { id: Date.now(), desde: sumarDias(fecha, 90), hasta: sumarDias(fecha, 90), texto: `${pref}control de reproductoras: Ivermectina + Complejo B + Vitamina C` });
             escribirAlmacenamiento(ALERTAS_SANIDAD_CLAVE, JSON.stringify(alertas.slice(-50)));
             renderAlertasSanidad();
-            mostrarToast('Alerta programada en el panel principal');
+            mostrarToast('Alerta programada en Desparasitación y en el tablero');
+        }
+
+        function registrarDesparasitacion(e) {
+            e.preventDefault();
+            programarAlertaSanidad(document.getElementById('desp-tipo').value, document.getElementById('desp-fecha').value || fechaHoy(), document.getElementById('desp-lote').value.trim().slice(0, 60));
+            document.getElementById('desp-lote').value = '';
         }
 
         function completarAlertaSanidad(id) {
@@ -4412,9 +4407,10 @@
         }
 
         function renderAlertasSanidad() {
-            const cont = document.getElementById('alertas-sanidad-lista');
-            if (!cont) return;
             const alertas = leerAlertasSanidad().sort((a, b) => a.desde.localeCompare(b.desde));
+            ['alertas-sanidad-lista', 'desp-lista'].forEach(idCont => {
+            const cont = document.getElementById(idCont);
+            if (!cont) return;
             cont.replaceChildren(...alertas.map(a => {
                 const faltan = diasHasta(a.desde);
                 const vencida = diasHasta(a.hasta) < 0;
@@ -4428,6 +4424,7 @@
                 p.append(`💉 ${a.texto} · ${a.desde === a.hasta ? a.desde : `${a.desde} a ${a.hasta}`} · ${estado} `, hecho);
                 return p;
             }));
+            });
         }
 
         function recalcularZonaDrCuy() {
@@ -4448,7 +4445,7 @@
                 prevencion_diaria: guia.prevencion,
                 tratamiento_manejo: `${guia.farmaco_dosis}. ${guia.dias}`
             };
-            if (zona === 'destete' || zona === 'reproductoras') mostrarTarjetaDrCuy(zona); else mostrarDiagnosticoDrCuy(guia);
+            mostrarTarjetaDrCuy(zona, guia);
             estadoDrCuy('Diagnóstico listo');
             document.getElementById('baja-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -4492,9 +4489,6 @@
 
         function limpiarFotoBaja() {
             zonaDrCuyActual = null;
-            zonaConcPoblada = null;
-            drogaConcPoblada = null;
-            prepararConcentracionDrCuy(null);
             bajaFotoVersion++;
             fotoClinicaAnalizadaBase64 = '';
             bajaAnalisisActual = null;
