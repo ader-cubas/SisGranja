@@ -1785,14 +1785,8 @@
                         <label class="mod-field">Cuyes destetados / crías (actual)
                             <input type="number" id="racion-crias" min="0" step="1" inputmode="numeric" oninput="calcularRacion()" class="mod-input" placeholder="Ej. 30">
                         </label>
-                        <label class="mod-field">Forraje por adulto (g/día)
-                            <input type="number" id="racion-g-adulto" min="0" step="5" value="315" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
-                        </label>
-                        <label class="mod-field">Forraje por recría (g/día, 150–200)
-                            <input type="number" id="racion-g-recria" min="0" step="5" value="175" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
-                        </label>
-                        <label class="mod-field">Forraje por cría (g/día)
-                            <input type="number" id="racion-g-crias" min="0" step="5" value="100" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
+                        <label class="mod-field">Forraje por animal (g/día)
+                            <input type="number" id="racion-g-forraje" min="0" step="5" value="300" inputmode="numeric" oninput="calcularRacion()" class="mod-input">
                         </label>
                         <label class="mod-field">Tipo de forraje
                             <select id="racion-forraje" onchange="calcularRacion()" class="mod-input">
@@ -2647,9 +2641,9 @@
             const ent = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
             const adultos = ent('racion-adultos'), recria = ent('racion-recria'), crias = ent('racion-crias');
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
-            const gAdulto = num('racion-g-adulto'), cAdulto = num('racion-c-adulto');
-            const gRecria = num('racion-g-recria'), cRecria = num('racion-c-recria');
-            const gCrias = num('racion-g-crias'), cCrias = num('racion-c-crias');
+            const gAdulto = num('racion-g-forraje'), cAdulto = num('racion-c-adulto');
+            const gRecria = num('racion-g-forraje'), cRecria = num('racion-c-recria');
+            const gCrias = num('racion-g-forraje'), cCrias = num('racion-c-crias');
             const forraje = document.getElementById('racion-forraje').value;
             const fA = adultos * gAdulto, fR = recria * gRecria, fC = crias * gCrias;
             const cA = adultos * cAdulto, cR = recria * cRecria, cC = crias * cCrias;
@@ -2681,7 +2675,7 @@
             document.getElementById('racion-conc-adulto-total').textContent = `${adultos} adultos: ${kg(cA)} kg/día`;
             document.getElementById('racion-conc-crias-total').textContent = `${crias} crías: ${kg(cC)} kg/día`;
             document.getElementById('racion-conc-recria-total').textContent = `${recria} en recría: ${kg(cR)} kg/día`;
-            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, proyeccion, sync: document.getElementById('racion-sync').checked }));
+            escribirAlmacenamiento('sisgranja_racion_inia', JSON.stringify({ adultos, recria, crias, gForraje: gAdulto, gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias, forraje, proyeccion, sync: document.getElementById('racion-sync').checked }));
             calcularAlmacen();
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
   }
@@ -2911,9 +2905,9 @@
             if (!salida) return;
             const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
             const cats = [
-                ['Adultos', Math.floor(num('racion-adultos')), num('racion-g-adulto'), num('racion-c-adulto')],
-                ['Recría / engorde', Math.floor(num('racion-recria')), num('racion-g-recria'), num('racion-c-recria')],
-                ['Destetados / crías', Math.floor(num('racion-crias')), num('racion-g-crias'), num('racion-c-crias')]
+                ['Adultos', Math.floor(num('racion-adultos')), num('racion-g-forraje'), num('racion-c-adulto')],
+                ['Recría / engorde', Math.floor(num('racion-recria')), num('racion-g-forraje'), num('racion-c-recria')],
+                ['Destetados / crías', Math.floor(num('racion-crias')), num('racion-g-forraje'), num('racion-c-crias')]
             ];
             const animales = cats.reduce((s, c) => s + c[1], 0);
             const tipo = document.getElementById('alm-tipo').value;
@@ -3121,11 +3115,11 @@
                     document.getElementById('racion-adultos').value = guardado.adultos || '';
                     document.getElementById('racion-recria').value = guardado.recria || '';
                     document.getElementById('racion-crias').value = guardado.crias || '';
-                    document.getElementById('racion-g-adulto').value = guardado.gAdulto ?? 315;
+                    document.getElementById('racion-g-forraje').value = guardado.gForraje ?? 300;
                     document.getElementById('racion-c-adulto').value = guardado.cAdulto ?? 30;
-                    document.getElementById('racion-g-recria').value = guardado.gRecria ?? 175;
+                    
                     document.getElementById('racion-c-recria').value = guardado.cRecria ?? 15;
-                    document.getElementById('racion-g-crias').value = guardado.gCrias ?? 100;
+                    
                     document.getElementById('racion-c-crias').value = guardado.cCrias ?? 12.5;
                     document.getElementById('racion-proyeccion').value = guardado.proyeccion ?? 500;
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
@@ -5382,7 +5376,7 @@
             }
             function gramosRacion() {
                 const n = id => Number((document.getElementById(id) || {}).value) || 0;
-                return { fa: n('racion-g-adulto'), ca: n('racion-c-adulto'), fr: n('racion-g-recria'), cr: n('racion-c-recria'), fc: n('racion-g-crias'), cc: n('racion-c-crias') };
+                return { fa: n('racion-g-forraje'), ca: n('racion-c-adulto'), fr: n('racion-g-forraje'), cr: n('racion-c-recria'), fc: n('racion-g-forraje'), cc: n('racion-c-crias') };
             }
 
             const DATOS = [
