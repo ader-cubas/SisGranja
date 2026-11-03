@@ -835,6 +835,9 @@
                 <button onclick="switchView('racion')" id="nav-racion" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-leaf text-lg"></i><span>Ración y Forraje</span>
                 </button>
+                <button onclick="switchView('formulacion')" id="nav-formulacion" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-flask text-lg"></i><span>Formulación de Raciones</span>
+                </button>
                 <button onclick="switchView('escala')" id="nav-escala" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-plant text-lg"></i><span>Escala y Siembra</span>
                 </button>
@@ -1830,45 +1833,6 @@
                     </div>
                 </section>
 
-                <section class="mod-card" aria-labelledby="formula-titulo">
-                    <h3 id="formula-titulo" class="mod-title">🧮 Fórmula de concentrado y costos</h3>
-                    <p class="mod-hint">Registra los insumos del lote preparado: el costo por kilo y por quintal (46 kg) se calcula solo.</p>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-base">
-                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Insumo</th><th class="p-2">Cantidad (kg)</th><th class="p-2">Costo unitario (S/ por kg)</th><th class="p-2">Costo total (S/)</th><th class="p-2"><span class="sr-only">Quitar</span></th></tr></thead>
-                            <tbody id="formula-filas"></tbody>
-                        </table>
-                    </div>
-                    <button type="button" onclick="agregarFilaFormula()" class="mt-3 rounded-xl border-2 border-emerald-600 bg-white px-4 py-2 text-sm font-bold text-emerald-900">+ Agregar insumo</button>
-                    <div id="formula-resumen" class="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 shadow-sm text-base sm:text-lg" aria-live="polite"></div>
-                    <div class="mt-4 rounded-lg border border-stone-300 bg-white p-4 shadow-sm">
-                        <h4 class="text-lg font-extrabold text-stone-900">Registrar el costo en Gastos Operativos</h4>
-                        <div class="mod-grid mt-2">
-                            <label class="mod-field">Fecha del lote
-                                <input type="date" id="formula-fecha" class="mod-input">
-                            </label>
-                            <label class="mod-field">Período (opcional, ej. Semana 45 o Noviembre 2026)
-                                <input type="text" id="formula-periodo" maxlength="60" class="mod-input" placeholder="Ej. Noviembre 2026">
-                            </label>
-                        </div>
-                        <div class="mt-3 flex flex-wrap gap-3">
-                            <button type="button" onclick="registrarFormulaEnGastos()" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">💰 Sumar costo total a Gastos Operativos</button>
-                            <button type="button" onclick="switchView('gastos')" class="rounded-xl border-2 border-stone-400 bg-white px-4 py-2 text-sm font-bold text-stone-800">Ver Gastos Operativos</button>
-                        </div>
-                    </div>
-                    <details class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4" open>
-                        <summary class="cursor-pointer text-lg font-extrabold text-amber-900">📋 Guía de mezclado manual</summary>
-                        <ol class="mt-2 list-decimal space-y-1 pl-5 text-base sm:text-lg">
-                            <li>Pesa cada insumo con balanza según la tabla; no mezcles "a ojo".</li>
-                            <li>Premezcla primero los ingredientes de poca cantidad (sal, minerales, vitamina C) con una porción pequeña del insumo más fino.</li>
-                            <li>Extiende los insumos en capas sobre un piso limpio o lona: primero los más abundantes y encima la premezcla.</li>
-                            <li>Voltea la mezcla con pala de 3 a 4 veces hasta que se vea uniforme.</li>
-                            <li>Guarda en sacos limpios sobre parihuelas, en lugar seco y ventilado, y rotula la fecha de preparación.</li>
-                            <li>Confirma la fórmula con un zootecnista o médico veterinario antes de usarla.</li>
-                        </ol>
-                    </details>
-                </section>
-
                 <section class="mod-card">
                     <aside class="mt-4 rounded-2xl border-2 border-red-400 bg-red-50 p-4 text-stone-900" role="note" aria-label="Técnica del oreado">
                         <p class="text-lg font-extrabold text-red-900">⚠️ Técnica del oreado (obligatoria)</p>
@@ -1891,6 +1855,89 @@
                     <h4 class="mt-6 text-xl font-extrabold text-emerald-900">Resumen general de la granja</h4>
                     <p class="mod-hint">Suma de toda la población actual, agrupada por etapa. Alimento requerido por día.</p>
                     <div id="racion-desglose" class="flex flex-col gap-3"></div>
+                </section>
+            </div>
+
+            <!-- FORMULACIÓN DE RACIONES -->
+            <div id="view-formulacion" class="space-y-6 view-section hidden">
+                <section class="mod-card">
+                    <h3 class="mod-title">🧮 Formulación de raciones</h3>
+                    <p class="mod-hint">Arma la fórmula de concentrado de cada etapa, calcula su costo por kilo y por quintal (46 kg) y estima cuánto necesita tu granja.</p>
+                    <div class="mod-grid">
+                        <label class="mod-field">Población a usar
+                            <select id="form-modo" onchange="calcularFormulacion()" class="mod-input">
+                                <option value="actual">Población total actual (pozas)</option>
+                                <option value="proyeccion">Modo proyección (reproductoras madres)</option>
+                            </select>
+                        </label>
+                        <label id="form-madres-caja" class="mod-field hidden">Número de reproductoras madres (ej. 100, 500)
+                            <input type="number" id="form-madres" min="1" step="1" value="100" inputmode="numeric" oninput="calcularFormulacion()" class="mod-input">
+                        </label>
+                    </div>
+                    <p id="form-poblacion" class="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-base font-semibold text-emerald-900" aria-live="polite"></p>
+                </section>
+
+                <section class="mod-card" aria-labelledby="form-etapa-titulo">
+                    <h3 id="form-etapa-titulo" class="mod-title">Etapa productiva</h3>
+                    <div id="form-tabs" class="flex flex-wrap gap-2" role="group" aria-label="Etapas productivas"></div>
+
+                    <div class="mod-grid mt-4">
+                        <label class="mod-field">Lote base (kg)
+                            <input type="number" id="form-base" min="1" step="1" value="100" inputmode="decimal" oninput="calcularFormulacion()" class="mod-input">
+                        </label>
+                        <label class="mod-field">Consumo por animal (g/día)
+                            <input type="number" id="form-gdia" min="0" step="0.5" value="30" inputmode="decimal" oninput="calcularFormulacion()" class="mod-input">
+                        </label>
+                    </div>
+                    <div class="mt-4 overflow-x-auto">
+                        <table class="w-full text-left text-base">
+                            <thead class="bg-emerald-50 text-emerald-900"><tr><th class="p-2">Insumo</th><th class="p-2">Cantidad (kg)</th><th class="p-2">Costo unitario (S/ por kg)</th><th class="p-2">Costo total (S/)</th><th class="p-2"><span class="sr-only">Quitar</span></th></tr></thead>
+                            <tbody id="form-filas"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-3">
+                        <button type="button" onclick="agregarFilaFormulacion()" class="rounded-xl border-2 border-emerald-600 bg-white px-4 py-2 text-sm font-bold text-emerald-900">+ Agregar insumo</button>
+                        <button type="button" onclick="ajustarFormulacionABase()" class="rounded-xl border-2 border-stone-400 bg-white px-4 py-2 text-sm font-bold text-stone-800">Ajustar cantidades al lote base</button>
+                    </div>
+
+                    <div id="form-resumen" class="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 shadow-sm text-base sm:text-lg" aria-live="polite"></div>
+                    <div id="form-consumo" class="mt-4 rounded-lg border border-teal-300 bg-teal-50 p-4 shadow-sm text-base sm:text-lg" aria-live="polite"></div>
+
+                    <div class="mt-4 rounded-lg border border-stone-300 bg-white p-4 shadow-sm">
+                        <h4 class="text-lg font-extrabold text-stone-900">Registrar el costo en Gastos Operativos</h4>
+                        <div class="mod-grid mt-2">
+                            <label class="mod-field">Fecha del lote
+                                <input type="date" id="form-fecha" class="mod-input">
+                            </label>
+                            <label class="mod-field">Período (opcional, ej. Semana 45 o Noviembre 2026)
+                                <input type="text" id="form-periodo" maxlength="60" class="mod-input" placeholder="Ej. Noviembre 2026">
+                            </label>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-3">
+                            <button type="button" onclick="registrarFormulacionEnGastos()" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">💰 Sumar costo total del lote a Gastos Operativos</button>
+                            <button type="button" onclick="switchView('gastos')" class="rounded-xl border-2 border-stone-400 bg-white px-4 py-2 text-sm font-bold text-stone-800">Ver Gastos Operativos</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mod-card" aria-labelledby="form-todas-titulo">
+                    <h3 id="form-todas-titulo" class="mod-title">Resumen de todas las etapas</h3>
+                    <div id="form-todas" class="flex flex-col gap-3" aria-live="polite"></div>
+                </section>
+
+                <section class="mod-card">
+                    <details class="rounded-lg border border-amber-300 bg-amber-50 p-4" open>
+                        <summary class="cursor-pointer text-lg font-extrabold text-amber-900">📋 Guía de mezclado manual</summary>
+                        <ol class="mt-2 list-decimal space-y-2 pl-5 text-base sm:text-lg">
+                            <li><strong>Pesa</strong> cada insumo con balanza según la tabla; no mezcles a ojo.</li>
+                            <li><strong>Premezcla:</strong> mezcla el núcleo o los microingredientes (vitaminas, minerales, vitamina C, sal) con unos 5 a 10 kg de polvo seco (polvillo o afrecho) hasta que no se distingan.</li>
+                            <li><strong>Capas de secos:</strong> extiende sobre una lona o piso limpio los insumos secos en capas, del que tiene mayor volumen al de menor volumen (por ejemplo maíz, afrecho, alfalfa molida, torta de soya) y, encima, la premezcla.</li>
+                            <li><strong>Melaza:</strong> diluye la melaza en un poco de agua tibia y riégala en forma de lluvia sobre la mezcla mientras volteas, sin formar grumos ni empapar.</li>
+                            <li><strong>Volteo y homogenización:</strong> voltea con pala de 3 a 4 veces, de un extremo al otro, hasta que el color y la textura sean uniformes.</li>
+                            <li><strong>Almacena</strong> en sacos limpios sobre parihuelas, en lugar seco y ventilado, y rotula la fecha de preparación.</li>
+                        </ol>
+                        <p class="mt-3 text-sm font-semibold text-amber-900">Confirma cada fórmula con un zootecnista o médico veterinario antes de usarla.</p>
+                    </details>
                 </section>
             </div>
 
@@ -2457,6 +2504,7 @@
                 bioseguridad: 'Bioseguridad y Prevención',
                 pesos: 'Control de Pesos y Curva de Crecimiento',
                 racion: 'Ración y Forraje',
+                formulacion: 'Formulación de Raciones',
                 escala: 'Escala y Siembra de Forraje por Bloques'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
@@ -2467,6 +2515,7 @@
             }
             
             if (viewName === 'racion') sincronizarRacionPozas();
+            if (viewName === 'formulacion') renderFormulacion();
             if (viewName === 'escala') calcularEscala();
             if (viewName === 'dashboard') {
                 setTimeout(actualizarGraficos, 50);
@@ -2697,71 +2746,187 @@
             renderDesgloseRacion({ gAdulto, cAdulto, gRecria, cRecria, gCrias, cCrias });
   }
 
-        // ===== Fórmula de concentrado y costos =====
-        const FORMULA_CLAVE = 'sisgranja_formula';
+        // ===== Formulación de raciones =====
+        const FORMULA_CLAVE = 'sisgranja_formulas';
         const QUINTAL_KG = 46;
-        const INSUMOS_BASE = ['Maíz molido', 'Polvillo de arroz', 'Torta de soya', 'Harina de alfalfa', 'Sal y minerales'];
+        const DIAS_DESTETADOS = 28;
+        const ETAPAS_FORMULA = [
+            { id: 'repro', nombre: 'Reproductoras', fuente: 'racion-c-adulto', defecto: 30 },
+            { id: 'gazapos', nombre: 'Gazapos / Lactantes', fuente: 'racion-c-crias', defecto: 12.5 },
+            { id: 'destetados', nombre: 'Destetados', fuente: 'racion-c-recria', defecto: 15 },
+            { id: 'recria', nombre: 'Recría / Engorde', fuente: 'racion-c-recria', defecto: 15 }
+        ];
+        const INSUMOS_BASE = ['Maíz molido', 'Alfalfa molida', 'Afrecho', 'Torta de soya', 'Polvillo', 'Soya integral', 'Núcleo con vitamina C', 'Melaza'];
+        let formulas = null;
+        let etapaFormula = 'repro';
 
-        function agregarFilaFormula(dato = {}) {
-            const cuerpo = document.getElementById('formula-filas');
+        function cargarFormulaciones() {
+            let guardado = {};
+            try { guardado = JSON.parse(leerAlmacenamiento(FORMULA_CLAVE) || '{}') || {}; } catch (error) { /* datos corruptos: se ignoran */ }
+            formulas = {};
+            ETAPAS_FORMULA.forEach(e => {
+                const g = guardado[e.id] || {};
+                const desdeRacion = Number(document.getElementById(e.fuente)?.value);
+                formulas[e.id] = {
+                    base: Number(g.base) > 0 ? Number(g.base) : 100,
+                    gDia: Number.isFinite(Number(g.gDia)) && g.gDia !== undefined ? Number(g.gDia) : (desdeRacion >= 0 && document.getElementById(e.fuente)?.value !== '' ? desdeRacion : e.defecto),
+                    filas: Array.isArray(g.filas) && g.filas.length ? g.filas.map(f => ({ nombre: String(f.nombre || '').slice(0, 60), kg: Math.max(0, Number(f.kg) || 0), costo: Math.max(0, Number(f.costo) || 0) })) : INSUMOS_BASE.map(nombre => ({ nombre, kg: 0, costo: 0 }))
+                };
+            });
+            const fecha = document.getElementById('form-fecha');
+            if (fecha && !fecha.value) fecha.value = fechaHoy();
+            renderFormulacion();
+        }
+
+        function elegirEtapaFormulacion(id) {
+            if (!formulas) cargarFormulaciones();
+            etapaFormula = id;
+            renderFormulacion();
+        }
+
+        function renderFormulacion() {
+            if (!formulas) { cargarFormulaciones(); return; }
+            const cont = document.getElementById('form-tabs');
+            if (!cont) return;
+            cont.replaceChildren(...ETAPAS_FORMULA.map(e => {
+                const b = document.createElement('button');
+                b.type = 'button'; b.textContent = e.nombre;
+                const activa = e.id === etapaFormula;
+                b.setAttribute('aria-pressed', String(activa));
+                b.className = `rounded-xl border-2 border-emerald-600 px-4 py-2 text-sm font-bold ${activa ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-900'}`;
+                b.addEventListener('click', () => elegirEtapaFormulacion(e.id));
+                return b;
+            }));
+            const f = formulas[etapaFormula];
+            const etapa = ETAPAS_FORMULA.find(e => e.id === etapaFormula);
+            document.getElementById('form-etapa-titulo').textContent = `Etapa productiva: ${etapa.nombre}`;
+            document.getElementById('form-base').value = f.base;
+            document.getElementById('form-gdia').value = f.gDia;
+            document.getElementById('form-filas').replaceChildren();
+            f.filas.forEach(fila => agregarFilaFormulacion(fila));
+            calcularFormulacion();
+        }
+
+        function agregarFilaFormulacion(dato) {
+            const cuerpo = document.getElementById('form-filas');
+            const nueva = !dato;
+            dato = dato || { nombre: '', kg: 0, costo: 0 };
             const tr = document.createElement('tr');
             tr.className = 'border-t border-stone-200';
             const celda = hijo => { const td = document.createElement('td'); td.className = 'p-2'; td.append(hijo); return td; };
             const campo = (tipo, valor, etiqueta) => {
                 const el = document.createElement('input');
-                el.type = tipo; el.value = valor ?? ''; el.className = 'mod-input'; el.setAttribute('aria-label', etiqueta);
-                if (tipo === 'number') { el.min = '0'; el.step = '0.01'; el.inputMode = 'decimal'; }
-                el.addEventListener('input', calcularFormula);
+                el.type = tipo; el.className = 'mod-input'; el.setAttribute('aria-label', etiqueta);
+                if (tipo === 'number') { el.min = '0'; el.step = '0.01'; el.inputMode = 'decimal'; el.value = valor ? valor : ''; } else el.value = valor || '';
+                el.addEventListener('input', calcularFormulacion);
                 return el;
             };
             const total = document.createElement('span');
             total.className = 'font-bold'; total.dataset.total = '1';
             const quitar = document.createElement('button');
             quitar.type = 'button'; quitar.textContent = '✕'; quitar.className = 'rounded-lg px-3 py-2 font-bold text-red-700'; quitar.setAttribute('aria-label', 'Quitar insumo');
-            quitar.addEventListener('click', () => { tr.remove(); calcularFormula(); });
+            quitar.addEventListener('click', () => { tr.remove(); calcularFormulacion(); });
             tr.append(celda(campo('text', dato.nombre, 'Insumo')), celda(campo('number', dato.kg, 'Cantidad en kg')), celda(campo('number', dato.costo, 'Costo unitario por kg')), celda(total), celda(quitar));
             cuerpo.append(tr);
-            if (arguments.length === 0) calcularFormula();
+            if (nueva) calcularFormulacion();
         }
 
-        function leerFilasFormula() {
-            return [...document.querySelectorAll('#formula-filas tr')].map(tr => {
+        function leerFilasFormulacion() {
+            return [...document.querySelectorAll('#form-filas tr')].map(tr => {
                 const [nombre, kg, costo] = tr.querySelectorAll('input');
                 return { nombre: nombre.value.trim().slice(0, 60), kg: Math.max(0, Number(kg.value) || 0), costo: Math.max(0, Number(costo.value) || 0), fila: tr };
             });
         }
 
-        function calcularFormula() {
-            const filas = leerFilasFormula();
-            filas.forEach(f => { f.fila.querySelector('[data-total]').textContent = `S/ ${(f.kg * f.costo).toFixed(2)}`; });
-            const totalKg = filas.reduce((s, f) => s + f.kg, 0);
-            const costoTotal = filas.reduce((s, f) => s + f.kg * f.costo, 0);
+        function ajustarFormulacionABase() {
+            const filas = leerFilasFormulacion();
+            const base = Math.max(1, Number(document.getElementById('form-base').value) || 100);
+            const total = filas.reduce((s, f) => s + f.kg, 0);
+            if (!(total > 0)) { mostrarToast('Ingresa cantidades en kg antes de ajustar al lote base', 'error'); return; }
+            filas.forEach(f => { f.fila.querySelectorAll('input')[1].value = Math.round(f.kg * base / total * 100) / 100 || ''; });
+            calcularFormulacion();
+        }
+
+        function poblacionFormulacion() {
+            const n = id => Math.max(0, Number(document.getElementById(id)?.value) || 0);
+            let adultos = 0, lactantes = 0, recria = 0;
+            const diasLact = Math.max(1, n('esc-dias-lact') || 21);
+            const diasVenta = Math.max(diasLact + 1, n('esc-dias-venta') || 90);
+            if (document.getElementById('form-modo').value === 'proyeccion') {
+                const madres = Math.max(1, Math.floor(n('form-madres')));
+                const nacDia = madres * n('esc-partos') * n('esc-crias-parto') / 365;
+                adultos = madres + Math.ceil(madres / Math.max(1, n('esc-ratio') || 6));
+                lactantes = Math.round(nacDia * diasLact);
+                recria = Math.round(nacDia * (1 - Math.min(100, n('esc-mort')) / 100) * (diasVenta - diasLact));
+            } else {
+                try { const p = obtenerPoblacionGranja(); adultos = p.adultos; lactantes = p.crias; recria = p.recria + (p.reemplazo || 0); } catch (error) { /* sin registro de pozas */ }
+            }
+            const destetados = Math.round(recria * Math.min(1, DIAS_DESTETADOS / (diasVenta - diasLact)));
+            return { repro: adultos, gazapos: lactantes, destetados, recria: recria - destetados };
+        }
+
+        function resumenFormula(f, animales) {
+            const totalKg = f.filas.reduce((s, x) => s + x.kg, 0);
+            const costoTotal = f.filas.reduce((s, x) => s + x.kg * x.costo, 0);
             const porKg = totalKg > 0 ? costoTotal / totalKg : 0;
-            const lineas = [`Lote total: ${totalKg.toFixed(2)} kg`, `Costo total del lote: S/ ${costoTotal.toFixed(2)}`, `Costo por kilo: S/ ${porKg.toFixed(2)}`, `Costo por quintal (${QUINTAL_KG} kg): S/ ${(porKg * QUINTAL_KG).toFixed(2)}`];
-            document.getElementById('formula-resumen').replaceChildren(...lineas.map((txt, i) => { const p = document.createElement('p'); p.className = i === 1 ? 'font-extrabold text-emerald-900' : 'font-semibold'; p.textContent = txt; return p; }));
-            escribirAlmacenamiento(FORMULA_CLAVE, JSON.stringify(filas.map(({ nombre, kg, costo }) => ({ nombre, kg, costo }))));
+            const kgDia = animales * f.gDia / 1000;
+            return { totalKg, costoTotal, porKg, porQuintal: porKg * QUINTAL_KG, kgDia, kgMes: kgDia * 30, costoMes: kgDia * 30 * porKg };
         }
 
-        function cargarFormulaGuardada() {
-            let filas = [];
-            try { filas = JSON.parse(leerAlmacenamiento(FORMULA_CLAVE) || '[]'); } catch (error) { /* datos corruptos: se ignoran */ }
-            if (!Array.isArray(filas) || !filas.length) filas = INSUMOS_BASE.map(nombre => ({ nombre }));
-            document.getElementById('formula-filas').replaceChildren();
-            filas.forEach(f => agregarFilaFormula({ nombre: String(f.nombre || ''), kg: f.kg || '', costo: f.costo || '' }));
-            const fecha = document.getElementById('formula-fecha');
-            if (!fecha.value) fecha.value = fechaHoy();
-            calcularFormula();
+        function calcularFormulacion() {
+            if (!formulas) return;
+            const actual = formulas[etapaFormula];
+            const filas = leerFilasFormulacion();
+            filas.forEach(x => { x.fila.querySelector('[data-total]').textContent = `S/ ${(x.kg * x.costo).toFixed(2)}`; });
+            actual.base = Math.max(1, Number(document.getElementById('form-base').value) || 100);
+            actual.gDia = Math.max(0, Number(document.getElementById('form-gdia').value) || 0);
+            actual.filas = filas.map(({ nombre, kg, costo }) => ({ nombre, kg, costo }));
+            document.getElementById('form-madres-caja').classList.toggle('hidden', document.getElementById('form-modo').value !== 'proyeccion');
+
+            const pob = poblacionFormulacion();
+            const total = pob.repro + pob.gazapos + pob.destetados + pob.recria;
+            const modoTxt = document.getElementById('form-modo').value === 'proyeccion' ? 'Población proyectada' : 'Población total actual';
+            document.getElementById('form-poblacion').textContent = `${modoTxt}: ${total.toLocaleString('es-PE')} cuyes · Reproductores ${pob.repro.toLocaleString('es-PE')} · Gazapos/lactantes ${pob.gazapos.toLocaleString('es-PE')} · Destetados ${pob.destetados.toLocaleString('es-PE')} · Recría/engorde ${pob.recria.toLocaleString('es-PE')}`;
+
+            const lineas = (cont, textos, destacada) => cont.replaceChildren(...textos.map((txt, i) => { const p = document.createElement('p'); p.className = i === destacada ? 'font-extrabold' : 'font-semibold'; p.textContent = txt; return p; }));
+            const r = resumenFormula(actual, pob[etapaFormula]);
+            const dif = r.totalKg - actual.base;
+            lineas(document.getElementById('form-resumen'), [
+                `Kilos totales del lote: ${r.totalKg.toFixed(2)} kg (base ${actual.base} kg${Math.abs(dif) > 0.005 ? `, diferencia ${dif > 0 ? '+' : ''}${dif.toFixed(2)} kg` : ''})`,
+                `Costo total del lote: S/ ${r.costoTotal.toFixed(2)}`,
+                `Costo por kilo: S/ ${r.porKg.toFixed(2)}`,
+                `Costo por quintal (saco de ${QUINTAL_KG} kg): S/ ${r.porQuintal.toFixed(2)}`
+            ], 1);
+            lineas(document.getElementById('form-consumo'), [
+                `Animales de esta etapa: ${pob[etapaFormula].toLocaleString('es-PE')} × ${actual.gDia} g/día`,
+                `Requerimiento: ${r.kgDia.toFixed(2)} kg/día · ${r.kgMes.toFixed(1)} kg/mes (≈ ${(r.kgMes / QUINTAL_KG).toFixed(1)} quintales)`,
+                `Costo de alimentación estimado: S/ ${r.costoMes.toFixed(2)} al mes`,
+                r.totalKg > 0 && r.kgDia > 0 ? `Un lote de ${r.totalKg.toFixed(0)} kg dura ≈ ${(r.totalKg / r.kgDia).toFixed(1)} días` : 'Completa la fórmula y el consumo para ver la duración del lote.'
+            ], -1);
+
+            document.getElementById('form-todas').replaceChildren(...ETAPAS_FORMULA.map(e => {
+                const x = resumenFormula(formulas[e.id], pob[e.id]);
+                const art = document.createElement('article');
+                art.className = 'rounded-lg border border-stone-300 bg-white p-3 shadow-sm';
+                const h = document.createElement('p'); h.className = 'font-extrabold text-emerald-900'; h.textContent = e.nombre;
+                const d = document.createElement('p'); d.className = 'text-base';
+                d.textContent = `${pob[e.id].toLocaleString('es-PE')} animales · ${x.kgDia.toFixed(2)} kg/día · ${x.kgMes.toFixed(1)} kg/mes · S/ ${x.porQuintal.toFixed(2)} por quintal · S/ ${x.costoMes.toFixed(2)} al mes`;
+                art.append(h, d);
+                return art;
+            }));
+            escribirAlmacenamiento(FORMULA_CLAVE, JSON.stringify(formulas));
         }
 
-        function registrarFormulaEnGastos() {
-            const filas = leerFilasFormula();
+        function registrarFormulacionEnGastos() {
+            const filas = leerFilasFormulacion();
             const totalKg = filas.reduce((s, f) => s + f.kg, 0);
             const costoTotal = filas.reduce((s, f) => s + f.kg * f.costo, 0);
             if (!(costoTotal > 0)) { mostrarToast('Ingresa cantidades y costos para calcular el costo del lote', 'error'); return; }
-            const periodo = document.getElementById('formula-periodo').value.trim().slice(0, 60);
+            const etapa = ETAPAS_FORMULA.find(e => e.id === etapaFormula).nombre;
+            const periodo = document.getElementById('form-periodo').value.trim().slice(0, 60);
             db.gastos.unshift({
-                fecha: document.getElementById('formula-fecha').value || fechaHoy(),
-                concepto: `Concentrado preparado: ${totalKg.toFixed(2)} kg${periodo ? ` · ${periodo}` : ''}`,
+                fecha: document.getElementById('form-fecha').value || fechaHoy(),
+                concepto: `Concentrado ${etapa}: ${totalKg.toFixed(2)} kg${periodo ? ` · ${periodo}` : ''}`,
                 monto: Number(costoTotal.toFixed(2)),
                 categoria: 'Alimentación',
                 ubicacion: 'General (Galpón)'
@@ -3097,7 +3262,7 @@
                     if (CONSEJOS_FORRAJE[guardado.forraje]) document.getElementById('racion-forraje').value = guardado.forraje;
                 }
             } catch (error) { /* datos corruptos: se ignoran */ }
-            cargarFormulaGuardada();
+            cargarFormulaciones();
             sincronizarRacionPozas();
         }
 
@@ -3475,7 +3640,7 @@
             if (!confirm('⚠️ Se borrarán TODAS las pozas y registros (partos, destetes, bajas, ventas, gastos, salud, pesos). Esta acción no se puede deshacer.\n\nRecomendado: descarga un backup antes. ¿Continuar?')) return;
             if ((prompt('Para confirmar escribe BORRAR en mayúsculas:') || '').trim() !== 'BORRAR') { mostrarToast('Reinicio cancelado.', 'error'); return; }
             db = { cuyes: [], pozas: [], partos: [], destetados: [], bajas: [], ventas: [], gastos: [], gestaciones: [], tratamientos: [], pesos: [], temperatura: null };
-            ['sisgranja_cuy_db', 'sisgranja_racion_inia', 'sisgranja_formula', 'sisgranja_poza_activa'].forEach(clave => {
+            ['sisgranja_cuy_db', 'sisgranja_racion_inia', 'sisgranja_formulas', 'sisgranja_poza_activa'].forEach(clave => {
                 try { window.localStorage.removeItem(clave); } catch (error) { /* sin acceso a localStorage */ }
                 almacenamientoTemporal.delete(clave);
             });
@@ -5033,6 +5198,7 @@
                 ['cuyes', /pozas?|cuyes|gestion/, 'Gestión de pozas'],
                 ['guia', /guia|tecnica/, 'Guía técnica'],
                 ['pesos', /pesos?|pesaje/, 'Control de pesos'],
+                ['formulacion', /formulacion|formular|raciones/, 'Formulación de raciones'],
                 ['racion', /racion|forraje/, 'Ración y forraje'],
                 ['escala', /escala|siembra|hectarea|bloques/, 'Escala y siembra'],
                 ['dashboard', /dashboard|inicio|panel|resumen|principal/, 'Dashboard']
