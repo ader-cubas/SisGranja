@@ -1341,6 +1341,9 @@
                             <div id="baja-offline-zonas" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                 <p class="text-sm font-bold text-amber-900">Sin conexión: el análisis fotográfico requiere internet. Respaldo por zona afectada:</p>
                                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                    <button type="button" onclick="mostrarZonaDrCuy('timpanismo')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hinchazón (Timpanismo)</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('tina')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Tiña</button>
+                                    <button type="button" onclick="mostrarZonaDrCuy('escorbuto')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Escorbuto (Vit. C)</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('higado')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Hígado</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('intestino')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Intestino</button>
                                     <button type="button" onclick="mostrarZonaDrCuy('piel')" class="rounded-lg border border-amber-300 bg-white px-3 py-3 text-sm font-bold text-stone-800">Piel</button>
@@ -4196,20 +4199,31 @@
                 const linea = document.createElement('p');
                 const etiqueta = document.createElement('strong');
                 etiqueta.textContent = `${titulo}: `;
-                linea.append(etiqueta, String(valor || '—').slice(0, 160));
+                linea.append(etiqueta, String(valor || '—').slice(0, 600));
                 return linea;
             }));
             document.getElementById('baja-results').classList.remove('hidden');
             window.SisGranjaVoz?.hablar(`Enfermedad: ${resultado.enfermedad}. Fármaco y dosis: ${resultado.farmaco_dosis}. Días: ${resultado.dias}. Acción: ${resultado.accion}. Prevención: ${resultado.prevencion}.`);
         }
 
-        // Guía local de respaldo; dosis de referencia que debe validar un veterinario.
-        const ZONAS_DR_CUY = {
-            higado: { enfermedad: 'Salmonelosis (puntos blancos en hígado)', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC + Complejo B 0.2 ml/animal SC', dias: '5 días, 1 vez al día', accion: 'Aislar el lote, retirar cama y desinfectar la poza', prevencion: 'Agua y forraje limpios, cama seca, cuarentena de animales nuevos' },
-            intestino: { enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5% 0.04 ml/kg oral + Complejo B 0.2 ml/animal SC y suero oral', dias: '2 días, repetir a los 7 días', accion: 'Aislar afectados, retirar heces y desinfectar comederos', prevencion: 'Cama seca, baja densidad, limpieza diaria de bebederos' },
-            piel: { enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.2 ml/kg SC + Vitamina AD3E/C 0.2 ml/animal SC', dias: '1 dosis, repetir a los 14 días', accion: 'Aislar afectados, cambiar cama y desinfectar jaulas', prevencion: 'Revisar piel de los contactos, cama limpia, evitar mezclar lotes' },
-            pulmon: { enfermedad: 'Neumonía / infección respiratoria', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC + Vitamina AD3E/C 0.2 ml/animal SC', dias: '5 días, 1 vez al día', accion: 'Aislar al enfermo, ventilar sin corrientes y desinfectar', prevencion: 'Evitar humedad, polvo y cambios bruscos de temperatura' }
+        // Base clínica interna (referencial, cuy adulto ~1 kg): el protocolo se aplica al diagnóstico detectado; validar con veterinario.
+        const PATOLOGIAS_DR_CUY = {
+            timpanismo: { claves: ['timpan', 'meteor', 'hinchaz', 'distensi', 'abdomen distend', 'gas'], enfermedad: 'Timpanismo / Meteorismo (hinchazón por forraje tierno o sin oreado)', farmaco_dosis: 'Simeticona gotas 0.3-0.5 ml oral cada 6-8 h + masaje abdominal suave; retirar forraje verde y dar heno', dias: '1-2 días (hasta que baje la distensión); si no mejora en 2-3 horas, llamar al veterinario', accion: 'Aislar al animal, retirar de inmediato el forraje fresco, mantenerlo en movimiento y desinfectar paredes y pisos de la poza', prevencion: 'Oreado obligatorio del pasto 8-12 horas antes de ofrecerlo; no dar forraje tierno, mojado o fermentado; transición gradual de forrajes; balance de concentrado' },
+            salmonelosis: { claves: ['salmonel', 'puntos blancos', 'higado', 'hígado', 'paratifoidea'], enfermedad: 'Salmonelosis', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Complejo B 0.2 ml/animal SC + suero oral', dias: '5 días', accion: 'Aislamiento estricto de afectados, retirar cama y heces, desinfectar paredes y pisos de la poza y comederos/bebederos', prevencion: 'Control de calidad del agua (limpia y clorada), forraje limpio sin heces de roedores, control de roedores, cuarentena de 15-21 días para animales nuevos y balance de concentrado' },
+            sarna: { claves: ['sarna', 'acaro', 'ácaro', 'trixacarus', 'ectopar', 'costras', 'rascado'], enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.2 ml/kg SC (1 dosis, repetir a los 14 días) + Vitamina AD3E/C 0.2 ml/animal SC', dias: '14-21 días (2 dosis separadas por 14 días)', accion: 'Aislamiento estricto, cambiar cama, desinfectar paredes, pisos y jaulas, revisar a todos los contactos', prevencion: 'Cuarentena de nuevos animales, cama limpia y seca, no mezclar lotes, control de calidad del agua y concentrado balanceado' },
+            tina: { claves: ['tiña', 'tina', 'hongo', 'dermatofit', 'trichophyton', 'micosis', 'alopecia circular'], enfermedad: 'Tiña (hongos, Trichophyton)', farmaco_dosis: 'Miconazol o clotrimazol tópico 1-2 veces al día (o yodo 2% local) + Griseofulvina 25 mg/kg oral cada 24 h en casos extensos', dias: '14-21 días (continuar 7 días tras la curación visible)', accion: 'Aislamiento estricto, usar guantes (zoonosis), desinfectar paredes y pisos con solución antifúngica y cambiar la cama', prevencion: 'Cuarentena de nuevos animales, reducir humedad y hacinamiento, cama seca, control de agua y concentrado balanceado con vitaminas' },
+            neumonia: { claves: ['neumon', 'pulmon', 'pulmón', 'respirat', 'tos', 'estornud', 'jadeo', 'pasteurel', 'bordetel'], enfermedad: 'Neumonía', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Vitamina AD3E/C 0.2 ml/animal SC', dias: '5-7 días', accion: 'Aislamiento estricto, ventilar sin corrientes de aire directas, retirar cama húmeda y desinfectar paredes y pisos', prevencion: 'Evitar humedad, polvo y amoníaco; sin cambios bruscos de temperatura; cuarentena de nuevos animales; control de calidad del agua y concentrado balanceado' },
+            escorbuto: { claves: ['escorbuto', 'vitamina c', 'deficiencia de vit', 'avitamin', 'encias', 'encías', 'cojera', 'articulaciones'], enfermedad: 'Deficiencia de Vitamina C (Escorbuto)', farmaco_dosis: 'Vitamina C (ácido ascórbico) 50-100 mg/animal/día oral o 0.2 ml SC + Complejo B 0.2 ml/animal SC', dias: '7-10 días, luego mantener con forraje verde fresco', accion: 'Separar a los afectados, evitar manipulación brusca (dolor articular), dar forraje verde fresco y desinfectar paredes y pisos de la poza', prevencion: 'Forraje verde fresco diario, vitamina C en el agua (usar el mismo día, se degrada), concentrado balanceado con vitamina C estabilizada, control de calidad del agua' },
+            coccidiosis: { claves: ['coccidi', 'diarrea', 'intestin', 'enteritis'], enfermedad: 'Coccidiosis (diarrea, intestino inflamado)', farmaco_dosis: 'Toltrazuril 2.5% 0.04 ml/kg oral + Complejo B 0.2 ml/animal SC y suero oral', dias: '2 días, repetir a los 7 días', accion: 'Aislamiento estricto, retirar heces, desinfectar paredes, pisos y comederos', prevencion: 'Cama seca, baja densidad, bebederos limpios, cuarentena de nuevos animales y balance de concentrado' }
         };
+        const ZONAS_DR_CUY = { higado: PATOLOGIAS_DR_CUY.salmonelosis, intestino: PATOLOGIAS_DR_CUY.coccidiosis, piel: PATOLOGIAS_DR_CUY.sarna, pulmon: PATOLOGIAS_DR_CUY.neumonia, timpanismo: PATOLOGIAS_DR_CUY.timpanismo, tina: PATOLOGIAS_DR_CUY.tina, escorbuto: PATOLOGIAS_DR_CUY.escorbuto };
+
+        // Cruza el diagnóstico recibido con la base interna y devuelve el protocolo completo.
+        function normalizarDiagnosticoDrCuy(r) {
+            const texto = String(r.enfermedad || '').toLowerCase();
+            const patologia = Object.values(PATOLOGIAS_DR_CUY).find(p => p.claves.some(c => texto.includes(c)));
+            return patologia ? { enfermedad: patologia.enfermedad, farmaco_dosis: patologia.farmaco_dosis, dias: patologia.dias, accion: patologia.accion, prevencion: patologia.prevencion } : r;
+        }
 
         function mostrarZonaDrCuy(zona) {
             const guia = ZONAS_DR_CUY[zona];
@@ -4256,6 +4270,10 @@
             }
             previewCard.classList.remove('hidden');
             estadoDrCuy('Optimizando foto…', true);
+            const urlInmediata = URL.createObjectURL(archivo);
+            preview.src = urlInmediata;
+            preview.classList.remove('hidden');
+            preview.onload = () => URL.revokeObjectURL(urlInmediata);
             try {
                 // Se comprime primero (800px, JPEG 0.7) y la vista previa usa la imagen ligera.
                 const foto = await comprimirFotoClinica(archivo);
@@ -4305,7 +4323,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', apikey: publicKey },
                 body: JSON.stringify({ image: coincidencia[2], mime_type: coincidencia[1].toLowerCase(), formato: 'resumido', system_prompt: PROMPT_SISTEMA_DR_CUY }),
-                signal: AbortSignal.timeout(75000)
+                signal: AbortSignal.timeout(30000)
             });
             const payload = await respuesta.json().catch(() => ({}));
             if (!respuesta.ok) throw new Error(payload.error || 'Servicio no disponible');
@@ -4313,7 +4331,7 @@
             if (['enfermedad', 'farmaco_dosis', 'dias', 'accion', 'prevencion'].some(campo => typeof r[campo] !== 'string' || !r[campo].trim())) {
                 throw new Error('Respuesta incompleta');
             }
-            return r;
+            return normalizarDiagnosticoDrCuy(r);
         }
 
         async function analizarFotoBaja(imagenBase64, versionCaptura) {
@@ -4340,7 +4358,7 @@
             try {
                 if (typeof createImageBitmap === 'function') {
                     try {
-                        bitmap = await createImageBitmap(archivo);
+                        bitmap = await createImageBitmap(archivo, { resizeWidth: 640, resizeQuality: 'low' }).catch(() => createImageBitmap(archivo));
                         imagen = bitmap;
                     } catch (error) {
                         imagen = null;
@@ -4357,11 +4375,11 @@
                 }
 
                 if (!imagen.width || !imagen.height) throw new Error('La imagen no tiene dimensiones válidas.');
-                const escalaInicial = Math.min(1, 800 / imagen.width);
+                const escalaInicial = Math.min(1, 640 / Math.max(imagen.width, imagen.height));
                 let ancho = Math.max(1, Math.round(imagen.width * escalaInicial));
                 let alto = Math.max(1, Math.round(imagen.height * escalaInicial));
-                let calidad = 0.7;
-                const maxBase64Length = 120000;
+                let calidad = 0.65;
+                const maxBase64Length = 90000;
                 const lienzo = document.createElement('canvas');
                 const contexto = lienzo.getContext('2d');
                 if (!contexto) throw new Error('No se pudo preparar el lienzo de compresión.');
