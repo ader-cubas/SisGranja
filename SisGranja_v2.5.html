@@ -53,7 +53,6 @@
         .view-section form input:not([type="checkbox"]), .view-section form select, .view-section form textarea { width: 100%; margin-top: 7px; padding: 12px 14px; }
         .view-section form > button[type="submit"], .view-section form > div > button[type="submit"] { min-height: 56px; padding: 12px 22px; font-size: .95rem; }
         .view-section form > button.action-giant { min-height: 76px; }
-        #view-salud form > div:last-child { grid-column: 1 / -1; }
         #view-bajas > section { padding: 32px !important; }
         #view-bajas #baja-form { gap: 22px; }
         #view-bajas #baja-form label { font-size: .95rem; }
@@ -436,10 +435,6 @@
         .quick-action i { color: #176b4b; font-size: 1.65rem; }
         .quick-action span { font-size: .88rem; font-weight: 800; line-height: 1.2; }
         .quick-action.quick-action-alert i { color: #a8443e; }
-        .necro-zone-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .necro-zone-button { display: flex; min-height: 70px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border: 1px solid #dce6dd; border-radius: 12px; padding: 10px 14px; background: #f8fbf8; color: #20362a; text-align: left; }
-        .necro-zone-button span { color: #66746a; font-size: .78rem; font-weight: 500; }
-        .necro-zone-button[aria-pressed="true"] { border-color: #176b4b; background: #e8f3eb; box-shadow: inset 0 0 0 1px #176b4b; color: #174b35; }
         .visually-hidden-control { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; clip-path: inset(50%) !important; }
         .demo-tools { border: 1px solid #e8dfc9; border-radius: 14px; padding: 14px 16px; background: #fffcf5; }
         .demo-tools summary { color: #70551e; cursor: pointer; font-size: .88rem; font-weight: 800; }
@@ -831,10 +826,6 @@
                     <i class="ph ph-receipt text-lg"></i><span>Gastos Operativos</span>
                     <span id="badge-gastos" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
-                <button onclick="switchView('salud')" id="nav-salud" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
-                    <i class="ph ph-first-aid-kit text-lg"></i><span>Kardex Sanitario</span>
-                    <span id="badge-salud" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
-                </button>
                 <button onclick="switchView('guia')" id="nav-guia" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-book-open text-lg"></i><span>Guía Técnica INIA</span>
                 </button>
@@ -984,7 +975,6 @@
                         <button type="button" onclick="abrirPozasRapido()" class="quick-action"><i class="ph ph-paw-print" aria-hidden="true"></i><span>Inventario de pozas</span></button>
                         <button type="button" onclick="abrirAlimentacionRapida()" class="quick-action"><i class="ph ph-leaf" aria-hidden="true"></i><span>Alimentación</span></button>
                         <button type="button" onclick="abrirRegistroRapido('bajas')" class="quick-action"><i class="ph ph-first-aid-kit" aria-hidden="true"></i><span>Veterinario virtual</span></button>
-                        <button type="button" onclick="abrirRegistroRapido('salud')" class="quick-action"><i class="ph ph-microscope" aria-hidden="true"></i><span>Necropsia / Kardex</span></button>
                         <button type="button" onclick="abrirEmpadreRapido()" class="quick-action"><i class="ph ph-heartbeat" aria-hidden="true"></i><span>Reproducción</span></button>
                         <button type="button" onclick="abrirRegistroRapido('partos')" class="quick-action"><i class="ph ph-baby" aria-hidden="true"></i><span>Registrar parto</span></button>
                         <button type="button" onclick="abrirRegistroRapido('destetados')" class="quick-action"><i class="ph ph-users-three" aria-hidden="true"></i><span>Registrar destete</span></button>
@@ -1514,111 +1504,6 @@
                 </div>
             </div>
 
-            <div id="view-salud" class="space-y-6 view-section hidden">
-                <section class="surface space-y-4 border border-stone-200 bg-white p-5 sm:p-6">
-                    <div>
-                        <h3 class="text-lg font-bold text-stone-800">Orientación clínica y necropsia</h3>
-                        <p class="mt-1 text-sm text-stone-600">Elige el hallazgo para ver una guía local en lenguaje sencillo. La foto se analiza automáticamente con el Dr. Cuy IA cuando hay internet; la orientación no sustituye al veterinario.</p>
-                    </div>
-                    <form id="necropsia-form" onsubmit="guardarNecropsia(event)" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <label class="text-sm font-bold text-stone-700">Poza
-                            <select id="necro-destino" data-poza-activa="true" required class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-3"><option value="">Selecciona una poza</option></select>
-                        </label>
-                        <div class="sm:col-span-2">
-                            <p class="text-sm font-bold text-stone-700">Zona afectada (opcional, solo si no hay internet)</p>
-                            <div class="necro-zone-grid mt-2" role="group" aria-label="Zona afectada">
-                                <button type="button" class="necro-zone-button" data-necro-zona="salmonelosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('salmonelosis', this)"><strong>Hígado</strong><span>Puntos o manchas</span></button>
-                                <button type="button" class="necro-zone-button" data-necro-zona="coccidiosis" aria-pressed="false" onclick="seleccionarZonaNecropsia('coccidiosis', this)"><strong>Intestino</strong><span>Inflamación o diarrea</span></button>
-                                <button type="button" class="necro-zone-button" data-necro-zona="sarna" aria-pressed="false" onclick="seleccionarZonaNecropsia('sarna', this)"><strong>Piel</strong><span>Picazón, costras o caída de pelo</span></button>
-                                <button type="button" class="necro-zone-button" data-necro-zona="respiratoria" aria-pressed="false" onclick="seleccionarZonaNecropsia('respiratoria', this)"><strong>Pulmón</strong><span>Respiración agitada o ruidosa</span></button>
-                            </div>
-                            <label class="visually-hidden-control">Hallazgo clínico
-                            <select id="necro-patologia">
-                                <option value="">Selecciona un hallazgo</option>
-                                <option value="respiratoria">Pulmones congestionados / dificultad para respirar</option>
-                                <option value="salmonelosis">Hígado con puntos blancos / problema digestivo</option>
-                                <option value="coccidiosis">Intestino inflamado / diarrea</option>
-                                <option value="sarna">Picazón, costras o pérdida de pelo / piel</option>
-                            </select>
-                            </label>
-                        </div>
-                        <label class="text-sm font-bold text-stone-700 sm:col-span-2">Fotografía de lesión u órgano
-                            <input id="necro-foto" type="file" accept="image/*" capture="environment" required onchange="previsualizarFotoNecropsia(event)" class="mt-1 block w-full rounded-lg border border-stone-300 p-2 text-sm">
-                        </label>
-                        <div id="necro-preview-wrap" class="hidden sm:col-span-2">
-                            <img id="necro-preview" class="max-h-64 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain" alt="Vista previa del hallazgo">
-                        </div>
-                        <p id="necro-foto-estado" class="text-sm text-stone-600 sm:col-span-2" role="status" aria-live="polite">Sube o toma la foto y elige el hallazgo para ver la guía local (sin internet).</p>
-                        <label class="text-sm font-bold text-stone-700 sm:col-span-2">Hallazgos y signos observados
-                            <textarea id="necro-observaciones" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Describe signos, órgano, lesiones y fecha de observación"></textarea>
-                        </label>
-                        <div id="necro-guia" class="hidden space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm sm:col-span-2" aria-live="polite">
-                            <p><strong>Orientación probable:</strong> <span id="necro-diagnostico"></span></p>
-                            <p><strong>Prevención / signos:</strong> <span id="necro-sintomas"></span></p>
-                            <p><strong>Bioseguridad:</strong> <span id="necro-bioseguridad"></span></p>
-                            <p><strong>Tratamiento, dosis y duración:</strong> <span id="necro-tratamiento"></span></p>
-                        </div>
-                        <label class="text-sm font-bold text-stone-700 sm:col-span-2">Tratamiento realmente aplicado (opcional)
-                            <textarea id="necro-aplicado" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-normal" placeholder="Solo registra medicamentos ya prescritos y administrados"></textarea>
-                        </label>
-                        <button id="necro-save" type="submit" disabled class="action-giant action-baja disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600 sm:col-span-2"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR HALLAZGO EN KARDEX</span></button>
-                    </form>
-                </section>
-                <section class="surface bg-white p-5 sm:p-6 border border-stone-200">
-                    <h3 class="text-lg font-bold text-stone-800 mb-4">Kardex sanitario y de insumos</h3>
-                    <form onsubmit="guardarTratamiento(event)" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <label class="text-xs font-bold text-stone-600">Aplicación
-                            <input type="date" id="salud-fecha" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Destino
-                            <select id="salud-destino" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm"><option value="">Selecciona galpón o poza</option></select>
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Medicamento / producto
-                            <select id="salud-producto" required onchange="calcularDosisPoza()" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
-                                <option value="">Selecciona producto</option>
-                                <option value="Ivermectina 1%" data-dosis="0.2" data-unidad="kg">Ivermectina 1% · 0.2 ml/kg (referencia a validar)</option>
-                                <option value="Enrofloxacina 5%" data-dosis="0.1" data-unidad="kg">Enrofloxacina 5% · 0.1 ml/kg</option>
-                                <option value="Toltrazuril 2.5%" data-dosis="0.04" data-unidad="kg">Toltrazuril 2.5% · 0.04 ml/kg (referencia a validar)</option>
-                                <option value="Vitamina AD3E / C" data-dosis="0.2" data-unidad="animal">Vitamina AD3E / C · 0.2 ml/animal</option>
-                                <option value="Sulfacloximazina indicada por veterinario">Sulfacloximazina · ingresar pauta prescrita</option>
-                                <option value="Otro indicado por veterinario">Otro indicado por veterinario</option>
-                            </select>
-                        </label>
-                        <label id="salud-dosis-animal-wrap" class="hidden text-xs font-bold text-stone-600">Dosis vitamínica (ml/animal)
-                            <input type="number" id="salud-dosis-animal" min="0.2" max="0.5" step="0.1" value="0.2" oninput="calcularDosisPoza()" class="mt-1 w-full rounded-xl border px-3 py-2 text-sm">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Peso promedio del cuy (gramos)
-                            <input type="number" id="salud-peso" min="1" max="5000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 850">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Cantidad de cuyes en la poza
-                            <input type="number" id="salud-animales" min="1" max="1000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 6">
-                        </label>
-                        <label id="salud-producto-manual-wrap" class="hidden text-xs font-bold text-stone-600">Producto prescrito
-                            <input type="text" id="salud-producto-manual" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Nombre indicado por el veterinario">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Dosis / cantidad
-                            <input type="text" id="salud-cantidad" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Calculada o indicada por el veterinario">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Responsable / nota
-                            <input type="text" id="salud-nota" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Opcional">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Diagnóstico / indicación veterinaria
-                            <input type="text" id="salud-diagnostico" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. Desparasitación prescrita">
-                        </label>
-                        <p id="salud-calculo" class="sm:col-span-2 xl:col-span-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" aria-live="polite">Selecciona un producto e ingresa el peso y la cantidad para calcular.</p>
-                        <label class="flex items-start gap-2 text-xs font-semibold text-amber-900 sm:col-span-2 xl:col-span-4"><input id="salud-pauta-validada" type="checkbox" required class="mt-0.5"> Confirmo que la dosis, concentración y pauta fueron indicadas o verificadas por un veterinario.</label>
-                        <p class="sm:col-span-2 xl:col-span-4 text-xs text-amber-800">Calculadora de volumen, no prescriptor. A 1% (10 mg/ml), 0.2 ml/kg de ivermectina equivale a 2 mg/kg; a 2.5% (25 mg/ml), 0.04 ml/kg de toltrazuril equivale a 1 mg/kg. Verifica cualquier discrepancia antes de usar.</p>
-                        <div class="sm:col-span-2 xl:col-span-5 flex justify-end">
-                            <button type="submit" class="bg-emerald-700 text-white font-bold px-6 rounded-xl">Guardar aplicación</button>
-                        </div>
-                    </form>
-                </section>
-                <section class="surface bg-white p-5 sm:p-6 border border-stone-200 space-y-4">
-                    <h4 class="font-bold text-stone-800">Historial de tratamientos e insumos</h4>
-                    <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-stone-50 text-stone-500 uppercase text-xs"><tr><th class="p-4">Fecha</th><th class="p-4">Destino</th><th class="p-4">Diagnóstico</th><th class="p-4">Síntomas</th><th class="p-4">Lesiones</th><th class="p-4">Producto / manejo</th><th class="p-4">Dosis / seguimiento</th><th class="p-4">Días</th><th class="p-4">Vía</th><th class="p-4">Foto</th><th class="p-4">Nota</th><th class="p-4">Acción</th></tr></thead><tbody id="tabla-salud"></tbody></table></div>
-                </section>
-            </div>
-
             <!-- GUÍA TÉCNICA INIA (contenido embebido, funciona sin conexión) -->
             <div id="view-guia" class="space-y-6 view-section hidden">
                 <section class="surface bg-white p-5 sm:p-6 border border-stone-200">
@@ -2113,9 +1998,6 @@
         let fotoClinicaAnalizadaBase64 = '';
         let bajaAnalisisActual = null;
         let bajaFotoVersion = 0;
-        let necropsiaFotoVersion = 0;
-        let necropsiaFotoBase64 = '';
-        let necropsiaResultadoActual = null;
         const almacenamientoTemporal = new Map();
 
         function leerAlmacenamiento(clave) {
@@ -2202,7 +2084,7 @@
         function actualizarSelectoresPozas() {
             const codigos = obtenerCodigosPozas();
             const pozaActiva = obtenerPozaActiva();
-            document.querySelectorAll('#parto-poza, #destete-poza, #desp-lote, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #repro-poza, #peso-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
+            document.querySelectorAll('#parto-poza, #destete-poza, #desp-lote, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #repro-poza, #peso-poza, #quick-poza').forEach(selector => {
                 const valorActual = selector.value;
                 const textoInicial = 'Selecciona una poza';
                 const lista = codigos;
@@ -2212,14 +2094,6 @@
                 else if (selector.dataset.pozaActiva === 'true' && lista.includes(pozaActiva)) selector.value = pozaActiva;
             });
 
-            const ubicaciones = [...new Set(db.cuyes.map(poza => String(poza.poza || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
-            const opcionesUbicacion = [new Option('General', 'General'), ...ubicaciones.map(ubicacion => new Option(ubicacion, ubicacion)), ...codigos.map(codigo => new Option(codigo, codigo))];
-            ['salud-destino'].forEach(id => {
-                const selector = document.getElementById(id);
-                const valorActual = selector.value;
-                selector.replaceChildren(...(id === 'salud-destino' ? [new Option('Selecciona galpón o poza', ''), ...opcionesUbicacion] : opcionesUbicacion));
-                if ([...selector.options].some(opcion => opcion.value === valorActual)) selector.value = valorActual;
-            });
         }
 
         function obtenerStockActualPoza(poza, fuente = db) {
@@ -2246,14 +2120,8 @@
             }
             const selectores = { partos: 'parto-poza', destetados: 'destete-poza', bajas: 'baja-identificador' };
             if (selectores[vista]) document.getElementById(selectores[vista]).value = codigo;
-            if (vista === 'salud') {
-                document.getElementById('salud-destino').value = codigo;
-                document.getElementById('necro-destino').value = codigo;
-            }
             switchView(vista);
-            const formulario = vista === 'salud'
-                ? document.getElementById('necropsia-form')
-                : document.querySelector(`#view-${vista} form`);
+            const formulario = document.querySelector(`#view-${vista} form`);
             if (formulario) formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -2594,7 +2462,6 @@
                 bajas: 'Mortalidad y Bajas Sanitarias',
                 ventas: 'Ventas de Cuyes e Ingresos',
                 gastos: 'Gastos Operativos',
-                salud: 'Kardex Sanitario y de Insumos',
                 guia: 'Guía Técnica INIA',
                 bioseguridad: 'Bioseguridad y Prevención',
                 desparasitacion: 'Desparasitación y Alertas de Segunda Dosis',
@@ -2605,10 +2472,6 @@
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
             document.getElementById('main-content-container').scrollTop = 0;
-            if (viewName === 'salud') {
-                const campoDiagnostico = document.getElementById('salud-diagnostico');
-                if (campoDiagnostico && !campoDiagnostico.value && bajaAnalisisActual) campoDiagnostico.value = bajaAnalisisActual.diagnostico_situacion || '';
-            }
             
             if (viewName === 'racion') sincronizarRacionPozas();
             if (viewName === 'formulacion') renderFormulacion();
@@ -3661,10 +3524,6 @@
                 cuerpo.appendChild(crearCalculadoraDosis(d));
                 cuerpo.appendChild(crearProtocoloColectivo(d));
                 cuerpo.appendChild(crear('p', 'Referencia: dosis y pauta deben ser validadas por un veterinario.', 'guia-aviso'));
-                const boton = crear('button', '📋 Registrar en Kárdex', 'guia-btn');
-                boton.type = 'button';
-                boton.addEventListener('click', () => registrarDesdeGuia(indice));
-                cuerpo.appendChild(boton);
                 ficha.appendChild(cuerpo);
                 return ficha;
             };
@@ -3674,16 +3533,6 @@
                 cat.nombres.forEach(n => { const d = GUIA_ENFERMEDADES.find(x => x.nombre === n || x.nombre.startsWith(n)); if (d) nodos.push(fichaDe(d)); });
             });
             contenedor.replaceChildren(...nodos);
-        }
-
-        function registrarDesdeGuia(indice) {
-            const enfermedad = GUIA_ENFERMEDADES[indice];
-            if (!enfermedad) return;
-            switchView('salud');
-            document.getElementById('salud-diagnostico').value = enfermedad.nombre;
-            const nota = document.getElementById('salud-nota');
-            if (!nota.value) nota.value = 'Desde Guía Técnica INIA';
-            mostrarToast(`Diagnóstico "${enfermedad.nombre}" cargado en el Kárdex. Completa el formulario.`);
         }
 
         function activarPestanaGuia(nombre) {
@@ -3925,286 +3774,6 @@
             } finally {
                 formulario.dataset.saving = 'false';
                 if (boton) boton.disabled = false;
-            }
-        }
-
-        function calcularDosisPoza() {
-            const producto = document.getElementById('salud-producto');
-            const opcion = producto.options[producto.selectedIndex];
-            const esManual = producto.value === 'Otro indicado por veterinario' || producto.value === 'Sulfacloximazina indicada por veterinario';
-            const campoManual = document.getElementById('salud-producto-manual');
-            const manualWrap = document.getElementById('salud-producto-manual-wrap');
-            const dosisAnimalWrap = document.getElementById('salud-dosis-animal-wrap');
-            const pesoGramos = Number(document.getElementById('salud-peso').value);
-            const animales = Number(document.getElementById('salud-animales').value);
-            const campoCantidad = document.getElementById('salud-cantidad');
-            const salida = document.getElementById('salud-calculo');
-            const formatear = valor => String(Number(valor.toFixed(3)));
-
-            manualWrap.classList.toggle('hidden', !esManual);
-            campoManual.required = esManual;
-            dosisAnimalWrap.classList.toggle('hidden', opcion?.dataset.unidad !== 'animal');
-            if (!producto.value) {
-                salida.textContent = 'Selecciona un producto e ingresa el peso y la cantidad para calcular.';
-                campoCantidad.value = '';
-                return;
-            }
-            if (esManual) {
-                campoCantidad.value = '';
-                salida.textContent = 'Ingresa la dosis exactamente como fue prescrita por el veterinario.';
-                return;
-            }
-            const pesoKg = pesoGramos / 1000;
-            const unidadAnimal = opcion?.dataset.unidad === 'animal';
-            const dosisBase = unidadAnimal
-                ? Number(document.getElementById('salud-dosis-animal').value)
-                : Number(opcion?.dataset.dosis);
-            if (!Number.isFinite(pesoKg) || pesoKg <= 0 || !Number.isInteger(animales) || animales <= 0 || !Number.isFinite(dosisBase) || dosisBase <= 0) {
-                campoCantidad.value = '';
-                salida.textContent = 'Ingresa peso, cantidad y dosis válidos para calcular el volumen individual y del grupo.';
-                return;
-            }
-
-            const mlIndividual = unidadAnimal ? dosisBase : dosisBase * pesoKg;
-            const mlGrupo = mlIndividual * animales;
-            const unidadReferencia = unidadAnimal ? 'ml/animal' : 'ml/kg';
-            const texto = `${producto.value}: ${formatear(mlIndividual)} ml/animal × ${animales} = ${formatear(mlGrupo)} ml para la poza. Peso promedio: ${formatear(pesoKg)} kg. Referencia: ${formatear(dosisBase)} ${unidadReferencia}.`;
-            campoCantidad.value = texto;
-            salida.textContent = texto;
-            if (producto.value === 'Ivermectina 1%') salida.textContent += ' Verifica concentración y pauta: 0.2 ml/kg a 10 mg/ml equivale a 2 mg/kg.';
-            if (producto.value === 'Enrofloxacina 5%') salida.textContent += ' Conversión nominal: 0.1 ml/kg a 50 mg/ml equivale a 5 mg/kg; confirma producto y pauta con veterinario.';
-            if (producto.value === 'Toltrazuril 2.5%') salida.textContent += ' Verifica concentración y pauta: 0.04 ml/kg a 25 mg/ml equivale a 1 mg/kg.';
-        }
-
-        async function insertarKardexSupabase(fila) {
-            const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/kardex_sanitario`, {
-                method: 'POST',
-                headers: { ...cabecerasNube(), Authorization: `Bearer ${SUPABASE_CLAVE}`, Prefer: 'return=minimal' },
-                body: JSON.stringify(fila),
-                signal: AbortSignal.timeout(20000)
-            });
-            if (!respuesta.ok) {
-                const detalle = await respuesta.text().catch(() => '');
-                throw new Error(`Supabase ${respuesta.status}${detalle ? ': ' + detalle.slice(0, 120) : ''}`);
-            }
-        }
-
-        async function guardarTratamiento(e) {
-            e.preventDefault();
-            const formulario = e.currentTarget;
-            if (formulario.dataset.saving === 'true') return;
-            const selector = document.getElementById('salud-producto');
-            const esManual = selector.value === 'Otro indicado por veterinario' || selector.value === 'Sulfacloximazina indicada por veterinario';
-            const producto = esManual ? document.getElementById('salud-producto-manual').value.trim() : selector.value;
-            const cantidad = document.getElementById('salud-cantidad').value.trim();
-            if (PATRON_ANTIBIOTICOS_RIESGO.test(`${producto} ${cantidad}`)) {
-                mostrarToast('🔴 Producto bloqueado: antibiótico de alto riesgo para cuyes. Consulta la Guía Técnica INIA.', 'error');
-                return;
-            }
-            if (!producto || !cantidad || !document.getElementById('salud-pauta-validada').checked) {
-                mostrarToast('Completa el producto y confirma la validación veterinaria', 'error');
-                return;
-            }
-            const registro = {
-                fecha: document.getElementById('salud-fecha').value || fechaHoy(),
-                destino: document.getElementById('salud-destino').value,
-                diagnostico: document.getElementById('salud-diagnostico').value.trim(),
-                sintomas: 'Aplicación sanitaria registrada',
-                lesiones: 'No consignadas',
-                producto,
-                cantidad,
-                nota: `${document.getElementById('salud-nota').value.trim()} Pauta validada por veterinario.`.trim(),
-                foto: fotoClinicaAnalizadaBase64 || '',
-                ...extraerDatosTratamiento(cantidad)
-            };
-            const cuyes = parseInt(document.getElementById('salud-animales').value, 10);
-            if (!registro.destino || !Number.isInteger(cuyes) || cuyes < 1 || !registro.diagnostico) {
-                mostrarToast('Selecciona la poza, la cantidad de animales y el diagnóstico', 'error');
-                return;
-            }
-            formulario.dataset.saving = 'true';
-            const boton = e.submitter || formulario.querySelector('[type="submit"]');
-            if (boton) boton.disabled = true;
-            try {
-                try {
-                    guardarRegistroKardex(registro, 'Aplicación sanitaria guardada en el Kardex');
-                } catch (error) {
-                    if (!registro.foto || !esLimiteAlmacenamiento(error)) throw error;
-                    registro.foto = '';
-                    guardarRegistroKardex(registro, 'Aplicación guardada; foto omitida por límite de almacenamiento');
-                }
-                await insertarKardexSupabase({
-                    fecha: registro.fecha,
-                    poza: registro.destino,
-                    cantidad_animales: cuyes,
-                    diagnostico: registro.diagnostico,
-                    producto: registro.producto,
-                    dosis: registro.cantidad,
-                    nota: registro.nota,
-                    imagen: fotoClinicaAnalizadaBase64 || null
-                });
-                alert('✅ Aplicación guardada correctamente en el Kárdex Sanitario.');
-                formulario.reset();
-                document.getElementById('salud-fecha').value = fechaHoy();
-                document.getElementById('salud-dosis-animal-wrap').classList.add('hidden');
-                document.getElementById('salud-producto-manual-wrap').classList.add('hidden');
-                document.getElementById('salud-calculo').textContent = 'Selecciona un producto e ingresa el peso y la cantidad para calcular.';
-            } catch (error) {
-                console.error('Error al guardar la aplicación sanitaria:', error);
-                mostrarToast(error.message || 'No se pudo guardar la aplicación en el Kardex', 'error');
-            } finally {
-                formulario.dataset.saving = 'false';
-                if (boton) boton.disabled = false;
-            }
-        }
-
-        function seleccionarZonaNecropsia(categoria, boton) {
-            document.getElementById('necro-patologia').value = categoria;
-            document.querySelectorAll('[data-necro-zona]').forEach(opcion => {
-                const seleccionada = opcion === boton;
-                opcion.setAttribute('aria-pressed', String(seleccionada));
-            });
-            actualizarGuiaNecropsia();
-        }
-
-        function actualizarGuiaNecropsia() {
-            const guias = {
-                respiratoria: {
-                    diagnostico: 'Hallazgo respiratorio; una infección es solo una posibilidad. La foto no confirma neumonía ni su causa.',
-                    sintomas: 'Respiración agitada o ruidosa, secreción nasal, estornudos o decaimiento. Estos signos pueden tener distintas causas.',
-                    bioseguridad: 'Aísla al animal, usa utensilios separados, mantén la cama seca y evita polvo y corrientes frías. Busca atención urgente si le cuesta respirar.',
-                    tratamiento: 'Un veterinario debe examinarlo y decidir si hacen falta pruebas y tratamiento. Esta guía no asigna medicamento, dosis ni días.'
-                },
-                salmonelosis: {
-                    diagnostico: 'Los puntos o lesiones del hígado tienen varias causas. Salmonelosis es una posibilidad, no un diagnóstico confirmado por foto.',
-                    sintomas: 'Puede haber diarrea, falta de apetito, debilidad o muerte súbita; otras enfermedades pueden verse igual. Algunas salmonelas infectan a personas.',
-                    bioseguridad: 'Aísla la poza, usa guantes y utensilios exclusivos, lávate bien las manos y evita el contacto de niños con animales o heces. Solicita evaluación veterinaria y pruebas.',
-                    tratamiento: 'El veterinario debe confirmar la causa y elegir el manejo. No se asignan antibiótico, dosis ni duración desde una lesión o fotografía.'
-                },
-                coccidiosis: {
-                    diagnostico: 'La inflamación intestinal puede tener varias causas. Coccidiosis es una posibilidad que requiere examen de heces y valoración veterinaria.',
-                    sintomas: 'Diarrea, pérdida de peso, poco crecimiento, pelo áspero o falta de apetito; estos signos no identifican por sí solos el parásito.',
-                    bioseguridad: 'Separa la poza, retira heces y cama húmeda a diario, limpia comederos y bebederos y no compartas utensilios entre grupos.',
-                    tratamiento: 'El veterinario debe confirmar la causa y definir si requiere medicamento. Esta guía no calcula fármaco, dosis ni duración.'
-                },
-                sarna: {
-                    diagnostico: 'Picazón, costras o pérdida de pelo pueden ser compatibles con sarna, pero también con otros problemas de piel.',
-                    sintomas: 'Rascado frecuente, zonas sin pelo, costras o piel irritada. El veterinario debe revisar al animal y confirmar la causa.',
-                    bioseguridad: 'Aísla al animal, usa guantes y utensilios exclusivos, cambia la cama y limpia el alojamiento. Revisa a los animales que estuvieron en contacto.',
-                    tratamiento: 'El veterinario debe confirmar si son ácaros y definir el producto y la pauta según el animal. No se asignan medicamento, dosis ni días por foto.'
-                }
-            };
-            const guia = guias[document.getElementById('necro-patologia').value];
-            const contenedor = document.getElementById('necro-guia');
-            necropsiaResultadoActual = guia || null;
-            document.querySelectorAll('[data-necro-zona]').forEach(opcion => {
-                opcion.setAttribute('aria-pressed', String(opcion.dataset.necroZona === document.getElementById('necro-patologia').value));
-            });
-            if (!guia) {
-                contenedor.classList.add('hidden');
-                document.getElementById('necro-save').disabled = true;
-                return;
-            }
-            document.getElementById('necro-diagnostico').textContent = guia.diagnostico;
-            document.getElementById('necro-sintomas').textContent = guia.sintomas;
-            document.getElementById('necro-bioseguridad').textContent = guia.bioseguridad;
-            document.getElementById('necro-tratamiento').textContent = guia.tratamiento;
-            const diagnosticoKardex = document.getElementById('salud-diagnostico');
-            diagnosticoKardex.value = `Orientación local no confirmada: ${guia.diagnostico}`;
-            const destinoNecropsia = document.getElementById('necro-destino').value;
-            if (destinoNecropsia) document.getElementById('salud-destino').value = destinoNecropsia;
-            document.getElementById('salud-producto').value = '';
-            document.getElementById('salud-cantidad').value = '';
-            document.getElementById('salud-calculo').textContent = 'No se asigna un fármaco, dosis ni duración por zona o fotografía. Con diagnóstico y pauta veterinaria confirmados, selecciona aquí el producto y registra el peso para calcular el volumen de referencia.';
-            contenedor.classList.remove('hidden');
-            document.getElementById('necro-save').disabled = !necropsiaFotoBase64;
-        }
-
-        function previsualizarFotoNecropsia(event) {
-            const archivo = event.target.files[0];
-            const version = ++necropsiaFotoVersion;
-            necropsiaFotoBase64 = '';
-            necropsiaResultadoActual = null;
-            document.getElementById('necro-guia').classList.add('hidden');
-            document.getElementById('necro-save').disabled = true;
-            if (!archivo) return;
-            if (!archivo.type.startsWith('image/') || archivo.size > 12 * 1024 * 1024) {
-                event.target.value = '';
-                document.getElementById('necro-foto-estado').textContent = 'Elige una imagen válida de hasta 12 MB.';
-                mostrarToast('Selecciona una imagen válida de hasta 12 MB', 'error');
-                return;
-            }
-            const estadoFoto = document.getElementById('necro-foto-estado');
-            estadoFoto.textContent = 'Preparando la foto…';
-            const lector = new FileReader();
-            lector.onload = () => {
-                if (version !== necropsiaFotoVersion) return;
-                necropsiaFotoBase64 = lector.result;
-                document.getElementById('necro-preview').src = lector.result;
-                document.getElementById('necro-preview-wrap').classList.remove('hidden');
-                estadoFoto.textContent = 'Vista previa lista.';
-                document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
-            };
-            lector.onerror = () => {
-                estadoFoto.textContent = 'No se pudo leer la foto en este dispositivo.';
-                mostrarToast('No se pudo leer la fotografía', 'error');
-            };
-            lector.readAsDataURL(archivo);
-            comprimirFotoClinica(archivo).then(async foto => {
-                if (version !== necropsiaFotoVersion) return;
-                necropsiaFotoBase64 = foto;
-                estadoFoto.textContent = 'Foto lista. Elige el hallazgo para ver la guía local.';
-                document.getElementById('necro-save').disabled = !necropsiaResultadoActual;
-            }).catch(error => {
-                console.error('Error al preparar foto de necropsia:', error);
-                mostrarToast('No se pudo procesar la foto; intenta con una imagen más pequeña', 'error');
-            });
-        }
-
-        async function guardarNecropsia(e) {
-            e.preventDefault();
-            const formulario = e.currentTarget;
-            if (!necropsiaResultadoActual || !necropsiaFotoBase64) {
-                mostrarToast('Selecciona un hallazgo y espera a que se procese la fotografía', 'error');
-                return;
-            }
-            const aplicado = document.getElementById('necro-aplicado').value.trim();
-            const observaciones = document.getElementById('necro-observaciones').value.trim();
-            const datosTratamiento = extraerDatosTratamiento(aplicado);
-            const registro = {
-                fecha: fechaHoy(),
-                destino: document.getElementById('necro-destino').value,
-                diagnostico: necropsiaResultadoActual.diagnostico,
-                sintomas: observaciones || necropsiaResultadoActual.sintomas,
-                lesiones: document.getElementById('necro-patologia').selectedOptions[0]?.value ? document.getElementById('necro-patologia').selectedOptions[0].textContent : 'Detectado por foto (Dr. Cuy IA)',
-                producto: aplicado || 'Sin aplicación farmacológica registrada',
-                cantidad: aplicado ? `Aplicado según prescripción: ${aplicado}` : 'Necropsia registrada; sin fármaco consignado',
-                diasProtocolo: datosTratamiento.diasProtocolo,
-                via: datosTratamiento.via,
-                foto: necropsiaFotoBase64,
-                tipoRegistro: 'Necropsia',
-                nota: `Orientación: ${necropsiaResultadoActual.tratamiento} Bioseguridad: ${necropsiaResultadoActual.bioseguridad}`
-            };
-            try {
-                try {
-                    guardarRegistroKardex(registro, 'Hallazgo de necropsia guardado en el Kardex de la poza');
-                } catch (error) {
-                    if (!registro.foto || !esLimiteAlmacenamiento(error)) throw error;
-                    registro.foto = '';
-                    guardarRegistroKardex(registro, 'Hallazgo guardado; foto omitida por límite de almacenamiento');
-                }
-                formulario.reset();
-                document.getElementById('necro-destino').value = obtenerPozaActiva();
-                necropsiaFotoBase64 = '';
-                necropsiaResultadoActual = null;
-                document.getElementById('necro-preview').removeAttribute('src');
-                document.getElementById('necro-preview-wrap').classList.add('hidden');
-                document.getElementById('necro-foto-estado').textContent = 'Sube o toma la foto y elige el hallazgo para ver la guía local (sin internet).';
-                document.getElementById('necro-guia').classList.add('hidden');
-                document.getElementById('necro-save').disabled = true;
-            } catch (error) {
-                console.error('Error al guardar necropsia en el Kardex:', error);
-                mostrarToast(error.message || 'No se pudo guardar el hallazgo en el Kardex', 'error');
             }
         }
 
@@ -4787,7 +4356,6 @@
             document.getElementById('badge-bajas').innerText = db.bajas.length;
             document.getElementById('badge-ventas').innerText = db.ventas.length;
             document.getElementById('badge-gastos').innerText = db.gastos.length;
-            document.getElementById('badge-salud').innerText = db.tratamientos.length;
 
             actualizarSelectoresPozas();
             actualizarSugerenciasClientes();
@@ -4795,7 +4363,6 @@
             actualizarProyecciones();
             renderModulosGranja();
             if (!document.getElementById('empadre-fecha').value) document.getElementById('empadre-fecha').value = fechaHoy();
-            if (!document.getElementById('salud-fecha').value) document.getElementById('salud-fecha').value = fechaHoy();
             if (!document.getElementById('gasto-fecha').value) document.getElementById('gasto-fecha').value = fechaHoy();
 
             // KPIs
@@ -4893,7 +4460,6 @@
             renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
             renderTabla('tabla-ventas', db.ventas, ['fecha', 'categoria', 'cantidad', 'monto', 'cliente'], 'ventas');
             renderTabla('tabla-gastos', db.gastos, ['fecha', 'concepto', 'categoria', 'ubicacion', 'monto'], 'gastos');
-            renderTabla('tabla-salud', db.tratamientos, ['fecha', 'destino', 'diagnostico', 'sintomas', 'lesiones', 'producto', 'cantidad', 'diasProtocolo', 'via', 'foto', 'nota'], 'salud');
 
             // Dashboard tablas reducidas
             document.getElementById('dash-tabla-partos').innerHTML = db.partos.slice(0, 5).map(p => `
@@ -5435,7 +5001,6 @@
                 ['bioseguridad', /bioseguridad|prevencion/, 'Bioseguridad'],
                 ['gastos', /gastos?/, 'Gastos operativos'],
                 ['ventas', /ventas?|ingresos?/, 'Ventas'],
-                ['salud', /kardex|salud/, 'Kardex sanitario'],
                 ['desparasitacion', /desparasit\w*/, 'Desparasitación'],
                 ['bajas', /sanidad|bajas?|mortalidad|veterinari\w*|dr cuy|doctor cuy/, 'Sanidad'],
                 ['destetados', /destet\w*/, 'Destetados'],

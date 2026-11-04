@@ -58,7 +58,6 @@
         .view-section form input:not([type="checkbox"]), .view-section form select, .view-section form textarea { width: 100%; margin-top: 7px; padding: 12px 14px; }
         .view-section form > button[type="submit"], .view-section form > div > button[type="submit"] { min-height: 56px; padding: 12px 22px; font-size: .95rem; }
         .view-section form > button.action-giant { min-height: 76px; }
-        #view-salud form > div:last-child { grid-column: 1 / -1; }
         #view-bajas > section { padding: 32px !important; }
         #view-bajas #baja-form { gap: 22px; }
         #view-bajas #baja-form label { font-size: .95rem; }
@@ -165,10 +164,6 @@
                 <button onclick="switchView('gastos')" id="nav-gastos" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-receipt text-lg"></i><span>Gastos Operativos</span>
                     <span id="badge-gastos" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
-                </button>
-                <button onclick="switchView('salud')" id="nav-salud" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
-                    <i class="ph ph-first-aid-kit text-lg"></i><span>Kardex Sanitario</span>
-                    <span id="badge-salud" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
             </nav>
         </div>
@@ -391,7 +386,6 @@
                         <button type="button" onclick="abrirRegistroRapido('partos')" class="rounded-xl bg-emerald-700 px-4 text-sm font-bold text-white">Parto</button>
                         <button type="button" onclick="abrirRegistroRapido('destetados')" class="rounded-xl bg-sky-700 px-4 text-sm font-bold text-white">Destete</button>
                         <button type="button" onclick="abrirRegistroRapido('bajas')" class="rounded-xl bg-rose-700 px-4 text-sm font-bold text-white">Baja</button>
-                        <button type="button" onclick="abrirRegistroRapido('salud')" class="rounded-xl bg-amber-700 px-4 text-sm font-bold text-white">Sanidad</button>
                         <button type="button" onclick="mostrarCodigoQR(document.getElementById('quick-poza').value)" class="rounded-xl border border-stone-300 px-4 text-sm font-bold text-stone-800">QR</button>
                     </div>
                 </section>
@@ -761,54 +755,6 @@
                 </div>
             </div>
 
-            <div id="view-salud" class="space-y-6 view-section hidden">
-                <section class="surface bg-white p-5 sm:p-6 border border-stone-200">
-                    <h3 class="text-lg font-bold text-stone-800 mb-4">Kardex sanitario y de insumos</h3>
-                    <form onsubmit="guardarTratamiento(event)" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <label class="text-xs font-bold text-stone-600">Aplicación
-                            <input type="date" id="salud-fecha" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Destino
-                            <select id="salud-destino" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm"><option value="">Selecciona galpón o poza</option></select>
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Medicamento / producto
-                            <select id="salud-producto" required onchange="calcularDosisPoza()" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm">
-                                <option value="">Selecciona producto</option>
-                                <option value="Ivermectina 1%" data-dosis="0.2" data-unidad="kg">Ivermectina 1% · 0.2 ml/kg</option>
-                                <option value="Enrofloxacina 5%" data-dosis="0.1" data-unidad="kg">Enrofloxacina 5% · 0.1 ml/kg</option>
-                                <option value="Toltrazuril 2.5%" data-dosis="0.04" data-unidad="kg">Toltrazuril 2.5% · 0.04 ml/kg</option>
-                                <option value="Vitamina AD3E / C" data-dosis="0.2" data-unidad="animal">Vitamina AD3E / C · 0.2 ml/animal</option>
-                                <option value="Otro indicado por veterinario">Otro indicado por veterinario</option>
-                            </select>
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Peso promedio del cuy (gramos)
-                            <input type="number" id="salud-peso" min="1" max="5000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 850">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Cantidad de cuyes en la poza
-                            <input type="number" id="salud-animales" min="1" max="1000" step="1" oninput="calcularDosisPoza()" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Ej. 6">
-                        </label>
-                        <label id="salud-producto-manual-wrap" class="hidden text-xs font-bold text-stone-600">Producto prescrito
-                            <input type="text" id="salud-producto-manual" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Nombre indicado por el veterinario">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Dosis / cantidad
-                            <input type="text" id="salud-cantidad" required class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Calculada o indicada por el veterinario">
-                        </label>
-                        <label class="text-xs font-bold text-stone-600">Responsable / nota
-                            <input type="text" id="salud-nota" class="mt-1 w-full px-3 py-2 border rounded-xl text-sm" placeholder="Opcional">
-                        </label>
-                        <p id="salud-calculo" class="sm:col-span-2 xl:col-span-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" aria-live="polite">Selecciona un producto e ingresa el peso y la cantidad para calcular.</p>
-                        <p class="sm:col-span-2 xl:col-span-4 text-xs text-amber-800">Dosis de referencia solicitadas; confirma etiqueta, vía, contraindicaciones y pauta con un veterinario antes de administrar.</p>
-                        <div class="sm:col-span-2 xl:col-span-5 flex justify-end">
-                            <button type="submit" class="bg-emerald-700 text-white font-bold px-6 rounded-xl">Guardar aplicación</button>
-                        </div>
-                    </form>
-                </section>
-                <section class="surface bg-white p-5 sm:p-6 border border-stone-200 space-y-4">
-                    <h4 class="font-bold text-stone-800">Historial de tratamientos e insumos</h4>
-                    <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-stone-50 text-stone-500 uppercase text-xs"><tr><th class="p-4">Fecha</th><th class="p-4">Destino</th><th class="p-4">Diagnóstico</th><th class="p-4">Síntomas</th><th class="p-4">Lesiones</th><th class="p-4">Producto / manejo</th><th class="p-4">Dosis / seguimiento</th><th class="p-4">Días</th><th class="p-4">Vía</th><th class="p-4">Foto</th><th class="p-4">Nota</th><th class="p-4">Acción</th></tr></thead><tbody id="tabla-salud"></tbody></table></div>
-                </section>
-            </div>
-
         </div>
     </main>
 
@@ -921,14 +867,6 @@
                 else if (selector.dataset.pozaActiva === 'true' && codigos.includes(pozaActiva)) selector.value = pozaActiva;
             });
 
-            const ubicaciones = [...new Set(db.cuyes.map(poza => String(poza.poza || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
-            const opcionesUbicacion = [new Option('General', 'General'), ...ubicaciones.map(ubicacion => new Option(ubicacion, ubicacion)), ...codigos.map(codigo => new Option(codigo, codigo))];
-            ['salud-destino'].forEach(id => {
-                const selector = document.getElementById(id);
-                const valorActual = selector.value;
-                selector.replaceChildren(...(id === 'salud-destino' ? [new Option('Selecciona galpón o poza', ''), ...opcionesUbicacion] : opcionesUbicacion));
-                if ([...selector.options].some(opcion => opcion.value === valorActual)) selector.value = valorActual;
-            });
         }
 
         function obtenerStockActualPoza(poza) {
@@ -981,7 +919,6 @@
             }
             const selectores = { partos: 'parto-poza', destetados: 'destete-poza', bajas: 'baja-identificador' };
             if (selectores[vista]) document.getElementById(selectores[vista]).value = codigo;
-            if (vista === 'salud') document.getElementById('salud-destino').value = codigo;
             switchView(vista);
             const formulario = document.querySelector(`#view-${vista} form`);
             if (formulario) formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1146,7 +1083,6 @@
                 bajas: 'Mortalidad y Bajas Sanitarias',
                 ventas: 'Ventas de Cuyes e Ingresos',
                 gastos: 'Gastos Operativos',
-                salud: 'Kardex Sanitario y de Insumos'
             };
             document.getElementById('view-title').innerText = titles[viewName] || 'SisGranja';
             
@@ -1747,14 +1683,12 @@
             document.getElementById('badge-bajas').innerText = db.bajas.length;
             document.getElementById('badge-ventas').innerText = db.ventas.length;
             document.getElementById('badge-gastos').innerText = db.gastos.length;
-            document.getElementById('badge-salud').innerText = db.tratamientos.length;
 
             actualizarSelectoresPozas();
             actualizarSugerenciasClientes();
             actualizarTemperatura();
             actualizarProyecciones();
             if (!document.getElementById('empadre-fecha').value) document.getElementById('empadre-fecha').value = fechaHoy();
-            if (!document.getElementById('salud-fecha').value) document.getElementById('salud-fecha').value = fechaHoy();
             if (!document.getElementById('gasto-fecha').value) document.getElementById('gasto-fecha').value = fechaHoy();
 
             // KPIs
@@ -1865,7 +1799,6 @@
             renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
             renderTabla('tabla-ventas', db.ventas, ['fecha', 'categoria', 'cantidad', 'monto', 'cliente'], 'ventas');
             renderTabla('tabla-gastos', db.gastos, ['fecha', 'concepto', 'categoria', 'ubicacion', 'monto'], 'gastos');
-            renderTabla('tabla-salud', db.tratamientos, ['fecha', 'destino', 'diagnostico', 'sintomas', 'lesiones', 'producto', 'cantidad', 'diasProtocolo', 'via', 'foto', 'nota'], 'salud');
 
             // Dashboard tablas reducidas
             document.getElementById('dash-tabla-partos').innerHTML = db.partos.slice(0, 5).map(p => `
