@@ -705,6 +705,15 @@
             .view-section section, .view-section .surface { padding: 14px !important; }
             #toast-container { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
         }
+        /* Tabla de pozas: encabezados horizontales (se anula overflow-wrap:anywhere, que los partía por letra). */
+        #view-cuyes table { min-width: 640px; }
+        #view-cuyes th { overflow-wrap: normal; word-break: normal; white-space: nowrap; min-width: 84px; padding: 12px 14px !important; font-size: 12px; letter-spacing: .03em; }
+        #view-cuyes td { overflow-wrap: normal; white-space: nowrap; padding: 12px 14px !important; font-size: 14px; }
+        @media (max-width: 767px) {
+            #view-cuyes table { display: block; }
+            #view-cuyes th { font-size: 11px; padding: 10px !important; }
+            #view-cuyes td { font-size: 13px; padding: 10px !important; }
+        }
     </style>
     <style>
         #login-container { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; background: linear-gradient(135deg, #022c22 0%, #065f46 55%, #10b981 100%); }
@@ -5437,9 +5446,52 @@
                 if (el) { el.value = valor; el.dispatchEvent(new Event('input', { bubbles: true })); }
             };
             const codigoPoza = n => 'PZ-' + String(n).padStart(3, '0');
+            // Siguiente código correlativo: mayor número existente + 1.
+            const siguienteCodigoPoza = () => codigoPoza(obtenerCodigosPozas().reduce((mx, c) => Math.max(mx, Number((c.match(/(\d+)$/) || [0, 0])[1]) || 0), 0) + 1);
 
             // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
             const ACCIONES = [
+                {   // "registrar poza 8 con 5 machos y 10 hembras en galpón A" / "registrar la poza que sigue ..."
+                    patron: /poza\s*(?:(\d+)|(?:que sigue|siguiente|nueva))(.*)/,
+                    requiere: /^(?!.*(?:parto|nacid|nacieron|destet|baja|muert|murieron|racion|desparasit|cuant)).*(?:registr|crea|agrega|anota|nueva)/,
+                    ejecutar(m) {
+                        const codigo = m[1] ? codigoPoza(m[1]) : siguienteCodigoPoza();
+                        const resto = m[2] || '';
+                        const cant = re => (resto.match(re) || [])[1];
+                        const machos = cant(/(\d+)\s*machos?/) || '0';
+                        const hembras = cant(/(\d+)\s*hembras?/) || '0';
+                        const galpon = (resto.match(/(?:galpon|ubicacion)\s+(.+)$/) || [])[1];
+                        irA('cuyes');
+                        ponerValor('cuy-codigo', codigo);
+                        ponerValor('cuy-machos', machos);
+                        ponerValor('cuy-hembras', hembras);
+                        ponerValor('cuy-poza', galpon ? 'Galpón ' + galpon.toUpperCase() : codigo);
+                        guardarCuy(evento);
+                    }
+                },
+                {   // "registrar destete de poza 5 con 3 machos y 4 hembras a poza 6"
+                    patron: /destet\w*.*?poza\s*(\d+)(.*)/,
+                    requiere: /^(?!.*cuant).*(?:registr|anota|agrega|nuevo|hubo|hice|hicimos)/,
+                    ejecutar(m) {
+                        const origen = codigoPoza(m[1]);
+                        if (!obtenerCodigosPozas().includes(origen)) return fallo('La poza ' + m[1] + ' no existe');
+                        const resto = m[2] || '';
+                        const cant = re => (resto.match(re) || [])[1];
+                        const machos = cant(/(\d+)\s*machos?/) || '0';
+                        const hembras = cant(/(\d+)\s*hembras?/) || '0';
+                        if (machos === '0' && hembras === '0') return fallo('Indica cuántos machos y hembras se destetaron');
+                        const destino = (resto.match(/(?:a|hacia|pasan a)\s+(?:la\s+)?poza\s*(\d+)/) || [])[1];
+                        const codDestino = destino && obtenerCodigosPozas().includes(codigoPoza(destino)) ? codigoPoza(destino) : origen;
+                        irA('destetados');
+                        ponerValor('destete-poza', origen);
+                        ponerValor('destete-machos', machos);
+                        ponerValor('destete-hembras', hembras);
+                        ponerValor('destete-poza-machos', codDestino);
+                        ponerValor('destete-poza-hembras', codDestino);
+                        guardarDestete(evento);
+                        exito('Destete registrado en la poza ' + m[1]);
+                    }
+                },
                 {   // "registrar en poza 5 que han nacido 4 crías" / "nacieron 4 crías en la poza 5"
                     patron: /(?:poza\s*(\d+).*?(?:nacid\w*|nacieron)\s*(\d+)|(?:nacid\w*|nacieron)\s*(\d+).*?poza\s*(\d+))(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
                     requiere: /^(?!.*cuant)(?=.*(?:nacid|nacieron))/,
@@ -5905,7 +5957,8 @@
             }
 
             function procesar(original) {
-                const t = normalizar(original);
+                // "pz 8", "poza número 8", "poza nro 8" -> "poza 8"
+                const t = normalizar(original).replace(/\bp\s?z\s*-?\s*(\d+)/g, 'poza $1').replace(/\bpoza\s+(?:numero|nro|n)\s*(\d+)/g, 'poza $1');
                 for (const a of ACCIONES) {
                     if (a.requiere && !a.requiere.test(t)) continue;
                     const m = (a.usaOriginal ? original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : t).match(a.patron);
