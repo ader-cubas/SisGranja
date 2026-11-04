@@ -1680,10 +1680,10 @@
                     <p class="mod-hint">Destete: 1ª dosis (ivermectina + complejo B + vitamina C) y 2ª dosis a los 7-10 días solo con ivermectina. Reproductoras: control cada 3 meses.</p>
                     <form onsubmit="registrarDesparasitacion(event)" class="mod-grid mt-3">
                         <label class="mod-field">Protocolo
-                            <select id="desp-tipo" onchange="mostrarDosisDesparasitacion()" class="mod-input"><option value="destete">Destete (1ª dosis hoy, 2ª a los 7-10 días)</option><option value="repro">Reproductoras (próximo control a 3 meses)</option></select>
+                            <select id="desp-tipo" onchange="mostrarDosisDesparasitacion(); autoProgramarDesparasitacion()" class="mod-input"><option value="destete">Destete (1ª dosis hoy, 2ª a los 7-10 días)</option><option value="repro">Reproductoras (próximo control a 3 meses)</option></select>
                         </label>
                         <label class="mod-field">Lote o poza
-                            <input type="text" id="desp-lote" maxlength="60" class="mod-input" placeholder="Ej. Poza 3">
+                            <select id="desp-lote" onchange="autoProgramarDesparasitacion()" class="mod-input"><option value="">Selecciona una poza</option></select>
                         </label>
                         <label class="mod-field">Fecha de aplicación
                             <input type="date" id="desp-fecha" required class="mod-input">
@@ -2193,7 +2193,7 @@
         function actualizarSelectoresPozas() {
             const codigos = obtenerCodigosPozas();
             const pozaActiva = obtenerPozaActiva();
-            document.querySelectorAll('#parto-poza, #destete-poza, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #repro-poza, #peso-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
+            document.querySelectorAll('#parto-poza, #destete-poza, #desp-lote, #destete-poza-machos, #destete-poza-hembras, #baja-identificador, #empadre-poza, #repro-poza, #peso-poza, #quick-poza, #necro-poza, #necro-destino').forEach(selector => {
                 const valorActual = selector.value;
                 const textoInicial = 'Selecciona una poza';
                 const lista = codigos;
@@ -4417,12 +4417,19 @@
         function programarAlertaSanidad(tipo, fecha = fechaHoy(), lote = '') {
             const alertas = leerAlertasSanidad();
             const pref = lote ? `${lote}: ` : '';
-            alertas.push(tipo === 'destete'
+            const nueva = tipo === 'destete'
                 ? { id: Date.now(), desde: sumarDias(fecha, 7), hasta: sumarDias(fecha, 10), texto: `${pref}2ª dosis de Ivermectina (SOLO ivermectina, sin vitaminas; recalcular al nuevo peso)` }
-                : { id: Date.now(), desde: sumarDias(fecha, 90), hasta: sumarDias(fecha, 90), texto: `${pref}control de reproductoras: Ivermectina + Complejo B + Vitamina C` });
+                : { id: Date.now(), desde: sumarDias(fecha, 90), hasta: sumarDias(fecha, 90), texto: `${pref}control de reproductoras: Ivermectina + Complejo B + Vitamina C` };
+            if (alertas.some(a => a.texto === nueva.texto && a.desde === nueva.desde)) { mostrarToast('Esa alerta ya está programada'); return; }
+            alertas.push(nueva);
             escribirCompartido(ALERTAS_SANIDAD_CLAVE, JSON.stringify(alertas.slice(-50)));
             renderAlertasSanidad();
             mostrarToast('Alerta programada en Desparasitación y en el tablero');
+        }
+
+        function autoProgramarDesparasitacion() {
+            const lote = document.getElementById('desp-lote').value;
+            if (lote) programarAlertaSanidad(document.getElementById('desp-tipo').value, document.getElementById('desp-fecha').value || fechaHoy(), lote);
         }
 
         function registrarDesparasitacion(e) {
@@ -5362,8 +5369,14 @@
                 speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(texto);
                 u.lang = 'es-PE';
-                const vozEs = speechSynthesis.getVoices().find(v => /^es/i.test(v.lang));
-                if (vozEs) u.voice = vozEs;
+                // Voz masculina en español, grave y pausada (capataz con experiencia).
+                const voces = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang));
+                const mujer = /female|mujer|helena|laura|mónica|monica|paulina|sabina|lucía|lucia|elena|maría|maria|sofia|paloma|camila|valentina|salome|google espa/i;
+                const hombre = /male|jorge|diego|carlos|pablo|juan|raúl|raul|enrique|álvaro|alvaro|miguel|andrés|andres|alonso|tomás|tomas/i;
+                const vozEs = voces.find(v => hombre.test(v.name) && !/female/i.test(v.name)) || voces.find(v => !mujer.test(v.name)) || voces[0];
+                if (vozEs) { u.voice = vozEs; u.lang = vozEs.lang; }
+                u.pitch = 0.5;
+                u.rate = 0.92;
                 speechSynthesis.speak(u);
             }
             // Mientras el chat procesa una consulta, las respuestas se capturan en lugar de mostrarse como banner/tarjeta.
@@ -5399,6 +5412,7 @@
                 ['gastos', /gastos?/, 'Gastos operativos'],
                 ['ventas', /ventas?|ingresos?/, 'Ventas'],
                 ['salud', /kardex|salud/, 'Kardex sanitario'],
+                ['desparasitacion', /desparasit\w*/, 'Desparasitación'],
                 ['bajas', /sanidad|bajas?|mortalidad|veterinari\w*|dr cuy|doctor cuy/, 'Sanidad'],
                 ['destetados', /destet\w*/, 'Destetados'],
                 ['partos', /partos?|reproduccion|empadre/, 'Partos'],
@@ -5406,7 +5420,7 @@
                 ['guia', /guia|tecnica/, 'Guía técnica'],
                 ['pesos', /pesos?|pesaje/, 'Control de pesos'],
                 ['formulacion', /formulacion|formular|raciones/, 'Formulación de raciones'],
-                ['racion', /racion|forraje/, 'Ración y forraje'],
+                ['racion', /racion|forraje|concentrado|alimento/, 'Ración y forraje'],
                 ['escala', /escala|siembra|hectarea|bloques/, 'Escala y siembra'],
                 ['dashboard', /dashboard|inicio|panel|resumen|principal/, 'Dashboard']
             ];
@@ -5426,6 +5440,50 @@
 
             // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
             const ACCIONES = [
+                {   // "registrar en poza 5 que han nacido 4 crías" / "nacieron 4 crías en la poza 5"
+                    patron: /(?:poza\s*(\d+).*?(?:nacid\w*|nacieron)\s*(\d+)|(?:nacid\w*|nacieron)\s*(\d+).*?poza\s*(\d+))(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
+                    requiere: /^(?!.*cuant)(?=.*(?:nacid|nacieron))/,
+                    ejecutar(m) {
+                        const n = m[1] || m[4], vivas = m[2] || m[3];
+                        const codigo = codigoPoza(n);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + n + ' no existe');
+                        irA('partos');
+                        ponerValor('parto-poza', codigo);
+                        ponerValor('parto-vivas', vivas);
+                        ponerValor('parto-muertas', m[5] || '0');
+                        guardarParto(evento);
+                        exito('Parto registrado en la poza ' + n + ': ' + vivas + ' crías');
+                    }
+                },
+                {   // "registrar baja en poza 3 de 2 cuyes" / "murieron 2 crías en la poza 3"
+                    patron: /poza\s*(\d+)/,
+                    requiere: /^(?!.*(?:parto|nacid|nacieron|cuant|ventas?|enfermedad|tratamiento|desparasit)).*(?:baja|murio|murieron|muert[eo]s?|fallec)/,
+                    ejecutar(m, t) {
+                        const codigo = codigoPoza(m[1]);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+                        const cantidad = (t.replace(/poza\s*\d+/, ' ').match(/\d+/) || ['1'])[0];
+                        const categoria = /lactante|cria|gazap/.test(t) ? 'crias' : /destetad|recria|engorde/.test(t) ? 'recria' : /reemplazo/.test(t) ? 'reemplazo' : 'adultos';
+                        irA('bajas');
+                        ponerValor('baja-identificador', codigo);
+                        ponerValor('baja-cantidad', cantidad);
+                        ponerValor('baja-categoria', categoria);
+                        guardarBaja({ preventDefault() {}, currentTarget: document.getElementById('baja-form') });
+                        exito('Baja registrada en la poza ' + m[1] + ': ' + cantidad);
+                    }
+                },
+                {   // "programar desparasitación de destete en poza 4" / "... de reproductoras ..."
+                    patron: /poza\s*(\d+)/,
+                    requiere: /desparasit/,
+                    ejecutar(m, t) {
+                        const codigo = codigoPoza(m[1]);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
+                        irA('desparasitacion');
+                        ponerValor('desp-tipo', /reproduc|madres|adult/.test(t) ? 'repro' : 'destete');
+                        ponerValor('desp-lote', codigo);
+                        programarAlertaSanidad(document.getElementById('desp-tipo').value, document.getElementById('desp-fecha').value || fechaHoy(), codigo);
+                        exito('Alerta de desparasitación programada para ' + codigo);
+                    }
+                },
                 {   // "registrar parto en poza 15 con 4 gazapos [y 1 muerta]"
                     patron: /parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
                     requiere: /registr|anota|agrega|nuevo|hubo|tuvo/,
