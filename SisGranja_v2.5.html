@@ -5373,19 +5373,32 @@
                 clearTimeout(temporizador);
                 if (ms) temporizador = setTimeout(() => { banner.style.display = 'none'; }, ms);
             }
+            let vocesCache = [];
+            if ('speechSynthesis' in window) {
+                const cargarVoces = () => { vocesCache = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang)); };
+                cargarVoces();
+                speechSynthesis.addEventListener('voiceschanged', cargarVoces);
+            }
+            // Puntaje de voz: masculina latina/española primero; las femeninas conocidas quedan al final.
+            const puntuarVoz = v => {
+                const n = v.name + ' ' + v.lang;
+                let p = /es[-_](mx|us|419|ar|co|pe|cl|ve|es)/i.test(v.lang) ? 10 : 0;
+                if (/\b(male|jorge|diego|carlos|pablo|juan|raúl|raul|enrique|álvaro|alvaro|miguel|andrés|andres|alonso|tomás|tomas|pedro|antonio|luis|mateo|gonzalo|jaime|sergio)\b/i.test(n) && !/female/i.test(n)) p += 50;
+                if (/female|mujer|helena|laura|mónica|monica|paulina|sabina|lucía|lucia|elena|maría|maria|sofia|paloma|camila|valentina|salome|google espa|dalia|elvira|lupe/i.test(n)) p -= 50;
+                return p;
+            };
             function hablar(texto) {
                 if (!('speechSynthesis' in window)) return;
                 speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(texto);
-                u.lang = 'es-PE';
-                // Voz masculina en español, grave y pausada (capataz con experiencia).
-                const voces = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang));
-                const mujer = /female|mujer|helena|laura|mónica|monica|paulina|sabina|lucía|lucia|elena|maría|maria|sofia|paloma|camila|valentina|salome|google espa/i;
-                const hombre = /male|jorge|diego|carlos|pablo|juan|raúl|raul|enrique|álvaro|alvaro|miguel|andrés|andres|alonso|tomás|tomas/i;
-                const vozEs = voces.find(v => hombre.test(v.name) && !/female/i.test(v.name)) || voces.find(v => !mujer.test(v.name)) || voces[0];
-                if (vozEs) { u.voice = vozEs; u.lang = vozEs.lang; }
-                u.pitch = 0.5;
-                u.rate = 0.92;
+                u.lang = 'es-MX';
+                const mejor = [...vocesCache].sort((a, b) => puntuarVoz(b) - puntuarVoz(a))[0];
+                const esMasculina = mejor && puntuarVoz(mejor) >= 50;
+                if (mejor) { u.voice = mejor; u.lang = mejor.lang; }
+                // Sin voz masculina nativa: tono al mínimo y ritmo lento para sonar grave y firme.
+                u.pitch = esMasculina ? 0.4 : 0;
+                u.rate = esMasculina ? 0.9 : 0.8;
+                u.volume = 1;
                 speechSynthesis.speak(u);
             }
             // Mientras el chat procesa una consulta, las respuestas se capturan en lugar de mostrarse como banner/tarjeta.
@@ -5431,9 +5444,9 @@
                 ['formulacion', /formulacion|formular|raciones/, 'Formulación de raciones'],
                 ['racion', /racion|forraje|concentrado|alimento/, 'Ración y forraje'],
                 ['escala', /escala|siembra|hectarea|bloques/, 'Escala y siembra'],
-                ['dashboard', /dashboard|inicio|panel|resumen|principal/, 'Dashboard']
+                ['dashboard', /dashboard|inicio|panel|resumen|principal|reporte\w*/, 'Dashboard']
             ];
-            const VERBOS_NAV = /\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver)\b/;
+            const VERBOS_NAV = /\b(abre|abrir|abri|ir|ve|vamos|muestrame|mostrar|muestra|navega|llevame|ver|quiero|necesito|entra|entrar|ponme|pon|consulta|consultar|revisa|revisar|dame|abreme)\b/;
 
             const irA = vista => {
                 if (!document.getElementById('view-' + vista)) return false;
@@ -5451,9 +5464,9 @@
 
             // --- Acciones con datos: cada una devuelve true si se encargó del comando. ---
             const ACCIONES = [
-                {   // "registrar poza 8 con 5 machos y 10 hembras en galpón A" / "registrar la poza que sigue ..."
-                    patron: /poza\s*(?:(\d+)|(?:que sigue|siguiente|nueva))(.*)/,
-                    requiere: /^(?!.*(?:parto|nacid|nacieron|destet|baja|muert|murieron|racion|desparasit|cuant)).*(?:registr|crea|agrega|anota|nueva)/,
+                {   // "crea la poza 8", "agrégale una poza más", "necesito registrar una poza nueva", "registrar poza 8 con 5 machos y 10 hembras"
+                    patron: /poza\s*(?:(\d+)\b)?(.*)/,
+                    requiere: /^(?!.*(?:parto|nacid|nacieron|destet|baja|muert|murieron|racion|desparasit|cuant|que tengo|reporte|abre|ver )).*(?:registr|crea|agreg|anota|apunta|nueva|otra poza|poza mas|necesito)/,
                     ejecutar(m) {
                         const codigo = m[1] ? codigoPoza(m[1]) : siguienteCodigoPoza();
                         const resto = m[2] || '';
@@ -5466,7 +5479,12 @@
                         ponerValor('cuy-machos', machos);
                         ponerValor('cuy-hembras', hembras);
                         ponerValor('cuy-poza', galpon ? 'Galpón ' + galpon.toUpperCase() : codigo);
+                        if (machos === '0' && hembras === '0') {
+                            const campo = document.getElementById('cuy-machos'); if (campo) campo.focus();
+                            return exito('Abrí el formulario con la poza ' + codigo + '. Dime cuántos machos y hembras tiene.');
+                        }
                         guardarCuy(evento);
+                        exito('Poza ' + codigo + ' registrada');
                     }
                 },
                 {   // "registrar destete de poza 5 con 3 machos y 4 hembras a poza 6"
@@ -5492,7 +5510,28 @@
                         exito('Destete registrado en la poza ' + m[1]);
                     }
                 },
-                {   // "registrar en poza 5 que han nacido 4 crías" / "nacieron 4 crías en la poza 5"
+                {   // "nacieron 4 crías en la poza 1", "anota un parto de 5 en la poza 3", "en la poza 2 han nacido 6 con 1 muerta"
+                    patron: /[\s\S]*/,
+                    requiere: /^(?!.*(?:cuant|destet|baja|poblacion|stock|desparasit)).*(?:nacid|nacieron|nacio|parto|pario|parieron)(?=.*(?:registr|anota|agrega|apunta|nacid|nacieron|nacio|pario|parieron|hubo|tuvo|tuvieron|parto de))/,
+                    ejecutar(m, t) {
+                        const n = (t.match(/poza\s*(\d+)/) || [])[1];
+                        if (!n) return fallo('Indica en qué poza fue el parto');
+                        const codigo = codigoPoza(n);
+                        if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + n + ' no existe');
+                        let resto = t.replace(/poza\s*\d+/g, ' ');
+                        const muertas = (resto.match(/(\d+)\s*(?:muertas?|muertos?|natos?)/) || [])[1] || '0';
+                        resto = resto.replace(/(\d+)\s*(?:muertas?|muertos?|natos?)/, ' ').replace(/\b1\s+parto\b/, ' ');
+                        const vivas = (resto.match(/\d+/) || [])[0];
+                        if (vivas === undefined) return fallo('Indica cuántas crías nacieron');
+                        irA('partos');
+                        ponerValor('parto-poza', codigo);
+                        ponerValor('parto-vivas', vivas);
+                        ponerValor('parto-muertas', muertas);
+                        guardarParto(evento);
+                        exito('Parto registrado en la poza ' + n + ': ' + vivas + ' crías');
+                    }
+                },
+                {   // viejo formato estricto de nacimientos
                     patron: /(?:poza\s*(\d+).*?(?:nacid\w*|nacieron)\s*(\d+)|(?:nacid\w*|nacieron)\s*(\d+).*?poza\s*(\d+))(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
                     requiere: /^(?!.*cuant)(?=.*(?:nacid|nacieron))/,
                     ejecutar(m) {
@@ -5956,9 +5995,37 @@
                 return false;
             }
 
+            // Respuestas directas y habladas a preguntas de cantidad ("cuántos cuyes tenemos", "cuánto stock queda").
+            function responderDirecto(t) {
+                const sumaDestete = lista => lista.reduce((s, d) => s + (Number(d.machos) || 0) + (Number(d.hembras) || 0) + (d.machos === undefined && d.hembras === undefined ? Number(d.cantidad) || 0 : 0), 0);
+                const pozaN = (t.match(/poza\s*(\d+)/) || [])[1];
+                const r = resumenPoblacion();
+                if (/destet/.test(t)) {
+                    const mes = sumaDestete(db.destetados.filter(d => String(d.fecha).startsWith(mesActual())));
+                    exito(`Se han destetado ${sumaDestete(db.destetados)} cuyes en total, ${mes} este mes.`);
+                } else if (/parto|nacimiento|nacieron|camada/.test(t)) {
+                    const vivas = db.partos.reduce((s, p) => s + (Number(p.vivas) || 0), 0);
+                    exito(`Hay ${db.partos.length} partos registrados con ${vivas} crías vivas.`);
+                } else if (/baja|muert|mortalidad|murieron/.test(t)) {
+                    const total = db.bajas.reduce((s, b) => s + (Number(b.cantidad) || 0), 0);
+                    exito(`Hay ${total} bajas registradas.`);
+                } else if (/pozas?/.test(t) && !pozaN && !/cuy|animal|stock/.test(t)) {
+                    exito(`Hay ${r.pozas} pozas registradas, ${r.activas} con animales.`);
+                } else if (/cuy|animal|stock|queda|quedan|tenemos|tengo|hay|poblacion|pozas?/.test(t)) {
+                    if (pozaN) {
+                        const reg = obtenerPozasUnicas().find(p => claveUnicaPoza(p.codigo || p.id) === codigoPoza(pozaN));
+                        if (!reg) return fallo('La poza ' + pozaN + ' no existe'), true;
+                        const c = obtenerConteosRacionPoza(reg);
+                        exito(`La poza ${pozaN} tiene ${Math.max(0, obtenerStockActualPoza(reg))} cuyes: ${c.adultos} reproductores, ${c.recria} en recría y ${c.crias} crías.`);
+                    } else exito(`Tenemos ${r.total} cuyes en ${r.activas} pozas: ${r.adultos} reproductores, ${r.recria} en recría y ${r.crias} crías.`);
+                } else return false;
+                return true;
+            }
+
             function procesar(original) {
                 // "pz 8", "poza número 8", "poza nro 8" -> "poza 8"
-                const t = normalizar(original).replace(/\bp\s?z\s*-?\s*(\d+)/g, 'poza $1').replace(/\bpoza\s+(?:numero|nro|n)\s*(\d+)/g, 'poza $1');
+                const t = normalizar(original).replace(/\bp\s?z\s*-?\s*(\d+)/g, 'poza $1').replace(/\bpoza\s+(?:numero|nro|n)\s*(\d+)/g, 'poza $1').replace(/\bpor favor\b/g, '').replace(/\s+/g, ' ').trim();
+                if (/\bcuant\w*/.test(t) && responderDirecto(t)) return;
                 for (const a of ACCIONES) {
                     if (a.requiere && !a.requiere.test(t)) continue;
                     const m = (a.usaOriginal ? original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : t).match(a.patron);
