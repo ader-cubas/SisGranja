@@ -776,6 +776,14 @@
         .hb { min-height: 44px; font-size: .875rem !important; padding: 10px 16px !important; white-space: nowrap; touch-action: manipulation; }
         details ol li { line-height: 1.65; }
         details ol { row-gap: .6rem; }
+        #view-formulacion .overflow-x-auto > table { min-width: 0; width: 100%; table-layout: fixed; font-size: .85rem; }
+        #view-formulacion table th { white-space: normal; padding: 8px 4px; font-size: .68rem; line-height: 1.15; }
+        #view-formulacion table td { padding: 6px 3px; }
+        #view-formulacion table td .mod-input { padding: 8px 6px; font-size: .9rem; min-width: 0; width: 100%; }
+        #view-formulacion table th:nth-child(1) { width: 32%; }
+        #view-formulacion table th:nth-child(5) { width: 12%; }
+        #view-formulacion table td:nth-child(4) { font-size: .8rem; text-align: right; overflow-wrap: normal; }
+        #view-formulacion table td button { padding: 8px 6px; }
         @media (max-width: 767px) {
             .hb { flex: 1 1 auto; justify-content: center; }
         }
@@ -1950,7 +1958,7 @@
             <div id="view-formulacion" class="space-y-6 view-section hidden">
                 <section class="mod-card">
                     <h3 class="mod-title">🧮 Formulación de raciones</h3>
-                    <p class="mod-hint">Arma la fórmula de concentrado de cada etapa, calcula su costo por kilo y por quintal (46 kg) y estima cuánto necesita tu granja.</p>
+                    
                     <div class="mod-grid">
                         <label class="mod-field">Población a usar
                             <select id="form-modo" onchange="calcularFormulacion()" class="mod-input">
@@ -2011,21 +2019,6 @@
                 <section class="mod-card" aria-labelledby="form-todas-titulo">
                     <h3 id="form-todas-titulo" class="mod-title">Resumen de todas las etapas</h3>
                     <div id="form-todas" class="flex flex-col gap-3" aria-live="polite"></div>
-                </section>
-
-                <section class="mod-card">
-                    <details class="rounded-lg border border-amber-300 bg-amber-50 p-4" open>
-                        <summary class="cursor-pointer text-lg font-extrabold text-amber-900">📋 Guía de mezclado manual</summary>
-                        <ol class="mt-2 list-decimal space-y-2 pl-5 text-base sm:text-lg">
-                            <li><strong>Pesa</strong> cada insumo con balanza según la tabla; no mezcles a ojo.</li>
-                            <li><strong>Premezcla:</strong> mezcla el núcleo o los microingredientes (vitaminas, minerales, vitamina C, sal) con unos 5 a 10 kg de polvo seco (polvillo o afrecho) hasta que no se distingan.</li>
-                            <li><strong>Capas de secos:</strong> extiende sobre una lona o piso limpio los insumos secos en capas, del que tiene mayor volumen al de menor volumen (por ejemplo maíz, afrecho, alfalfa molida, torta de soya) y, encima, la premezcla.</li>
-                            <li><strong>Melaza:</strong> diluye la melaza en un poco de agua tibia y riégala en forma de lluvia sobre la mezcla mientras volteas, sin formar grumos ni empapar.</li>
-                            <li><strong>Volteo y homogenización:</strong> voltea con pala de 3 a 4 veces, de un extremo al otro, hasta que el color y la textura sean uniformes.</li>
-                            <li><strong>Almacena</strong> en sacos limpios sobre parihuelas, en lugar seco y ventilado, y rotula la fecha de preparación.</li>
-                        </ol>
-                        <p class="mt-3 text-sm font-semibold text-amber-900">Confirma cada fórmula con un zootecnista o médico veterinario antes de usarla.</p>
-                    </details>
                 </section>
             </div>
 
