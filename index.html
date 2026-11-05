@@ -5200,7 +5200,7 @@
                 },
                 {   // "nacieron 4 crías en la poza 1", "anota un parto de 5 en la poza 3", "en la poza 2 han nacido 6 con 1 muerta"
                     patron: /[\s\S]*/,
-                    requiere: /^(?!.*(?:cuant|destet|baja|poblacion|stock|desparasit)).*(?:nacid|nacieron|nacio|parto|pario|parieron)(?=.*(?:registr|anota|agrega|apunta|nacid|nacieron|nacio|pario|parieron|hubo|tuvo|tuvieron|parto de))/,
+                    requiere: /^(?!.*(?:cuant|destet|baja|poblacion|stock|desparasit)).*(?:nacid|nacieron|nacio|parto|pario|parieron)(?=.*(?:registr|anota|agrega|apunta|nacid|nacieron|nacio|pario|parieron|hubo|tuvo|tuvieron|parto de|parto (?:en|con)))/,
                     ejecutar(m, t) {
                         const n = (t.match(/poza\s*(\d+)/) || [])[1];
                         if (!n) return fallo('Indica en qué poza fue el parto');
@@ -5710,9 +5710,34 @@
                 return true;
             }
 
+            // Vocabulario zootécnico para corregir dictados erróneos ("palto" -> "parto").
+            const VOCABULARIO = ['parto', 'partos', 'nacieron', 'nacido', 'nacidos', 'crias', 'gazapos', 'machos', 'hembras', 'muertas', 'muertos', 'destete', 'destetados', 'registrar', 'registra', 'anota', 'agrega', 'venta', 'ventas', 'gasto', 'gastos', 'desparasitacion', 'racion', 'baja', 'bajas', 'murieron', 'sanidad', 'cuyes', 'reproductoras', 'galpon'];
+            const ALIAS_FONETICOS = { palto: 'parto', parta: 'parto', barto: 'parto', paro: 'parto', pato: 'parto', partto: 'parto', pario: 'parto', grias: 'crias', krias: 'crias', cria: 'crias', trias: 'crias', gasapos: 'gazapos', casapos: 'gazapos', gazapo: 'gazapos', macho: 'machos', hembra: 'hembras', muerta: 'muertas', muerto: 'muertos' };
+            function distancia(a, b) {
+                const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+                for (let j = 1; j <= b.length; j++) d[0][j] = j;
+                for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+                    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+                return d[a.length][b.length];
+            }
+            function corregirFonetica(texto) {
+                return texto.split(' ').map(w => {
+                    if (/\d/.test(w) || VOCABULARIO.includes(w)) return w;
+                    if (ALIAS_FONETICOS[w]) return ALIAS_FONETICOS[w];
+                    if (w.length < 5) return w;
+                    const tope = w.length >= 8 ? 2 : 1;
+                    let mejor = w, mejorD = tope + 1;
+                    for (const v of VOCABULARIO) {
+                        const d = Math.abs(v.length - w.length) <= tope ? distancia(w, v) : 99;
+                        if (d < mejorD) { mejorD = d; mejor = v; }
+                    }
+                    return mejor;
+                }).join(' ');
+            }
+
             function procesar(original) {
                 // "pz 8", "poza número 8", "poza nro 8" -> "poza 8"
-                const t = normalizar(original).replace(/\b(?:esposas?|posas?|bosas?|bozas?|pozos?|posos?|pozzas?|pozas?)\b/g, m => /s$/.test(m) ? 'pozas' : 'poza').replace(/\bp\s?z\s*-?\s*(\d+)/g, 'poza $1').replace(/\bpoza\s+(?:numero|nro|n)\s*(\d+)/g, 'poza $1').replace(/\bpor favor\b/g, '').replace(/\s+/g, ' ').trim();
+                const t = corregirFonetica(normalizar(original).replace(/\b(?:esposas?|posas?|bosas?|bozas?|pozos?|posos?|pozzas?|pozas?)\b/g, m => /s$/.test(m) ? 'pozas' : 'poza').replace(/\bp\s?z\s*-?\s*(\d+)/g, 'poza $1').replace(/\bpoza\s+(?:numero|nro|n)\s*(\d+)/g, 'poza $1').replace(/\bpor favor\b/g, '').replace(/\s+/g, ' ').trim());
                 if (/\bcuant\w*/.test(t) && responderDirecto(t)) return;
                 for (const a of ACCIONES) {
                     if (a.requiere && !a.requiere.test(t)) continue;
