@@ -1319,7 +1319,7 @@
                         <header>
                             <p class="text-sm font-bold uppercase text-emerald-800">Registro sanitario</p>
                             <h3 class="mt-1 text-2xl font-extrabold text-stone-900">Mortalidad y bajas</h3>
-                            <p class="mt-2 text-sm text-stone-600">Toma o elige una foto y toca la patología que coincide con lo que ves: el Dr. Cuy IA entrega el protocolo completo al instante, 100% local y sin internet.</p>
+                            <p class="mt-2 text-sm text-stone-600">Registra las bajas por poza. Si quieres, adjunta una foto o toca la patología para ver el protocolo.</p>
                         </header>
                         <form id="baja-form" onsubmit="guardarBaja(event)" class="space-y-5">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1386,7 +1386,7 @@
                                 <div id="baja-result-lineas" class="space-y-1"></div>
                                 <button type="button" onclick="limpiarFotoBaja()" class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-stone-800"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Limpiar foto</button>
                             </div>
-                            <button type="submit" id="baja-save-button" class="action-giant action-baja"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>GUARDAR REGISTRO DE BAJA</span></button>
+                            <button type="submit" id="baja-save-button" class="action-giant action-baja"><i class="ph ph-floppy-disk" aria-hidden="true"></i><span>REGISTRAR BAJA</span></button>
                         </form>
                     </div>
                 </section>
@@ -1974,7 +1974,7 @@
             <div class="flex gap-3"><button onclick="imprimirCodigoQR()" class="flex-1 rounded-xl bg-emerald-700 px-4 text-white font-bold"><i class="ph ph-printer mr-1"></i>Imprimir ficha</button><button onclick="cerrarCodigoQR()" class="rounded-xl border border-stone-300 px-4 font-bold">Cerrar</button></div>
         </div>
     </div>
-    <div id="photo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/80 p-4" role="dialog" aria-modal="true" aria-label="Foto del registro sanitario" onclick="cerrarFotoKardex()">
+    <div id="photo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/80 p-4" role="dialog" aria-modal="true" aria-label="Foto del registro sanitario" onclick="cerrarFotoRegistro()">
         <img id="photo-display" class="max-h-[90vh] max-w-full rounded-xl bg-white object-contain" alt="Foto del registro sanitario">
     </div>
 
@@ -3714,10 +3714,10 @@
             guardarBD('Destete registrado correctamente');
         }
 
-        function guardarRegistroKardex(registro, mensaje) {
+        function guardarRegistroSanitario(registro, mensaje) {
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
-            if (!registro.kardexId) registro.kardexId = `kardex-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-            if (db.tratamientos.some(item => item.kardexId === registro.kardexId)) return;
+            if (!registro.registroId) registro.registroId = `registro-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            if (db.tratamientos.some(item => item.registroId === registro.registroId)) return;
             db.tratamientos.unshift(registro);
             try {
                 guardarBD(mensaje);
@@ -3801,11 +3801,11 @@
                 db.bajas.unshift(baja);
                 try {
                     try {
-                        guardarRegistroKardex(registro, 'Baja y registro añadido al Kardex Sanitario');
+                        guardarRegistroSanitario(registro, 'Baja registrada correctamente');
                     } catch (error) {
                         if (!foto || !esLimiteAlmacenamiento(error)) throw error;
                         registro.foto = '';
-                        guardarRegistroKardex(registro, 'Baja guardada; foto omitida por límite de almacenamiento');
+                        guardarRegistroSanitario(registro, 'Baja guardada; foto omitida por límite de almacenamiento');
                     }
                 } catch (error) {
                     db.bajas.shift();
@@ -3821,8 +3821,8 @@
                 document.getElementById('baja-preview').removeAttribute('src');
                 document.getElementById('baja-preview').classList.add('hidden');
             } catch (error) {
-                console.error('Error al registrar la baja en el Kardex:', error);
-                mostrarToast(error.message || 'No se pudo guardar la baja en el Kardex', 'error');
+                console.error('Error al registrar la baja:', error);
+                mostrarToast(error.message || 'No se pudo guardar la baja', 'error');
             } finally {
                 formulario.dataset.saving = 'false';
                 if (boton) boton.disabled = false;
@@ -4244,7 +4244,7 @@
             return error?.name === 'QuotaExceededError' || error?.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error?.code === 22 || error?.code === 1014;
         }
 
-        function mostrarFotoKardex(indice) {
+        function mostrarFotoRegistro(indice) {
             const tratamiento = db.tratamientos[indice];
             if (!tratamiento || !tratamiento.foto) return;
             document.getElementById('photo-display').src = tratamiento.foto;
@@ -4252,7 +4252,7 @@
             document.getElementById('photo-modal').classList.add('flex');
         }
 
-        function cerrarFotoKardex() {
+        function cerrarFotoRegistro() {
             const modal = document.getElementById('photo-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
@@ -4630,7 +4630,7 @@
                 </tr>
             `).join('');
             tbody.querySelectorAll('[data-qr]').forEach(boton => boton.addEventListener('click', () => mostrarCodigoQR(boton.dataset.qr)));
-            tbody.querySelectorAll('[data-foto]').forEach(boton => boton.addEventListener('click', () => mostrarFotoKardex(Number(boton.dataset.foto))));
+            tbody.querySelectorAll('[data-foto]').forEach(boton => boton.addEventListener('click', () => mostrarFotoRegistro(Number(boton.dataset.foto))));
         }
 
         function prepararCanvasGrafico(canvas) {
@@ -4834,7 +4834,7 @@
                 { titulo: 'Bajas y mortalidad', columnas: ['Fecha', 'Identificador', 'Cantidad', 'Motivo'], filas: db.bajas.map(baja => [baja.fecha, baja.identificador, baja.cantidad, baja.motivo]) },
                 { titulo: 'Ventas', columnas: ['Fecha', 'Categoría', 'Cantidad', 'Total (S/)', 'Cliente'], filas: db.ventas.map(venta => [venta.fecha, venta.categoria, venta.cantidad, (Number(venta.monto) * Number(venta.cantidad || 0)).toFixed(2), venta.cliente]) },
                 { titulo: 'Gastos operativos', columnas: ['Fecha', 'Concepto', 'Categoría', 'Ubicación', 'Monto (S/)'], filas: db.gastos.map(gasto => [gasto.fecha, gasto.concepto, gasto.categoria, gasto.ubicacion || 'General', Number(gasto.monto || 0).toFixed(2)]) },
-                { titulo: 'Kardex sanitario e insumos', columnas: ['Fecha', 'Destino', 'Diagnóstico', 'Síntomas', 'Lesiones', 'Producto / manejo', 'Dosis / seguimiento', 'Días de protocolo', 'Vía', 'Foto', 'Nota'], filas: db.tratamientos.map(item => [item.fecha, item.destino, item.diagnostico, item.sintomas, item.lesiones, item.producto, item.cantidad, item.diasProtocolo ?? 'No consignado', item.via, item.foto ? 'Foto guardada' : 'Sin foto', item.nota]) }
+                { titulo: 'Registro sanitario e insumos', columnas: ['Fecha', 'Destino', 'Diagnóstico', 'Síntomas', 'Lesiones', 'Producto / manejo', 'Dosis / seguimiento', 'Días de protocolo', 'Vía', 'Foto', 'Nota'], filas: db.tratamientos.map(item => [item.fecha, item.destino, item.diagnostico, item.sintomas, item.lesiones, item.producto, item.cantidad, item.diasProtocolo ?? 'No consignado', item.via, item.foto ? 'Foto guardada' : 'Sin foto', item.nota]) }
             ];
         }
 
