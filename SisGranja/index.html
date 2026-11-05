@@ -798,6 +798,10 @@
                     <i class="ph ph-baby text-lg"></i><span>Registro de Partos</span>
                     <span id="badge-partos" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
                 </button>
+                <button onclick="switchView('descarte')" id="nav-descarte" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
+                    <i class="ph ph-warning text-lg"></i><span>Reproductoras en Descarte</span>
+                    <span id="badge-descarte" class="ml-auto bg-amber-700 text-amber-100 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
                 <button onclick="switchView('destetados')" id="nav-destetados" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl font-medium text-sm transition hover:bg-emerald-900/60 text-stone-300">
                     <i class="ph ph-users-three text-lg"></i><span>Destetados</span>
                     <span id="badge-destetados" class="ml-auto bg-emerald-800 text-emerald-200 text-xs px-2 py-0.5 rounded-full">0</span>
@@ -898,6 +902,10 @@
                     <button type="button" onclick="switchView('ventas')" class="exec-btn"><i class="ph ph-currency-circle-dollar" aria-hidden="true"></i><span>Ventas<small>Ingresos</small></span></button>
                     <button type="button" onclick="imprimirReporte()" class="exec-btn"><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>Reportes<small>Resumen integral</small></span></button>
                 </nav>
+                <div id="alerta-descarte" class="hidden rounded-2xl border-2 border-amber-500 bg-amber-50 p-4 text-sm font-bold text-amber-900" role="alert">
+                    <span id="alerta-descarte-texto"></span>
+                    <button type="button" onclick="switchView('descarte')" class="ml-2 rounded-lg border border-amber-600 bg-white px-3 py-1 text-xs font-bold">Ver descarte</button>
+                </div>
                 <!-- Tarjetas KPI -->
                 <div class="grid dashboard-kpis">
                     <div class="kpi-card kpi-accent-green">
@@ -1214,6 +1222,22 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <!-- REPRODUCTORAS EN DESCARTE -->
+            <div id="view-descarte" class="space-y-6 view-section hidden">
+                <section class="bg-white p-6 rounded-2xl border border-amber-300 shadow-xs space-y-4">
+                    <h3 class="text-lg font-bold text-stone-800">Reproductoras en Descarte (fin de ciclo)</h3>
+                    <p class="text-sm text-stone-600">Pozas cuyas reproductoras llegaron a 4 o más partos según el historial. Ya cumplieron su ciclo productivo: evita gastar alimento en animales improductivos. Los cuyes de reemplazo se manejan aparte en cada poza.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                <tr><th class="p-4">Poza</th><th class="p-4">Reproductoras (est.)</th><th class="p-4">Partos del ciclo</th><th class="p-4">Partos por reproductora</th><th class="p-4">Último parto</th><th class="p-4">Estado</th><th class="p-4">Acción</th></tr>
+                            </thead>
+                            <tbody id="tabla-descarte"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
 
             <!-- 4. DESTETADOS (Separados por sexo) -->
@@ -2480,6 +2504,7 @@
                 dashboard: 'Unidad Pecuaria Cuyícola - Dashboard General',
                 cuyes: 'Gestión de Pozas y Etapas Zootécnicas',
                 partos: 'Registro de Partos en Granja',
+                descarte: 'Reproductoras en Descarte (fin de ciclo)',
                 destetados: 'Control de Destetados (Separados por Sexo)',
                 bajas: 'Mortalidad y Bajas Sanitarias',
                 ventas: 'Ventas de Cuyes e Ingresos',
@@ -4470,6 +4495,7 @@
             // Renderizar Tablas principales
             renderTabla('tabla-cuyes', db.cuyes, ['codigo', 'etapa', 'machos', 'hembras', 'poza', 'stockActual'], 'cuyes');
             renderPozasEnVivo();
+            renderDescarte();
             renderTabla('tabla-partos', db.partos, ['fecha', 'poza', 'vivas', 'muertas', 'viabilidad'], 'partos');
             renderTabla('tabla-destetados', db.destetados, ['fecha', 'poza', 'machos', 'hembras', 'pozaMachosDestino', 'pozaHembrasDestino'], 'destetados');
             renderTabla('tabla-bajas', db.bajas, ['fecha', 'identificador', 'cantidad', 'motivo'], 'bajas');
@@ -4510,8 +4536,49 @@
             const porMadre = hembras ? partos.length / hembras : 0;
             let nivel = 'ok', texto = hembras ? 'Ciclo \u00fatil normal' : 'Sin reproductoras adultas';
             if (hembras && porMadre >= 5) { nivel = 'rojo'; texto = '\ud83d\udd34 Descartar y recambiar: 5 partos por reproductora'; }
-            else if (hembras && porMadre >= 4) { nivel = 'ambar'; texto = '\ud83d\udfe1 Pr\u00f3xima al descarte: 4 partos por reproductora'; }
+            else if (hembras && porMadre >= 4) { nivel = 'ambar'; texto = '\ud83d\udfe1 Ya cumplió su ciclo productivo (4.º parto): descartar, no gastar más alimento'; }
             return { partos: partos.length, hembras, porMadre, nivel, texto };
+        }
+
+        function renderDescarte() {
+            const lista = obtenerPozasUnicas().map(poza => {
+                const codigo = claveUnicaPoza(poza.codigo || poza.id);
+                return { codigo, ciclo: estadoCicloPoza(poza, obtenerConteosRacionPoza(poza)), partos: db.partos.filter(p => claveUnicaPoza(p.poza) === codigo && String(p.fecha) >= (poza.cicloDesde || '')) };
+            }).filter(x => x.ciclo.nivel !== 'ok');
+            const badge = document.getElementById('badge-descarte');
+            if (badge) badge.textContent = lista.length;
+            const alerta = document.getElementById('alerta-descarte');
+            if (alerta) {
+                alerta.classList.toggle('hidden', !lista.length);
+                document.getElementById('alerta-descarte-texto').textContent = `⚠️ Fin de ciclo: ${lista.map(x => x.codigo).join(', ')} con reproductoras en su 4.º parto o más. Ya cumplieron su ciclo productivo; descártalas para no gastar alimento en animales improductivos.`;
+            }
+            const tbody = document.getElementById('tabla-descarte');
+            if (!tbody) return;
+            const fila = (x) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-stone-100';
+                const ultimo = x.partos.map(p => String(p.fecha)).sort().pop() || '—';
+                [x.codigo, x.ciclo.hembras, x.ciclo.partos, x.ciclo.porMadre.toFixed(1), ultimo, x.ciclo.texto].forEach(v => { const td = document.createElement('td'); td.className = 'p-4'; td.textContent = v; tr.append(td); });
+                const td = document.createElement('td');
+                td.className = 'p-4';
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = 'Registrar recambio hecho';
+                b.className = 'rounded-lg border border-stone-400 bg-white px-3 py-2 text-xs font-bold';
+                b.addEventListener('click', () => registrarRecambioPoza(x.codigo));
+                td.append(b);
+                tr.append(td);
+                return tr;
+            };
+            if (!lista.length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 7;
+                td.className = 'p-4 text-center text-stone-400';
+                td.textContent = 'Ninguna reproductora ha llegado al 4.º parto.';
+                tr.append(td);
+                tbody.replaceChildren(tr);
+            } else tbody.replaceChildren(...lista.map(fila));
         }
 
         function registrarRecambioPoza(codigo) {
