@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src https://mdfwmaxtjhtcuzwsqrci.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src https://mdfwmaxtjhtcuzwsqrci.supabase.co wss://mdfwmaxtjhtcuzwsqrci.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./icon.svg" type="image/svg+xml">
     <meta name="theme-color" content="#064e3b">
@@ -847,7 +847,7 @@
             </nav>
         </div>
         <div class="p-4 border-t border-emerald-900/50 text-xs text-stone-400">
-            <p>Estado: <span class="text-emerald-400 font-semibold">Local Activo</span></p>
+            <p>Estado: <span id="estado-nube" class="text-amber-400 font-semibold">Conectando a la nube…</span></p>
             <button type="button" id="btn-logout" class="btn-logout"><span aria-hidden="true">🚪</span> Cerrar sesión</button>
         </div>
     </aside>
@@ -2345,13 +2345,60 @@
             }
         }
 
+        let bannerOfflineMostrado = false;
+        function establecerEstadoNube(estado) {
+            const el = document.getElementById('estado-nube');
+            if (!el) return;
+            const mapa = {
+                ok: ['Nube activa · sincronizado', 'text-emerald-400'],
+                sincronizando: ['Sincronizando…', 'text-sky-400'],
+                offline: ['Sin conexión · guardado local', 'text-red-400'],
+                error: ['Nube no disponible · guardado local', 'text-amber-400']
+            };
+            const [texto, clase] = mapa[estado] || mapa.error;
+            el.textContent = texto;
+            el.className = clase + ' font-semibold';
+            if (estado === 'offline' && !bannerOfflineMostrado) {
+                bannerOfflineMostrado = true;
+                mostrarToast('Sin internet: los cambios se guardan en este dispositivo y se sincronizarán al reconectar.', 'error');
+            } else if (estado === 'ok') bannerOfflineMostrado = false;
+        }
+        function estadoPorFallo() { return navigator.onLine ? 'error' : 'offline'; }
+
         function programarSubidaNube() {
             clearTimeout(temporizadorNube);
-            temporizadorNube = setTimeout(() => subirANube().catch(error => {
+            establecerEstadoNube(navigator.onLine ? 'sincronizando' : 'offline');
+            temporizadorNube = setTimeout(() => subirANube().then(() => establecerEstadoNube('ok')).catch(error => {
                 console.warn('No se pudo sincronizar con Supabase:', error);
-                mostrarToast('Guardado solo en este dispositivo: sin conexión con la nube.', 'error');
+                establecerEstadoNube(estadoPorFallo());
+                if (navigator.onLine) mostrarToast('Guardado solo en este dispositivo: sin conexión con la nube.', 'error');
             }), 600);
         }
+
+        // Realtime de Supabase (WebSocket): cualquier cambio en la fila dispara una sincronización inmediata.
+        let wsNube = null, latidoNube = null, reintentoWs = null;
+        function conectarTiempoReal() {
+            if (!navigator.onLine || (wsNube && wsNube.readyState <= 1)) return;
+            try {
+                wsNube = new WebSocket(`wss://${new URL(SUPABASE_URL).host}/realtime/v1/websocket?apikey=${SUPABASE_CLAVE}&vsn=1.0.0`);
+            } catch (e) { return; }
+            let ref = 1;
+            wsNube.onopen = () => {
+                wsNube.send(JSON.stringify({ topic: 'realtime:public:sisgranja_estado', event: 'phx_join', ref: String(ref++), payload: { config: { postgres_changes: [{ event: '*', schema: 'public', table: 'sisgranja_estado' }] } } }));
+                latidoNube = setInterval(() => { if (wsNube.readyState === 1) wsNube.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: String(ref++) })); }, 25000);
+            };
+            wsNube.onmessage = ev => {
+                try { if (JSON.parse(ev.data).event === 'postgres_changes') sincronizarConNube(); } catch (e) { /* mensaje ignorado */ }
+            };
+            wsNube.onclose = () => {
+                clearInterval(latidoNube);
+                clearTimeout(reintentoWs);
+                reintentoWs = setTimeout(conectarTiempoReal, 5000);
+            };
+            wsNube.onerror = () => { try { wsNube.close(); } catch (e) { /* ya cerrado */ } };
+        }
+        window.addEventListener('online', () => { establecerEstadoNube('sincronizando'); conectarTiempoReal(); sincronizarConNube(); });
+        window.addEventListener('offline', () => establecerEstadoNube('offline'));
 
         // Aplica el estado remoto si es más reciente; si el local es más nuevo, lo sube.
         async function sincronizarConNube() {
@@ -2373,8 +2420,10 @@
                 } else if (tsLocal > tsRemoto) {
                     await subirANube();
                 }
+                establecerEstadoNube('ok');
             } catch (error) {
                 console.warn('Sincronización con Supabase no disponible:', error);
+                establecerEstadoNube(estadoPorFallo());
             } finally {
                 sincronizandoNube = false;
             }
@@ -4832,8 +4881,10 @@
         cargarDatos();
         registrarControlesCampo();
         renderizarTodo();
+        if (!navigator.onLine) establecerEstadoNube('offline');
         sincronizarConNube();
-        setInterval(sincronizarConNube, 15000);
+        conectarTiempoReal();
+        setInterval(sincronizarConNube, 5000);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizarConNube(); });
         let temporizadorResize;
         window.addEventListener('resize', () => {
