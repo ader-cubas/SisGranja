@@ -1,0 +1,12 @@
+{
+  "name": "sisgranja-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^26.1.0"
+  }
+}

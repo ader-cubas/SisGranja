@@ -1,15 +1,15 @@
-const CACHE_NAME = 'sisgranja-v2.9.49-20261103';
-const OFFLINE_URL = './SisGranja_v2.5.html';
+const CACHE_NAME = 'sisgranja-v3.0.0-20261103';
+const OFFLINE_URL = './index.html';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(OFFLINE_URL)).catch(() => {}));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([OFFLINE_URL, './js/persistencia.js'])));
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith('sisgranja-') && key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -26,6 +26,6 @@ self.addEventListener('fetch', event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then(r => r || caches.match(OFFLINE_URL)))
+      .catch(() => caches.match(event.request).then(r => r || (event.request.mode === 'navigate' ? caches.match(OFFLINE_URL) : Response.error())))
   );
 });

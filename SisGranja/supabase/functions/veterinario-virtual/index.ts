@@ -31,7 +31,7 @@ const schemaFor = (fields: readonly string[]) => ({
   required: [...fields],
 });
 
-const summaryPrompt = `Eres Dr. Cuy IA, asistente veterinario de cuyes (Cavia porcellus). Analiza la imagen y responde solo con JSON de 5 campos de texto muy breves (máximo 1 línea cada uno): {"enfermedad":"enfermedad más probable","farmaco_dosis":"tratamiento combinado en una sola línea: fármaco principal con su dosis (mg/kg o ml/kg y vía) + soporte con su dosis, separados por ' + ', ej. Enrofloxacina 5% 0.1 ml/kg SC + Complejo B 0.2 ml/animal SC","dias":"días de duración del tratamiento","accion":"acción inmediata en la poza (aislamiento o desinfección)","prevencion":"prevención clave"}. Criterios: en cuyes, hígado con puntos o focos blanquecinos/amarillentos (necrosis multifocal) = Salmonelosis (Salmonella), la causa más frecuente; no lo llames adenitis cervical (eso es de ganglios del cuello). Diarrea y intestino inflamado = Coccidiosis; costras y pérdida de pelo = Sarna; pulmón congestionado = Neumonía. Usa Enrofloxacina 5% a 0.1 ml/kg SC cada 24 h por 5 días en salmonelosis y neumonía, Toltrazuril 2.5% a 0.04 ml/kg oral por 2 días en coccidiosis, Ivermectina 1% a 0.2 ml/kg SC (repetir a los 14 días) en sarna. Indica un solo nombre de enfermedad. En farmaco_dosis incluye siempre el fármaco principal de control más un tratamiento de soporte según el caso (Complejo B o vitamina AD3E/C 0.2 ml/animal SC; en diarrea añade suero oral/electrolitos), mostrando ambos claramente. Sin explicaciones, sin Markdown. Español.`;
+const summaryPrompt = `Eres un asistente de sanidad de cuyes, no el veterinario tratante. Analiza la imagen y responde solo con JSON en español con estos cinco campos de texto: {"enfermedad":"hallazgo y posibles causas, expresando incertidumbre","farmaco_dosis":"consultar al veterinario","dias":"según evaluación veterinaria","accion":"medidas inmediatas de bioseguridad y consulta veterinaria","prevencion":"prevención clave"}. Una fotografía no confirma la enfermedad; no prescribas fármacos, dosis, vías ni duración. Ante animales enfermos recomienda aislamiento, agua limpia y consulta veterinaria; maneja cadáveres con protección y según la normativa local. Las causas de abortos requieren evaluación y pruebas; asegura vitamina C en la dieta bajo orientación profesional. No afirmes que una pauta procede del INIA, UNALM u otra institución sin una fuente verificable.`;
 
 const systemPrompt = `Actúa como un asistente veterinario experto en sanidad, manejo y bioseguridad de cuyes (Cavia porcellus) en granjas de crianza; no afirmes ser el veterinario tratante. Analiza la imagen (animal vivo, cadáver o necropsia) y responde exclusivamente con JSON válido, sin Markdown, con exactamente estos seis campos de texto: {"enfermedad_probable":"...","diagnostico_situacion":"...","causa_principal":"...","accion_inmediata":"...","tratamiento_manejo":"...","prevencion_diaria":"..."}.
 - enfermedad_probable: indica una enfermedad solo si la imagen aporta evidencia suficiente y expresa el nivel de certeza. Si no permite identificarla, describe el hallazgo y la incertidumbre, por ejemplo: "Lesiones hepáticas multifocales, causa indeterminada". No inventes un diagnóstico para completar el campo.
@@ -221,6 +221,10 @@ runtime.serve(async (request: Request) => {
 
     const result = parseGeminiResult(resultText, summary ? SUMMARY_FIELDS : RESULT_FIELDS);
     if (!result) return jsonResponse({ error: 'Gemini devolvió un JSON incompleto o inválido.' }, 502, origin);
+    if (summary) {
+      result.farmaco_dosis = 'Consultar al veterinario; no medicar basándose solo en una imagen.';
+      result.dias = 'Según evaluación veterinaria.';
+    }
     return jsonResponse({ result }, 200, origin);
   } catch (error: unknown) {
     const timedOut = error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError');

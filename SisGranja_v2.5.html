@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src https://mdfwmaxtjhtcuzwsqrci.supabase.co wss://mdfwmaxtjhtcuzwsqrci.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src https://mdfwmaxtjhtcuzwsqrci.supabase.co wss://mdfwmaxtjhtcuzwsqrci.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./icon.svg" type="image/svg+xml">
     <meta name="theme-color" content="#064e3b">
@@ -1199,6 +1199,14 @@
                             </select>
                         </div>
                         <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1" for="parto-madre">Código único de madre</label>
+                            <input type="text" id="parto-madre" required maxlength="40" class="w-full px-3 py-2 border rounded-xl text-base" placeholder="Ej. M-001">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 mb-1" for="parto-previos">Partos previos confirmados (primera vez)</label>
+                            <input type="number" id="parto-previos" min="0" max="3" step="1" class="w-full px-3 py-2 border rounded-xl text-base" placeholder="0 a 3">
+                        </div>
+                        <div>
                             <label class="block text-xs font-bold text-stone-600 mb-1">Crías Vivas</label>
                             <input type="number" id="parto-vivas" required min="0" inputmode="numeric" class="w-full px-3 py-2 border rounded-xl text-base outline-none focus:border-emerald-600" placeholder="Ej. 4">
                         </div>
@@ -1237,11 +1245,11 @@
             <div id="view-descarte" class="space-y-6 view-section hidden">
                 <section class="bg-white p-6 rounded-2xl border border-amber-300 shadow-xs space-y-4">
                     <h3 class="text-lg font-bold text-stone-800">Reproductoras en Descarte (fin de ciclo)</h3>
-                    <p class="text-sm text-stone-600">Pozas cuyas reproductoras llegaron a 4 o más partos según el historial. Ya cumplieron su ciclo productivo: evita gastar alimento en animales improductivos. Los cuyes de reemplazo se manejan aparte en cada poza.</p>
+                    <p class="text-sm text-stone-600">Madres identificadas con cuatro o más partos confirmados. Los registros antiguos sin identificación no se asignan automáticamente.</p>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 uppercase text-xs">
-                                <tr><th class="p-4">Poza</th><th class="p-4">Reproductoras (est.)</th><th class="p-4">Partos del ciclo</th><th class="p-4">Partos por reproductora</th><th class="p-4">Último parto</th><th class="p-4">Estado</th><th class="p-4">Acción</th></tr>
+                                <tr><th class="p-4">Madre</th><th class="p-4">Última poza</th><th class="p-4">Partos confirmados</th><th class="p-4">Último parto</th><th class="p-4">Estado</th></tr>
                             </thead>
                             <tbody id="tabla-descarte"></tbody>
                         </table>
@@ -1723,7 +1731,8 @@
                     <section id="peso-analisis" class="peso-analisis hidden" role="status" aria-live="polite">
                         <h4>🔍 Análisis Inteligente: ¿Por qué baja el crecimiento?</h4>
                         <ul>
-                            <li><strong>Nutrición y concentrado:</strong> Considera incrementar ligeramente la ración de alimento balanceado, revisa el porcentaje de proteína según la etapa y evita que los cuyes se llenen solo de agua por forraje excesivamente tierno.</li>
+                            <li><strong>Nutrición y concentrado:</strong> Revisa el consumo, la calidad de la ración y sus nutrientes con un profesional antes de modificarla.</li>
+                            <li id="peso-frio" class="hidden"></li>
                             <li><strong>Manejo del forraje:</strong> Asegura pasto oreado y fibra seca (heno) disponible.</li>
                             <li><strong>Densidad:</strong> Revisa sobrepoblación o competencia en la poza.</li>
                             <li><strong>Alerta sanitaria:</strong> Inspecciona para descartar Coccidiosis o parásitos.</li>
@@ -1979,6 +1988,19 @@
                     </details>
                 </section>
                 <div id="esc-resultado" class="space-y-4" aria-live="polite"></div>
+                <section class="mod-card">
+                    <h3 class="mod-title">Cantidad de semilla</h3>
+                    <p class="mod-hint">Ingresa las dosis de la mezcla en kg/ha según la semilla y las recomendaciones locales.</p>
+                    <div class="mod-grid mt-3">
+                        <label class="mod-field">Área disponible<input id="sem-area" type="number" min="0" step="any" oninput="calcularSemillas()" class="mod-input"></label>
+                        <label class="mod-field">Unidad<select id="sem-unidad" onchange="calcularSemillas()" class="mod-input"><option value="ha">Hectáreas</option><option value="m2">Metros cuadrados</option></select></label>
+                        <label class="mod-field">Ryegrass (kg/ha)<input id="sem-ryegrass" type="number" min="0" step="any" oninput="calcularSemillas()" class="mod-input"></label>
+                        <label class="mod-field">Trébol (kg/ha)<input id="sem-trebol" type="number" min="0" step="any" oninput="calcularSemillas()" class="mod-input"></label>
+                        <label class="mod-field">Dáctilis (kg/ha)<input id="sem-dactilis" type="number" min="0" step="any" oninput="calcularSemillas()" class="mod-input"></label>
+                        <label class="mod-field">Avena forrajera (kg/ha)<input id="sem-avena" type="number" min="0" step="any" oninput="calcularSemillas()" class="mod-input"></label>
+                    </div>
+                    <p id="sem-resultado" class="mt-3 font-semibold" aria-live="polite"></p>
+                </section>
             </div>
 
     <!-- MODAL / TOAST DE NOTIFICACIÓN -->
@@ -1999,6 +2021,7 @@
 
     </div><!-- /#app-container -->
 
+    <script src="./SisGranja/js/persistencia.js"></script>
     <!-- SCRIPT DE GESTIÓN Y GRÁFICOS -->
     <script>
         let db = {
@@ -2023,6 +2046,12 @@
         let bajaAnalisisActual = null;
         let bajaFotoVersion = 0;
         const almacenamientoTemporal = new Map();
+        let conexionLocal = null;
+        let persistenciaLista = false;
+        let falloPersistencia = false;
+        let colaPersistencia = Promise.resolve();
+        document.getElementById('app-container').inert = true;
+        document.getElementById('voice-fab').inert = true;
 
         function leerAlmacenamiento(clave) {
             try {
@@ -2033,6 +2062,15 @@
         }
 
         function escribirAlmacenamiento(clave, valor) {
+            if (clave === 'sisgranja_cuy_db' && conexionLocal) {
+                colaPersistencia = colaPersistencia.then(() => window.SisGranjaPersistencia.guardar(conexionLocal, valor)).catch(error => {
+                    falloPersistencia = true;
+                    clearTimeout(temporizadorNube);
+                    establecerEstadoNube('error');
+                    console.error('Error al guardar en IndexedDB:', error);
+                    mostrarToast('No se pudo guardar en IndexedDB. Exporta un respaldo y revisa las otras pestañas.', 'error');
+                });
+            }
             try {
                 window.localStorage.setItem(clave, valor);
                 almacenamientoTemporal.delete(clave);
@@ -2240,16 +2278,30 @@
             ventana.onload = () => ventana.print();
         }
 
-        function cargarDatos() {
-            const saved = leerAlmacenamiento('sisgranja_cuy_db');
+        async function cargarDatos() {
+            const clave = 'sisgranja_cuy_db';
+            const anterior = leerAlmacenamiento(clave);
+            let saved = anterior;
+            if (window.SisGranjaPersistencia) {
+                if (window.indexedDB) conexionLocal = await window.SisGranjaPersistencia.abrir(window.indexedDB);
+                if (conexionLocal) {
+                    saved = window.SisGranjaPersistencia.elegir(anterior, await window.SisGranjaPersistencia.leer(conexionLocal));
+                    if (saved) await window.SisGranjaPersistencia.guardar(conexionLocal, saved);
+                    if (saved && saved !== anterior) {
+                        try { window.localStorage.setItem(clave, saved); }
+                        catch (error) { almacenamientoTemporal.set(clave, saved); }
+                    }
+                }
+            }
             if (saved) {
                 try {
                     db = JSON.parse(saved);
                 } catch (e) {
-                    console.error("Error al cargar localStorage:", e);
+                    throw new Error('No se pudieron leer los datos locales.');
                 }
             }
             normalizarDB();
+            persistenciaLista = true;
         }
 
         function normalizarDB() {
@@ -2264,12 +2316,6 @@
             if (!Array.isArray(db.tratamientos)) db.tratamientos = [];
             if (!Array.isArray(db.pesos)) db.pesos = [];
             if (!Array.isArray(db.pozas)) db.pozas = db.cuyes;
-            // Caché antigua de la simulación de 100 pozas (móviles u otros navegadores): se borra por completo.
-            if (obtenerPozasUnicas().length >= 100) {
-                db = { cuyes: [], pozas: [], partos: [], destetados: [], bajas: [], ventas: [], gastos: [], gestaciones: [], tratamientos: [], temperatura: null };
-                try { window.localStorage.removeItem('sisgranja_cuy_db'); } catch (error) { /* sin acceso a localStorage */ }
-                almacenamientoTemporal.delete('sisgranja_cuy_db');
-            }
             // Una fila por poza: la tabla y el contador del dashboard usan la misma lista.
             db.cuyes = obtenerPozasUnicas();
             db.pozas = db.cuyes;
@@ -2310,7 +2356,7 @@
                 if (!crudo) { mostrarToast('No hay respaldo de emergencia en esta sesión', 'error'); return; }
                 if (!confirm(MENSAJE_CONFIRMACION)) return;
                 db = JSON.parse(crudo).datos;
-                db._ts = Date.now();
+                db._ts = Math.max(Date.now(), (Number(db._ts) || 0) + 1);
                 normalizarDB();
                 guardarBD('Respaldo de emergencia recuperado');
             } catch (error) {
@@ -2338,6 +2384,8 @@
         }
 
         async function subirANube() {
+            await colaPersistencia;
+            if (falloPersistencia) throw new Error('La persistencia local falló; sincronización detenida.');
             const respuesta = await fetch(`${SUPABASE_TABLA}?on_conflict=id`, {
                 method: 'POST',
                 headers: cabecerasNube({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
@@ -2356,7 +2404,7 @@
             }
             respaldarEmergencia('sincronizar-nube');
             try {
-                db._ts = Date.now();
+                db._ts = Math.max(Date.now(), (Number(db._ts) || 0) + 1);
                 escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
                 clearTimeout(temporizadorNube);
                 await subirANube();
@@ -2402,7 +2450,7 @@
         // Realtime de Supabase (WebSocket): cualquier cambio en la fila dispara una sincronización inmediata.
         let wsNube = null, latidoNube = null, reintentoWs = null;
         function conectarTiempoReal() {
-            if (!navigator.onLine || (wsNube && wsNube.readyState <= 1)) return;
+            if (!persistenciaLista || !navigator.onLine || (wsNube && wsNube.readyState <= 1)) return;
             try {
                 wsNube = new WebSocket(`wss://${new URL(SUPABASE_URL).host}/realtime/v1/websocket?apikey=${SUPABASE_CLAVE}&vsn=1.0.0`);
             } catch (e) { return; }
@@ -2426,10 +2474,14 @@
 
         // Aplica el estado remoto si es más reciente; si el local es más nuevo, lo sube.
         async function sincronizarConNube() {
-            if (sincronizandoNube) return;
+            if (!persistenciaLista || sincronizandoNube || falloPersistencia) return;
             sincronizandoNube = true;
             try {
+                await colaPersistencia;
+                if (falloPersistencia) throw new Error('La persistencia local falló; sincronización detenida.');
                 const remoto = await descargarDeNube();
+                await colaPersistencia;
+                if (falloPersistencia) throw new Error('La persistencia local falló; sincronización detenida.');
                 const tsRemoto = Number(remoto && remoto._ts) || 0;
                 const tsLocal = Number(db._ts) || 0;
                 if (datosSinRegistros(remoto)) {
@@ -2466,7 +2518,7 @@
             try { valor = JSON.parse(texto); } catch (error) { return; }
             if (JSON.stringify(db.compartido[clave]) === texto) return;
             db.compartido[clave] = valor;
-            db._ts = Date.now();
+            db._ts = Math.max(Date.now(), (Number(db._ts) || 0) + 1);
             escribirAlmacenamiento('sisgranja_cuy_db', JSON.stringify(db));
             programarSubidaNube();
         }
@@ -2478,7 +2530,7 @@
             });
             if (db.cuyes && !db.pozas) db.pozas = db.cuyes;
             if (db.pozas && !db.cuyes) db.cuyes = db.pozas;
-            db._ts = Date.now();
+            db._ts = Math.max(Date.now(), (Number(db._ts) || 0) + 1);
             db.ventas = Array.isArray(db.ventas) ? db.ventas.map(v => ({
                 ...v,
                 cantidad: Number(v.cantidad || 0),
@@ -2639,6 +2691,12 @@
             if (!panel) return;
             const requiereRevision = gdp !== null && clasificarGDP(gdp).nivel !== 'verde';
             panel.classList.toggle('hidden', !requiereRevision);
+            const avisoFrio = document.getElementById('peso-frio');
+            const lectura = db.temperatura;
+            const antiguedad = lectura ? Date.now() - Date.parse(lectura.fecha) : NaN;
+            const frioReciente = requiereRevision && lectura?.valor != null && lectura.valor !== '' && Number.isFinite(Number(lectura.valor)) && Number(lectura.valor) < 16 && antiguedad >= 0 && antiguedad <= 86400000;
+            avisoFrio.classList.toggle('hidden', !frioReciente);
+            avisoFrio.textContent = frioReciente ? `Temperatura reciente: ${Number(lectura.valor).toFixed(1)} °C. El frío puede contribuir, pero no confirma la causa de la baja. Revisa abrigo y consumo; evalúa con un profesional el maíz amarillo molido como fuente de energía sin descuidar fibra, proteína y vitamina C.` : '';
         }
 
         function calcularGDPPeso(registro) {
@@ -3177,6 +3235,20 @@
         }
 
         // Población en equilibrio: animales de cada etapa = nacimientos por día × días que dura la etapa, sin contar a nadie dos veces.
+        function calcularCantidadSemilla(area, unidad, dosis) {
+            if (!Number.isFinite(area) || area <= 0 || !['ha', 'm2'].includes(unidad) || dosis.some(valor => !Number.isFinite(valor) || valor < 0)) return null;
+            const hectareas = unidad === 'm2' ? area / 10000 : area;
+            return dosis.map(valor => valor * hectareas);
+        }
+
+        function calcularSemillas() {
+            const campo = id => document.getElementById(id);
+            const area = campo('sem-area').value;
+            const dosis = ['sem-ryegrass', 'sem-trebol', 'sem-dactilis', 'sem-avena'].map(id => Number(campo(id).value));
+            const cantidades = calcularCantidadSemilla(area === '' ? NaN : Number(area), campo('sem-unidad').value, dosis);
+            campo('sem-resultado').textContent = cantidades ? ['Ryegrass', 'Trébol', 'Dáctilis', 'Avena'].map((nombre, indice) => `${nombre}: ${cantidades[indice].toLocaleString('es-PE', { maximumFractionDigits: 3 })} kg`).join(' · ') : 'Ingresa un área positiva y dosis válidas.';
+        }
+
         function calcularEscala() {
             const salida = document.getElementById('esc-resultado');
             if (!salida) return;
@@ -3315,12 +3387,11 @@
             renderPesos();
         }
 
-        document.addEventListener('DOMContentLoaded', cargarRacionGuardada);
 
         // Guía Técnica INIA: datos embebidos para uso sin conexión
         const PATRON_ANTIBIOTICOS_RIESGO = /penicilin|amoxicilin|ampicilin|gentamicin|eritromicin|lincomicin|clindamicin|estreptomicin|cefalospor|cefalexin|ceftiofur/i;
         const GUIA_ENFERMEDADES = [
-            { nombre: 'Salmonelosis', icono: '🦠', agente: 'Salmonella typhimurium / S. enteritidis (bacteria).', signos: 'Decaimiento, pelo erizado, falta de apetito, diarrea, abortos y muertes súbitas.', pulmones: 'Congestión leve; puede haber neumonía secundaria.', higado: 'Aumentado de tamaño, con focos necróticos blanquecinos puntiformes.', bazo: 'Esplenomegalia (bazo agrandado y oscuro).', intestinos: 'Enteritis, ganglios mesentéricos aumentados.', tratamiento: 'Enrofloxacina (zona verde) con vitamina C y rehidratación; aislar enfermos y desinfectar la poza.' },
+            { nombre: 'Salmonelosis', icono: '🦠', agente: 'Salmonella typhimurium / S. enteritidis (bacteria).', signos: 'Decaimiento, pelo erizado, falta de apetito, diarrea, abortos y muertes súbitas.', pulmones: 'Congestión leve; puede haber neumonía secundaria.', higado: 'Aumentado de tamaño, con focos necróticos blanquecinos puntiformes.', bazo: 'Esplenomegalia (bazo agrandado y oscuro).', intestinos: 'Enteritis, ganglios mesentéricos aumentados.', tratamiento: 'Aislar, consultar al veterinario y manejar bajas y cadáveres según las normas sanitarias locales.' },
             { nombre: 'Neumonía', icono: '🫁', agente: 'Streptococcus pneumoniae, Bordetella bronchiseptica, Pasteurella (bacterias).', signos: 'Respiración ruidosa y con esfuerzo, estornudos, secreción nasal, pérdida de peso.', pulmones: 'Consolidados, de color rojo oscuro (hepatización), a veces con pus y adherencias a la pleura.', higado: 'Normal o congestionado.', bazo: 'Normal o ligeramente aumentado.', intestinos: 'Sin lesiones características.', tratamiento: 'Enrofloxacina u oxitetraciclina inyectable; ventilar sin corrientes y reducir humedad y polvo.' },
             { nombre: 'Sarna', icono: '🪲', agente: 'Trixacarus caviae (ácaro).', signos: 'Picazón intensa, rascado, pérdida de pelo, costras y piel engrosada, pérdida de peso.', pulmones: 'Sin lesiones internas características.', higado: 'Sin lesiones internas características.', bazo: 'Sin lesiones internas características.', intestinos: 'Sin lesiones internas; la lesión está en la piel.', tratamiento: 'Ivermectina por vía subcutánea, repetida según pauta veterinaria; cambiar cama y desinfectar jaulas.' },
             { nombre: 'Coccidiosis', icono: '💧', agente: 'Eimeria caviae (protozoo).', signos: 'Diarrea (a veces con sangre), deshidratación, retraso de crecimiento, abdomen hinchado.', pulmones: 'Sin lesiones características.', higado: 'Normal o pálido.', bazo: 'Normal.', intestinos: 'Ciego y colon inflamados, mucosa engrosada con hemorragias y contenido líquido.', tratamiento: 'Toltrazuril o sulfadimidina-trimetoprim (zona verde) con rehidratación; limpieza y cama seca.' },
@@ -3341,7 +3412,6 @@
         // Zona Verde: mgkg = dosis por kg de peso vivo; conc = mg por ml del producto. Referencial: validar con veterinario.
         const ENROFLOXACINA = { farmaco: 'Enrofloxacina 5 % inyectable', conc: 50, mgkg: 5, via: 'Subcutánea (SC)', frec: 'cada 24 h', dias: 5 };
         const GUIA_DOSIS = {
-            'Salmonelosis': ENROFLOXACINA,
             'Neumonía': ENROFLOXACINA,
             'Colibacilosis': ENROFLOXACINA,
             'Coccidiosis': { farmaco: 'Toltrazuril 2.5 %', conc: 25, mgkg: 1, via: 'Oral', frec: 'cada 24 h; repetir el ciclo a los 7 días', dias: 2 },
@@ -3677,19 +3747,39 @@
         function guardarParto(e) {
             e.preventDefault();
             const poza = document.getElementById('parto-poza').value;
+            const madre = document.getElementById('parto-madre').value.trim().toUpperCase();
+            const anteriores = db.partos.filter(parto => String(parto.madre || '').trim().toUpperCase() === madre);
+            const previosCampo = document.getElementById('parto-previos').value;
+            const previos = anteriores.length ? 0 : Number(previosCampo);
+            const vivasCampo = document.getElementById('parto-vivas').value;
+            const muertasCampo = document.getElementById('parto-muertas').value;
+            const vivas = Number(vivasCampo), muertas = Number(muertasCampo);
+            if (!poza || !/^[A-Z0-9][A-Z0-9_-]{0,39}$/.test(madre) || (!anteriores.length && (previosCampo === '' || !Number.isInteger(previos) || previos < 0 || previos > 3)) || vivasCampo === '' || muertasCampo === '' || !Number.isInteger(vivas) || !Number.isInteger(muertas) || vivas < 0 || muertas < 0) {
+                mostrarToast('Indica la poza, el código único de madre y sus partos previos confirmados (0 a 3).', 'error');
+                return false;
+            }
+            if (obtenerReproductorasDescarte(db.partos).some(registro => registro.madre === madre)) {
+                mostrarToast('Esta madre ya alcanzó el cuarto parto y está en descarte.', 'error');
+                return false;
+            }
             const fecha = fechaHoy();
             db.partos.unshift({
                 fecha,
                 poza,
-                vivas: parseInt(document.getElementById('parto-vivas').value),
-                muertas: parseInt(document.getElementById('parto-muertas').value)
+                madre,
+                partosPrevios: previos,
+                vivas,
+                muertas
             });
             const gestacion = db.gestaciones.find(item => item.poza === poza && !item.fechaParto);
             if (gestacion) gestacion.fechaParto = fecha;
             document.getElementById('parto-poza').value = '';
+            document.getElementById('parto-madre').value = '';
+            document.getElementById('parto-previos').value = '';
             document.getElementById('parto-vivas').value = '';
             document.getElementById('parto-muertas').value = '0';
             guardarBD('Parto registrado correctamente');
+            return true;
         }
 
         function guardarDestete(e) {
@@ -3928,7 +4018,7 @@
         // Base clínica interna (referencial, cuy adulto ~1 kg): el protocolo se aplica al diagnóstico detectado; validar con veterinario.
         const PATOLOGIAS_DR_CUY = {
             timpanismo: { claves: ['timpan', 'meteor', 'hinchaz', 'distensi', 'abdomen distend', 'gas'], enfermedad: 'Timpanismo / Meteorismo (hinchazón por forraje tierno o sin oreado)', farmaco_dosis: '[💧 VÍA ORAL] Simeticona gotas 0.3-0.5 ml cada 6-8 h + masaje abdominal suave; retirar forraje verde y dar heno', dias: '1-2 días (hasta que baje la distensión); si no mejora en 2-3 horas, llamar al veterinario', accion: 'Aislar al animal, retirar de inmediato el forraje fresco, mantenerlo en movimiento y desinfectar paredes y pisos de la poza', prevencion: 'Oreado obligatorio del pasto 8-12 horas antes de ofrecerlo; no dar forraje tierno, mojado o fermentado; transición gradual de forrajes; balance de concentrado' },
-            salmonelosis: { claves: ['salmonel', 'puntos blancos', 'higado', 'hígado', 'paratifoidea'], enfermedad: 'Salmonelosis', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Complejo B 0.2 ml/animal SC + suero oral', dias: '5 días', accion: 'Aislamiento estricto de afectados, retirar cama y heces, desinfectar paredes y pisos de la poza y comederos/bebederos', prevencion: 'Control de calidad del agua (limpia y clorada), forraje limpio sin heces de roedores, control de roedores, cuarentena de 15-21 días para animales nuevos y balance de concentrado' },
+            salmonelosis: { claves: ['salmonel', 'puntos blancos', 'higado', 'hígado', 'paratifoidea'], enfermedad: 'Sospecha de salmonelosis', farmaco_dosis: 'No medicar por cuenta propia; consultar al veterinario y confirmar la causa.', dias: 'Según evaluación veterinaria', accion: 'Aislar afectados, registrar bajas y manejar cadáveres con guantes; consultar el entierro sanitario permitido por la normativa local y desinfectar la poza.', prevencion: 'Agua y forraje limpios, control de roedores, cuarentena y concentrado balanceado.' },
             sarna: { claves: ['sarna', 'acaro', 'ácaro', 'trixacarus', 'ectopar', 'costras', 'rascado'], enfermedad: 'Sarna (ácaros)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina; repetir a los 7-10 días) + Vitamina AD3E/C 0.2 ml/animal SC', dias: '2 dosis separadas por 7-10 días', accion: 'Aislamiento estricto, cambiar cama, desinfectar paredes, pisos y jaulas, revisar a todos los contactos', prevencion: 'Cuarentena de nuevos animales, cama limpia y seca, no mezclar lotes, control de calidad del agua y concentrado balanceado' },
             tina: { claves: ['tiña', 'tina', 'hongo', 'dermatofit', 'trichophyton', 'micosis', 'alopecia circular'], enfermedad: 'Tiña (hongos, Trichophyton)', farmaco_dosis: 'Miconazol o clotrimazol tópico 1-2 veces al día (o yodo 2% local) + Griseofulvina 25 mg/kg oral cada 24 h en casos extensos', dias: '14-21 días (continuar 7 días tras la curación visible)', accion: 'Aislamiento estricto, usar guantes (zoonosis), desinfectar paredes y pisos con solución antifúngica y cambiar la cama', prevencion: 'Cuarentena de nuevos animales, reducir humedad y hacinamiento, cama seca, control de agua y concentrado balanceado con vitaminas' },
             neumonia: { claves: ['neumon', 'pulmon', 'pulmón', 'respirat', 'tos', 'estornud', 'jadeo', 'pasteurel', 'bordetel'], enfermedad: 'Neumonía', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC o IM cada 24 h + Vitamina AD3E/C 0.2 ml/animal SC', dias: '5-7 días', accion: 'Aislamiento estricto, ventilar sin corrientes de aire directas, retirar cama húmeda y desinfectar paredes y pisos', prevencion: 'Evitar humedad, polvo y amoníaco; sin cambios bruscos de temperatura; cuarentena de nuevos animales; control de calidad del agua y concentrado balanceado' },
@@ -3937,7 +4027,7 @@
             ,
             reproductoras: { enfermedad: 'Control sanitario de reproductoras (cada 3 meses o antes del empadre)', farmaco_dosis: '[💉 INYECTABLE - Subcutáneo (SC)] Ivermectina 1% 0.03 ml/kg + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: 'Cada 3 meses o 7-10 días antes del empadre', accion: 'Aplicar con la poza limpia y desinfectada; no aplicar a hembras en el último tercio de gestación sin indicación del veterinario', prevencion: 'Cama seca, forraje oreado 8-12 horas, agua limpia y concentrado balanceado con vitamina C' },
             destete: { enfermedad: 'Protocolo de destete y prevención (desparasitación integral)', farmaco_dosis: '[💉 INYECTABLE - Subcutáneo (SC)] Ivermectina 1% 0.03 ml/kg + [💉 INYECTABLE - Subcutáneo (SC)] Complejo B 0.2 ml + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: 'Todo en una sola visita al destetar; 2ª dosis de ivermectina sola a los 7-10 días', accion: 'Pasar los destetados a una poza limpia y desinfectada (cal o Banodine), separar por sexo y tamaño, transición gradual de la dieta y vigilar a diario las primeras 2 semanas', prevencion: 'Forraje oreado 8-12 horas, agua limpia, concentrado balanceado con vitamina C, baja densidad por poza, cuarentena de animales nuevos y repetir la dosis a los 7-10 días' },
-            abortos: { enfermedad: 'Abortos en reproductoras', farmaco_dosis: 'Enrofloxacina 5% 0.1 ml/kg SC cada 24 h solo si hay fiebre, secreción o sospecha de infección + Vitamina C 0.2 ml SC + Complejo B 0.2 ml SC', dias: '5 días', accion: 'Aislar a la hembra, retirar feto y placenta con guantes, enterrarlos con cal viva, revisar forraje y agua, y desinfectar paredes y pisos de la poza', prevencion: 'Forraje oreado 8-12 horas y sin moho; agua limpia; evitar golpes, hacinamiento y estrés; vitamina C en la dieta y concentrado balanceado; cuarentena de animales nuevos' },
+            abortos: { enfermedad: 'Abortos en reproductoras', farmaco_dosis: 'Consultar al veterinario; no medicar sin evaluación.', dias: 'Según evaluación veterinaria', accion: 'Aislar a la hembra, manipular feto y placenta con guantes, consultar sobre muestras y eliminación sanitaria, revisar agua y alimento y desinfectar la poza.', prevencion: 'Controlar abortos y asegurar vitamina C en la dieta con orientación profesional; evitar golpes, hacinamiento y estrés.' },
             ectoparasitos: { enfermedad: 'Pulgas y piojos (ectoparásitos)', farmaco_dosis: 'Ivermectina 1% 0.03 ml/kg SC (jeringa de insulina) + piretrina o azufre en polvo sobre pelaje y cama', dias: '1 dosis, repetir a los 7-10 días (2 aplicaciones)', accion: 'Aislar afectados, cambiar toda la cama (quemar o enterrar con cal), desinfectar paredes y pisos y tratar a los contactos', prevencion: 'Cama seca y limpia, cal en pisos y esquinas, control de roedores y aves, cuarentena de animales nuevos, forraje oreado 8-12 horas y concentrado balanceado' },
             prepucio: { enfermedad: 'Problemas en el prepucio (prolapso / viruta atrapada)', farmaco_dosis: '[🧴 USO TÓPICO] Lavado con suero tibio o yodo diluido; retirar viruta o pelos con cuidado + [🧴 USO TÓPICO] pomada antibiótica (oxitetraciclina o nitrofurazona) 1-2 veces al día + [💉 INYECTABLE - Subcutáneo (SC)] Vitamina C 0.2 ml', dias: '5-7 días (prolapso grave: veterinario)', accion: 'Aislar al macho, cambiar la viruta por cama suave, desinfectar paredes y pisos de la poza', prevencion: 'No usar viruta fina ni aserrín; revisar machos cada semana; cama limpia y seca; agua de calidad y concentrado balanceado con vitamina C' }
         };
@@ -3956,8 +4046,6 @@
             timpanismo: { calc: [['simeticona', 'oral, cada 6-8 h']], fijo: ['masaje abdominal suave; retirar el forraje verde y dar heno'] },
             reproductoras: { calc: [['ivermectina', 'SC en el pliegue del cuello']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC'] },
             destete: { calc: [['ivermectina', 'SC al destete (acción dual: parásitos internos y externos); REPETIR a los 7-10 días solo para romper el ciclo de los parásitos externos (piojos, pulgas y sarna)']], fijo: ['Complejo B 0.2 ml SC', 'Vitamina C 0.2 ml SC (contra el estrés del cambio de dieta)'] },
-            abortos: { calc: [['enrofloxacina', 'SC cada 24 h, solo si hay fiebre, secreción o sospecha de infección']], fijo: ['Vitamina C 0.2 ml SC', 'Complejo B 0.2 ml SC'] },
-            salmonelosis: { calc: [['enrofloxacina', 'SC o IM cada 24 h']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
             coccidiosis: { calc: [['toltrazuril', 'oral']], fijo: ['Complejo B 0.2 ml SC', 'suero oral (beber o con jeringa sin aguja)'] },
             sarna: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['Vitamina AD3E/C 0.2 ml SC'] },
             ectoparasitos: { calc: [['ivermectina', IVERM_DOSIS2]], fijo: ['piretrina o azufre en polvo sobre pelaje y cama'] },
@@ -4401,6 +4489,13 @@
         function eliminarItem(tipo, index) {
             if (confirm("¿Está seguro de eliminar este registro permanentemente?")) {
                 const coleccion = tipo === 'salud' ? 'tratamientos' : tipo;
+                if (coleccion === 'partos') {
+                    const eliminado = db.partos[index];
+                    if (eliminado && eliminado.madre && Number.isInteger(eliminado.partosPrevios) && eliminado.partosPrevios > 0) {
+                        const otro = db.partos.find((parto, posicion) => posicion !== index && String(parto.madre || '').trim().toUpperCase() === String(eliminado.madre).trim().toUpperCase());
+                        if (otro) otro.partosPrevios = (Number(otro.partosPrevios) || 0) + eliminado.partosPrevios;
+                    }
+                }
                 db[coleccion].splice(index, 1);
                 guardarBD("Registro eliminado", "error");
             }
@@ -4562,6 +4657,22 @@
         }
 
         // Un parto por madre se estima con la proporci\u00f3n 1 macho : 6 hembras del pie de cr\u00eda.
+        function obtenerReproductorasDescarte(partos) {
+            const madres = new Map();
+            partos.forEach(parto => {
+                const madre = String(parto.madre || '').trim().toUpperCase();
+                if (!madre) return;
+                const registro = madres.get(madre) || { madre, partos: 0, fecha: '', poza: '' };
+                registro.partos += 1 + (Number.isInteger(parto.partosPrevios) && parto.partosPrevios > 0 ? parto.partosPrevios : 0);
+                if (!registro.fecha || String(parto.fecha) > registro.fecha) {
+                    registro.fecha = String(parto.fecha);
+                    registro.poza = parto.poza;
+                }
+                madres.set(madre, registro);
+            });
+            return [...madres.values()].filter(madre => madre.partos >= 4);
+        }
+
         function estadoCicloPoza(poza, c) {
             const codigo = claveUnicaPoza(poza.codigo || poza.id);
             const desde = poza.cicloDesde || '';
@@ -4569,45 +4680,31 @@
             const hembras = c.adultos > 0 ? Math.max(1, Math.round(c.adultos * 6 / 7)) : 0;
             const porMadre = hembras ? partos.length / hembras : 0;
             let nivel = 'ok', texto = hembras ? 'Ciclo \u00fatil normal' : 'Sin reproductoras adultas';
-            if (hembras && porMadre >= 5) { nivel = 'rojo'; texto = '\ud83d\udd34 Descartar y recambiar: 5 partos por reproductora'; }
-            else if (hembras && porMadre >= 4) { nivel = 'ambar'; texto = '\ud83d\udfe1 Ya cumplió su ciclo productivo (4.º parto): descartar, no gastar más alimento'; }
+            if (obtenerReproductorasDescarte(db.partos).some(madre => claveUnicaPoza(madre.poza) === codigo)) { nivel = 'ambar'; texto = 'Madre identificada con 4 o más partos'; }
             return { partos: partos.length, hembras, porMadre, nivel, texto };
         }
 
         function renderDescarte() {
-            const lista = obtenerPozasUnicas().map(poza => {
-                const codigo = claveUnicaPoza(poza.codigo || poza.id);
-                return { codigo, ciclo: estadoCicloPoza(poza, obtenerConteosRacionPoza(poza)), partos: db.partos.filter(p => claveUnicaPoza(p.poza) === codigo && String(p.fecha) >= (poza.cicloDesde || '')) };
-            }).filter(x => x.ciclo.nivel !== 'ok');
+            const lista = obtenerReproductorasDescarte(db.partos);
             const badge = document.getElementById('badge-descarte');
             if (badge) badge.textContent = lista.length;
             const alerta = document.getElementById('alerta-descarte');
             if (alerta) {
                 alerta.classList.toggle('hidden', !lista.length);
-                document.getElementById('alerta-descarte-texto').textContent = `⚠️ Fin de ciclo: ${lista.map(x => x.codigo).join(', ')} con reproductoras en su 4.º parto o más. Ya cumplieron su ciclo productivo; descártalas para no gastar alimento en animales improductivos.`;
+                document.getElementById('alerta-descarte-texto').textContent = `⚠️ Madres con 4 o más partos: ${lista.map(x => x.madre).join(', ')}.`;
             }
             const tbody = document.getElementById('tabla-descarte');
             if (!tbody) return;
             const fila = (x) => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-stone-100';
-                const ultimo = x.partos.map(p => String(p.fecha)).sort().pop() || '—';
-                [x.codigo, x.ciclo.hembras, x.ciclo.partos, x.ciclo.porMadre.toFixed(1), ultimo, x.ciclo.texto].forEach(v => { const td = document.createElement('td'); td.className = 'p-4'; td.textContent = v; tr.append(td); });
-                const td = document.createElement('td');
-                td.className = 'p-4';
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.textContent = 'Registrar recambio hecho';
-                b.className = 'rounded-lg border border-stone-400 bg-white px-3 py-2 text-xs font-bold';
-                b.addEventListener('click', () => registrarRecambioPoza(x.codigo));
-                td.append(b);
-                tr.append(td);
+                [x.madre, x.poza, x.partos, x.fecha || '—', 'En descarte'].forEach(v => { const td = document.createElement('td'); td.className = 'p-4'; td.textContent = v; tr.append(td); });
                 return tr;
             };
             if (!lista.length) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 7;
+                td.colSpan = 5;
                 td.className = 'p-4 text-center text-stone-400';
                 td.textContent = 'Ninguna reproductora ha llegado al 4.º parto.';
                 tr.append(td);
@@ -4879,7 +4976,7 @@
                     if (datosSinRegistros(nuevo)) throw new Error('Backup vacío o inválido');
                     respaldarEmergencia('restaurar-backup');
                     db = nuevo;
-                    db._ts = Date.now();
+                    db._ts = Math.max(Date.now(), (Number(db._ts) || 0) + 1);
                     normalizarDB();
                     guardarBD("Base de datos restaurada con éxito");
                 } catch (err) {
@@ -4945,14 +5042,22 @@
 
         // Inicialización
         document.getElementById('temperatura-form').addEventListener('submit', guardarTemperatura);
-        cargarDatos();
-        registrarControlesCampo();
-        renderizarTodo();
-        if (!navigator.onLine) establecerEstadoNube('offline');
-        sincronizarConNube();
-        conectarTiempoReal();
-        setInterval(sincronizarConNube, 5000);
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizarConNube(); });
+        cargarDatos().then(() => {
+            registrarControlesCampo();
+            renderizarTodo();
+            cargarRacionGuardada();
+            if (!conexionLocal) mostrarToast('IndexedDB no está disponible; los datos dependen del almacenamiento local. Descarga respaldos.', 'error');
+            if (!navigator.onLine) establecerEstadoNube('offline');
+            sincronizarConNube();
+            conectarTiempoReal();
+            setInterval(sincronizarConNube, 5000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizarConNube(); });
+            document.getElementById('app-container').inert = false;
+            document.getElementById('voice-fab').inert = false;
+        }).catch(error => {
+            console.error('No se inició SisGranja para proteger los datos:', error);
+            alert('No se pudo iniciar sin riesgo para los datos locales: ' + error.message + ' Cierra otras pestañas y solicita ayuda antes de borrar datos del navegador.');
+        });
         let temporizadorResize;
         window.addEventListener('resize', () => {
             clearTimeout(temporizadorResize);
@@ -5203,31 +5308,40 @@
                         if (!n) return fallo('Indica en qué poza fue el parto');
                         const codigo = codigoPoza(n);
                         if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + n + ' no existe');
-                        let resto = t.replace(/poza\s*\d+/g, ' ');
+                        const madre = (t.match(/\bmadre\s+([a-z0-9_-]+)/) || [])[1];
+                        if (!madre) return fallo('Indica el código de la madre');
+                        const previos = (t.match(/\b(\d+)\s+partos?\s+previos?\b/) || [])[1] || '';
+                        let resto = t.replace(/poza\s*\d+/g, ' ').replace(/\bmadre\s+[a-z0-9_-]+/, ' ').replace(/\b\d+\s+partos?\s+previos?\b/, ' ');
                         const muertas = (resto.match(/(\d+)\s*(?:muertas?|muertos?|natos?)/) || [])[1] || '0';
                         resto = resto.replace(/(\d+)\s*(?:muertas?|muertos?|natos?)/, ' ').replace(/\b1\s+parto\b/, ' ');
                         const vivas = (resto.match(/\d+/) || [])[0];
                         if (vivas === undefined) return fallo('Indica cuántas crías nacieron');
                         irA('partos');
                         ponerValor('parto-poza', codigo);
+                        ponerValor('parto-madre', madre);
+                        ponerValor('parto-previos', previos);
                         ponerValor('parto-vivas', vivas);
                         ponerValor('parto-muertas', muertas);
-                        guardarParto(evento);
+                        if (!guardarParto(evento)) return fallo('No se guardó el parto; verifica la madre y sus partos previos');
                         exito('Parto registrado en la poza ' + n + ': ' + vivas + ' crías');
                     }
                 },
                 {   // viejo formato estricto de nacimientos
                     patron: /(?:poza\s*(\d+).*?(?:nacid\w*|nacieron)\s*(\d+)|(?:nacid\w*|nacieron)\s*(\d+).*?poza\s*(\d+))(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
                     requiere: /^(?!.*cuant)(?=.*(?:nacid|nacieron))/,
-                    ejecutar(m) {
+                    ejecutar(m, t) {
                         const n = m[1] || m[4], vivas = m[2] || m[3];
+                        const madre = (t.match(/\bmadre\s+([a-z0-9_-]+)/) || [])[1];
+                        if (!madre) return fallo('Indica el código de la madre');
                         const codigo = codigoPoza(n);
                         if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + n + ' no existe');
                         irA('partos');
                         ponerValor('parto-poza', codigo);
+                        ponerValor('parto-madre', madre);
+                        ponerValor('parto-previos', (t.match(/\b(\d+)\s+partos?\s+previos?\b/) || [])[1] || '');
                         ponerValor('parto-vivas', vivas);
                         ponerValor('parto-muertas', m[5] || '0');
-                        guardarParto(evento);
+                        if (!guardarParto(evento)) return fallo('No se guardó el parto; verifica la madre y sus partos previos');
                         exito('Parto registrado en la poza ' + n + ': ' + vivas + ' crías');
                     }
                 },
@@ -5263,15 +5377,19 @@
                 {   // "registrar parto en poza 15 con 4 gazapos [y 1 muerta]"
                     patron: /parto.*?poza\s*(\d+)(?:.*?(\d+)\s*(?:gazapos?|crias?|vivas?|vivos?))?(?:.*?(\d+)\s*(?:muertas?|muertos?|natos?))?/,
                     requiere: /registr|anota|agrega|nuevo|hubo|tuvo/,
-                    ejecutar(m) {
+                    ejecutar(m, t) {
                         const codigo = codigoPoza(m[1]);
                         if (!obtenerCodigosPozas().includes(codigo)) return fallo('La poza ' + m[1] + ' no existe');
                         if (m[2] === undefined) return fallo('Indica cuántas crías nacieron');
+                        const madre = (t.match(/\bmadre\s+([a-z0-9_-]+)/) || [])[1];
+                        if (!madre) return fallo('Indica el código de la madre');
                         irA('partos');
                         ponerValor('parto-poza', codigo);
+                        ponerValor('parto-madre', madre);
+                        ponerValor('parto-previos', (t.match(/\b(\d+)\s+partos?\s+previos?\b/) || [])[1] || '');
                         ponerValor('parto-vivas', m[2]);
                         ponerValor('parto-muertas', m[3] || '0');
-                        guardarParto(evento);
+                        if (!guardarParto(evento)) return fallo('No se guardó el parto; verifica la madre y sus partos previos');
                         exito('Registrado correctamente');
                     }
                 },
@@ -5469,8 +5587,7 @@
                     titulo: 'Diarreas / enteritis', icono: '🩺',
                     secciones: [
                         ['Posible causa / diagnóstico', 'Salmonelosis (Salmonella), coccidiosis (Eimeria) o alimentación contaminada o con exceso de forraje mojado.'],
-                        ['Medicación o tratamiento', 'Suero de rehidratación, retiro del forraje húmedo y antibiótico (enrofloxacina) si se sospecha bacteria; para coccidiosis, anticoccidial (sulfas o toltrazuril) según etiqueta y peso. No use penicilinas.'],
-                        ['Dosis y vía', 'Enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea, por 5 a 7 días. Vitamina C 30 a 50 mg/día vía oral.'],
+                        ['Medicación o tratamiento', 'Consulte al veterinario para evaluar la causa y la hidratación. No medique solo por una sospecha.'],
                         ['Aislamiento y bioseguridad', 'Aísle y desinfecte la poza (la salmonelosis puede pasar a personas): use guantes, retire cama contaminada, controle roedores y evite forraje húmedo.']
                     ], pie: AVISO_VET, accion: abrirDrCuy
                 },
@@ -5498,10 +5615,9 @@
                     re: /absces|bulto|nodulo|linfadenitis|\bpus\b|papera|\btumor\b|hinchazon (?:en )?(?:el )?(?:cuello|mandibula)/,
                     titulo: 'Abscesos / linfadenitis', icono: '🩺',
                     secciones: [
-                        ['Posible causa / diagnóstico', 'Infección por Streptococcus zooepidemicus u otras bacterias, que entran por heridas en la boca o la piel (pasto duro, peleas, clavos).'],
-                        ['Medicación o tratamiento', 'Drene el absceso maduro con técnica estéril, lave con yodo o clorhexidina y cure a diario. Antibiótico según el veterinario. Animales con casos recurrentes: descarte, no los use para reproducir.'],
-                        ['Dosis y vía', 'Enrofloxacina 5 a 10 mg/kg cada 12 a 24 h, vía oral o subcutánea, por 7 a 10 días tras el drenaje.'],
-                        ['Aislamiento y bioseguridad', 'Aísle al animal, no deje que otros toquen el pus, desinfecte la poza y use guantes: puede contagiar.']
+                        ['Posible causa / diagnóstico', 'Un bulto puede tener distintas causas; la linfadenitis requiere evaluación veterinaria y, cuando corresponda, confirmación.'],
+                        ['Medicación o tratamiento', 'No drene el absceso ni administre antibióticos por cuenta propia. Consulte al veterinario sobre el aislamiento y el descarte sanitario.'],
+                        ['Aislamiento y bioseguridad', 'Aísle al animal, evite el contacto con el pus, use guantes y desinfecte la poza.']
                     ], pie: AVISO_VET, accion: abrirDrCuy
                 },
                 {
